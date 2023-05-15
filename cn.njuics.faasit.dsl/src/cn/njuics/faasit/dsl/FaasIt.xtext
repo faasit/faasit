@@ -1,0 +1,9 @@
+grammar cn.njuics.faasit.dsl.FaasIt with org.eclipse.xtext.common.Terminals
+
+generate faasIt "http://www.njuics.cn/faasit/FaasIt"
+
+Model:
+	greetings+=Greeting*;
+	
+Greeting:
+	'Hello' name=ID ('from' from=[Greeting])? '!';

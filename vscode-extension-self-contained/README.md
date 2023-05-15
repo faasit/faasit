@@ -14,7 +14,7 @@ Greeting:
 
 A typical example model would look like (Open a new folder in VSCode and create the files)
 
-a.mydsl
+a.faasit
 ```
 Hello Xtext!
 Hello VSCode from Xtext!
@@ -22,7 +22,7 @@ Hello ThisFile from Other!
 Hello you!
 ```
 
-b.mydsl
+b.faasit
 ```
 /* this is a definition in another file */
 Hello Other!

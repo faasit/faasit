@@ -25,3 +25,5 @@ out/
 .gradle/
 build/
 !gradle-wrapper.jar
+
+.DS_Store

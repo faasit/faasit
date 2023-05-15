@@ -21,7 +21,7 @@ node {
 }
 
 // Configuration for Xtext projects
-configure(subprojects.findAll { it.name.startsWith('org.xtext') }) {
+configure(subprojects.findAll { it.name.startsWith('cn.njuics.faasit') }) {
 	ext.xtextVersion = '2.30.0'
 	repositories {
 		maven {
@@ -39,7 +39,7 @@ configure(subprojects.findAll { it.name.startsWith('org.xtext') }) {
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
 	
-	group = 'org.xtext.example.mydsl'
+	group = 'cn.njuics.faasit.dsl'
 	version = '1.0.0-SNAPSHOT'
 	
 	sourceCompatibility = '1.8'

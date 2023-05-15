@@ -1,8 +1,8 @@
 {
     "name": "MyDsl",
-    "scopeName": "text.mydsl",
+    "scopeName": "text.faasit",
     "fileTypes": [
-        "mydsl"
+        "faasit"
     ],
     "repository": {
         "general": {
@@ -19,18 +19,18 @@
             ]
         },
         "linecomment": {
-            "name": "comment.line.double-dash.mydsl",
+            "name": "comment.line.double-dash.faasit",
             "begin": "(^[ \\t]+)?(?=//)",
             "end": "(?=$)"
         },
         "blockcomment": {
-            "name": "comment.block.mydsl",
+            "name": "comment.block.faasit",
             "begin": "/\\*(\\*)?(?!/)",
             "end": "\\*/"
         },
         
         "keyword": {
-            "name": "keyword.control.mydsl",
+            "name": "keyword.control.faasit",
             "match": "\\b(Hello|from)\\b|!"
 
         }

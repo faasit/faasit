@@ -1,17 +1,16 @@
 {
-    "name": "xtext-vscode-example",
-    "displayName": "Xtext VS Code example",
-    "description": "A simple DSL example for VS Code",
-    "version": "0.0.32",
-    "publisher": "itemis",
-    "icon": "images/itemis.png",
-    "license": "EPL-1.0",
+    "name": "faasit",
+    "displayName": "FaasIt Language Support",
+    "description": "Language support for FaasIt",
+    "version": "0.0.1",
+    "publisher": "brody715",
+    "license": "MIT",
     "repository": {
         "type": "git",
-        "url": "https://github.com/itemis/xtext-languageserver-example.git"
+        "url": "https://github.com/brody715/faasit.git"
     },
     "bugs": {
-        "url": "https://github.com/itemis/xtext-languageserver-example/issues"
+        "url": "https://github.com/brody715/faasit/issues"
     },
     "engines": {
         "vscode": "^1.67.1"
@@ -20,36 +19,36 @@
         "Programming Languages"
     ],
     "activationEvents": [
-        "onLanguage:mydsl"
+        "onLanguage:faasit"
     ],
     "main": "out/extension",
     "contributes": {
         "languages": [
             {
-                "id": "mydsl",
+                "id": "faasit",
                 "aliases": [
-                    "mydsl"
+                    "faasit"
                 ],
                 "extensions": [
-                    ".mydsl"
+                    ".ft"
                 ],
-                "configuration": "./mydsl.configuration.json"
+                "configuration": "./faasit.configuration.json"
             }
         ],
         "grammars": [
             {
-                "language": "mydsl",
-                "scopeName": "text.mydsl",
-                "path": "./syntaxes/mydsl.tmLanguage.json"
+                "language": "faasit",
+                "scopeName": "text.faasit",
+                "path": "./syntaxes/faasit.tmLanguage.json"
             }
         ],
         "commands": [
             {
-                "command": "mydsl.a.proxy",
+                "command": "faasit.a.proxy",
                 "title": "MyDsl Command A"
             },
             {
-                "command": "mydsl.b",
+                "command": "faasit.b",
                 "title": "MyDsl Command B"
             }
         ]

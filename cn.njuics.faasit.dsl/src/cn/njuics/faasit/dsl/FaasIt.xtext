@@ -7,14 +7,11 @@ Model:
   blocks+=Block*;
 
 Import:
-  'import' '(' uri=STRING ')' ;
+  'import' '(' url=STRING ')' ;
 
 // block is the core component of our DSL
 Block:
-	block_type=ID name=ID ('for' for_target=ID)? '{'
-		props+=Property*
-	'}' |
-	block_type=ID '{'
+	block_type=ID (name=ID)? ('for' for_target=ID)? '{'
 		props+=Property*
 	'}' |
 	'{'
@@ -26,8 +23,10 @@ Property:
 
 Expr: QualifiedName | Literal | ListExpr | TypeCallExpr | Block;
 
+// OptionalExpr: expr=NonOptionalExpr '?';
+
 ListExpr:
-	'[' elements+=Expr (',' elements+=Expr)* ']';
+	'[' (elements+=Expr (',' elements+=Expr)*)? ']';
 
 TypeCallExpr: QualifiedName '<' elements+=Expr (',' elements+=Expr)* '>';
 
@@ -38,5 +37,4 @@ QualifiedName:
   ID ('.' ID)*;
 
 terminal BOOL:
-	 'true' | 'false'
-;
+	 'true' | 'false';

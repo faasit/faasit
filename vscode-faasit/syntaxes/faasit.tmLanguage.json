@@ -1,0 +1,78 @@
+{
+  "name": "FaasIt",
+  "scopeName": "source.faasit",
+  "fileTypes": ["faasit"],
+  "repository": {
+    "general": {
+      "patterns": [
+        {
+          "include": "#linecomment"
+        },
+        {
+          "include": "#blockcomment"
+        },
+        {
+          "include": "#keyword"
+        },
+        {
+          "include": "#string"
+        },
+        {
+          "include": "#numeric"
+        }
+      ]
+    },
+    "linecomment": {
+      "name": "comment.line.double-dash.faasit",
+      "begin": "(^[ \\t]+)?(?=//)",
+      "end": "(?=$)"
+    },
+    "blockcomment": {
+      "name": "comment.block.faasit",
+      "begin": "/\\*(\\*)?(?!/)",
+      "end": "\\*/"
+    },
+    "keyword": {
+      "name": "keyword.control.faasit",
+      "match": "\\b(block|struct|import|extension)\\b|!"
+    },
+    "string": {
+      "name": "string.quoted.double.faasit",
+      "begin": "\"",
+      "end": "\"",
+      "patterns": [
+        {
+          "include": "#escape"
+        }
+      ]
+    },
+    "escape": {
+      "name": "constant.character.escape.faasit",
+      "match": "\\\\."
+    },
+    "numeric": {
+      "patterns": [
+        {
+          "include": "#integer"
+        },
+        {
+          "include": "#float"
+        }
+      ],
+      "name": "constant.numeric.faasit"
+    },
+    "integer": {
+      "name": "constant.numeric.integer.faasit",
+      "match": "\\b[0-9]+\\b"
+    },
+    "float": {
+      "name": "constant.numeric.float.faasit",
+      "match": "\\b[0-9]+\\.[0-9]+\\b"
+    }
+  },
+  "patterns": [
+    {
+      "include": "#general"
+    }
+  ]
+}

@@ -1,5 +1,8 @@
 import (
   "core/sema"
+)
+
+import (
   "core/swagger"
 )
 
@@ -24,13 +27,18 @@ extension example {
 struct Page {
   total = int
   page = int
-  pageSize = int?
-  data = any
+  pageSize = int
+  data = [T]
+}
+
+struct A {
+  name = string
+  age = int
 }
 
 // use custom blocks
 
-@function GetEmail {
+function GetEmail {
   inputs = {
     receiver = string
   }
@@ -44,9 +52,9 @@ struct Page {
   }
 }
 
-@k8s_resource for GetEmail {
+k8s_resource for GetEmail {
   limits = {
-    cpu = "1000m",
+    cpu = "1000m"
     cpu2 = "120m"
   }
 

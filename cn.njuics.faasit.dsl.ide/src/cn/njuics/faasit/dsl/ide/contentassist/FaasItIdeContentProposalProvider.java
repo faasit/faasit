@@ -13,9 +13,12 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.inject.Inject;
 
+/**
+ * @author brody
+ */
 public class FaasItIdeContentProposalProvider extends IdeContentProposalProvider {
 	@Inject
-	private FaasItGrammarAccess myDslGrammarAccess;
+	private FaasItGrammarAccess faasItGrammarAccess;
 
 	@Inject
 	private IScopeProvider scopeProvider;
@@ -23,7 +26,7 @@ public class FaasItIdeContentProposalProvider extends IdeContentProposalProvider
 	@Override
 	protected void _createProposals(RuleCall ruleCall, ContentAssistContext context,
 			IIdeContentProposalAcceptor acceptor) {
-		if (myDslGrammarAccess.getBlockRule().equals(ruleCall.getRule()) && context.getCurrentModel() != null) {
+		if (faasItGrammarAccess.getBlockRule().equals(ruleCall.getRule()) && context.getCurrentModel() != null) {
 			IScope scope = scopeProvider.getScope(context.getCurrentModel(), FaasItPackage.Literals.BLOCK__PROPS);
 			acceptor.accept(getProposalCreator().createSnippet(
 					"Hello ${1|A,B,C|} from ${2|" + Joiner.on(",")

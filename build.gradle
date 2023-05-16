@@ -29,7 +29,7 @@ configure(subprojects.findAll { it.name.startsWith('cn.njuics.faasit') }) {
 		}
 		mavenCentral()
 	}
-	
+
 	apply plugin: 'java-library'
 	dependencies {
 		api platform("org.eclipse.xtext:xtext-dev-bom:${xtextVersion}")
@@ -38,13 +38,13 @@ configure(subprojects.findAll { it.name.startsWith('cn.njuics.faasit') }) {
 	apply from: "${rootDir}/gradle/source-layout.gradle"
 	apply plugin: 'eclipse'
 	apply plugin: 'idea'
-	
+
 	group = 'cn.njuics.faasit.dsl'
 	version = '1.0.0-SNAPSHOT'
-	
+
 	sourceCompatibility = '1.17'
 	targetCompatibility = '1.17'
-	
+
 	configurations.all {
 		exclude group: 'asm'
 	}
@@ -52,7 +52,7 @@ configure(subprojects.findAll { it.name.startsWith('cn.njuics.faasit') }) {
 }
 
 task npmInstallVsce(type: NpmTask, dependsOn: npmSetup) {
-	ext.destPath = "$rootProject.projectDir/node_modules/vsce" 
+	ext.destPath = "$rootProject.projectDir/node_modules/vsce"
 	outputs.dir(destPath)
 	group 'Node'
 	description 'Installs the NodeJS package "Visual Studio Code Extension Manager"'
@@ -70,7 +70,7 @@ configure(subprojects.findAll { it.name.startsWith('vscode') }) {
 	}
 
 	def inputFiles = fileTree(
-		dir: projectDir, 
+		dir: projectDir,
 		excludes: [ 'out/**', '.gitignore', '.gradle/**', 'build/**', '*.gradle' ]
 	)
 
@@ -103,7 +103,7 @@ configure(subprojects.findAll { it.name.startsWith('vscode') }) {
 			delete vscodeExtension.destDir
 			delete 'out' // output of npmInstall - don't want to delete node_modules
 		}
-		
+
 	}
 
 }
@@ -121,8 +121,7 @@ updateVersion {
 			def versionPattern = /\d+.\d+(.\d+)?/
 			def encoding = 'UTF-8'
 			def filesToUpdate = [
-				new File('vscode-extension', 'package.json'),
-				new File('vscode-extension-self-contained', 'package.json'),
+				new File('vscode-faasit', 'package.json'),
 			]
 
 			// String replacements - isn't long enough to justify advanced code ;)
@@ -137,7 +136,7 @@ updateVersion {
 
 release {
     tagTemplate = 'v${version}'
-	preTagCommitMessage = '[release] pre tag commit: '
+		preTagCommitMessage = '[release] pre tag commit: '
     tagCommitMessage = '[release] creating tag: '
     newVersionCommitMessage = '[release] new version commit: '
     failOnSnapshotDependencies = false

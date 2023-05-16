@@ -1,6 +1,4 @@
 include 'cn.njuics.faasit.dsl'
 include 'cn.njuics.faasit.dsl.ide'
-include 'cn.njuics.faasit.dsl.websockets'
 include 'cn.njuics.faasit.dsl.tests'
-include 'vscode-extension'
-include 'vscode-extension-self-contained'
+include 'vscode-faasit'

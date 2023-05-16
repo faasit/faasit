@@ -10,6 +10,7 @@ import org.eclipse.xtext.validation.Check;
  * This class contains custom validation rules. 
  *
  * See https://www.eclipse.org/Xtext/documentation/303_runtime_concepts.html#validation
+ * @author brody
  */
 public class FaasItValidator extends AbstractFaasItValidator {
 	

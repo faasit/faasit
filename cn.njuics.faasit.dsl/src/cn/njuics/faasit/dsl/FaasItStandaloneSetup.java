@@ -6,6 +6,7 @@ package cn.njuics.faasit.dsl;
 
 /**
  * Initialization support for running Xtext languages without Equinox extension registry.
+ * @author brody
  */
 public class FaasItStandaloneSetup extends FaasItStandaloneSetupGenerated {
 

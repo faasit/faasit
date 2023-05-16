@@ -16,7 +16,8 @@
         "vscode": "^1.67.1"
     },
     "categories": [
-        "Programming Languages"
+        "Programming Languages",
+        "Formatters"
     ],
     "activationEvents": [
         "onLanguage:faasit"
@@ -27,6 +28,7 @@
             {
                 "id": "faasit",
                 "aliases": [
+                    "FaasIt",
                     "faasit"
                 ],
                 "extensions": [
@@ -38,20 +40,44 @@
         "grammars": [
             {
                 "language": "faasit",
-                "scopeName": "text.faasit",
+                "scopeName": "source.faasit",
                 "path": "./syntaxes/faasit.tmLanguage.json"
             }
         ],
         "commands": [
             {
-                "command": "faasit.a.proxy",
-                "title": "Faasit Command A"
+                "command": "faasit.a",
+                "title": "FaasIt Command a"
             },
             {
                 "command": "faasit.b",
-                "title": "Faasit Command B"
+                "title": "FaasIt: Command b"
+            },
+            {
+                "command": "faasit.restart",
+                "title": "FaasIt: Restart language server"
             }
-        ]
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "FaasIt",
+            "properties": {
+                "faasit.lspMode": {
+                    "type": "string",
+                    "enum": [
+                        "remote",
+                        "local"
+                    ],
+                    "default": "local",
+                    "description": "Specify whether the remote or local language server should be used."
+                },
+                "faasit.lspPort": {
+                    "type": "number",
+                    "default": 25007,
+                    "description": "Specify the port to use for the language server."
+                }
+            }
+        }
     },
     "devDependencies": {
         "@types/node": "^17.0.34",

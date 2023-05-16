@@ -8,6 +8,9 @@ import cn.njuics.faasit.dsl.faasIt.Model;
 import org.eclipse.xtext.formatting2.AbstractJavaFormatter;
 import org.eclipse.xtext.formatting2.IFormattableDocument;
 
+/**
+ * @author brody
+ */
 public class FaasItFormatter extends AbstractJavaFormatter {
 
 	protected void format(Model model, IFormattableDocument doc) {

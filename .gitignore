@@ -213,6 +213,7 @@ xtend-gen
 .settings/
 .metadata/
 bin/
+!packages/faasit/bin
 
 # IntelliJ
 *.iml

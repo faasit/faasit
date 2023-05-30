@@ -1,4 +1,3 @@
-include 'cn.njuics.faasit.dsl'
-include 'cn.njuics.faasit.dsl.ide'
-include 'cn.njuics.faasit.dsl.tests'
-include 'vscode-faasit'
+include 'java:faasit.dsl'
+include 'java:faasit.dsl.ide'
+include 'java:faasit.dsl.tests'

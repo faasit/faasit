@@ -1,5 +1,18 @@
 {
-  "dependencies": {
-    "vsce": "^2.15.0"
+  "name": "faasit-root",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.2.1",
+    "@vscode/vsce": "^2.19.0",
+    "typescript": "^5.0.4",
+    "unbuild": "^1.2.1",
+    "vitest": "^0.31.1"
   }
 }

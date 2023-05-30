@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "infra-traefik.fullname" . }}-configs
+  labels:
+  {{- include "infra-traefik.labels" . | nindent 4 }}
+data:
+  {{- range $name, $conf := .Values.dynamicConfigs }}
+  {{ $name }}: |-
+    {{- $conf | nindent 4 }}
+  {{- end }}

@@ -1,5 +1,0 @@
-dependencies {
-	api project(':cn.njuics.faasit.dsl')
-	testImplementation "org.eclipse.xtext:org.eclipse.xtext.testing:${xtextVersion}"
-	testImplementation "junit:junit:4.12"
-}

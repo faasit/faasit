@@ -1,0 +1,15 @@
+provider:
+  name: 'openfaas'
+functions:
+  - name: 'hello'
+    runtime: 'nodejs:16'
+    codeDir: './code'
+    resource:
+      cpu: '1024m'
+      memory: '128Mi'
+    triggers:
+      - name: http
+        type: http
+        props:
+          method: 'get'
+          path: '/'

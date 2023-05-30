@@ -7,21 +7,22 @@ buildscript {
 	}
 	dependencies {
 		classpath 'org.xtext:xtext-gradle-plugin:4.0.0'
-		classpath 'com.github.node-gradle:gradle-node-plugin:3.3.0'
+		classpath 'com.github.node-gradle:gradle-node-plugin:5.0.0'
 		classpath 'net.researchgate:gradle-release:2.8.1'
 	}
 }
 
-apply plugin: 'com.github.node-gradle.node'
 apply plugin: 'net.researchgate.release'
+apply plugin: 'com.github.node-gradle.node'
+
 node {
-	version = '16.13.2'
-	npmVersion = '8.3.0'
-	download = true
+	download = false
+	version = '16.14.0'
+	nodeProjectDir = file("${project.projectDir}")
 }
 
 // Configuration for Xtext projects
-configure(subprojects.findAll { it.name.startsWith('cn.njuics.faasit') }) {
+configure(subprojects.findAll { it.name.startsWith('faasit') }) {
 	ext.xtextVersion = '2.30.0'
 	repositories {
 		maven {
@@ -51,77 +52,13 @@ configure(subprojects.findAll { it.name.startsWith('cn.njuics.faasit') }) {
 
 }
 
-task npmInstallVsce(type: NpmTask, dependsOn: npmSetup) {
-	ext.destPath = "$rootProject.projectDir/node_modules/vsce"
-	outputs.dir(destPath)
-	group 'Node'
-	description 'Installs the NodeJS package "Visual Studio Code Extension Manager"'
-	args = [ 'install', 'vsce' ]
-}
-
-// Configuration for vscode projects
-configure(subprojects.findAll { it.name.startsWith('vscode') }) {
-
-	apply plugin: 'com.github.node-gradle.node'
-	node {
-	    version = '16.13.2'
-	    npmVersion = '8.3.0'
-	    download = true
-	}
-
-	def inputFiles = fileTree(
-		dir: projectDir,
-		excludes: [ 'out/**', '.gitignore', '.gradle/**', 'build/**', '*.gradle' ]
-	)
-
-	npmInstall {
-		inputs.files(inputFiles)
-		outputs.dir('out')
-	}
-
-	task vscodeExtension(dependsOn: [npmInstall, npmInstallVsce], type: NodeTask) {
-		ext.destDir = new File(buildDir, 'vscode')
-		ext.archiveName = "$project.name-${project.version}.vsix"
-		ext.destPath = "$destDir/$archiveName"
-		inputs.with {
-			files inputFiles
-			dir npmInstallVsce.destPath
-		}
-		outputs.dir destDir
-		doFirst {
-			destDir.mkdirs()
-		}
-		script = file("$npmInstallVsce.destPath/vsce")
-		args = [ 'package', '--out', destPath ]
-		execOverrides {
-			workingDir = projectDir
-		}
-	}
-
-	task clean {
-		doLast {
-			delete vscodeExtension.destDir
-			delete 'out' // output of npmInstall - don't want to delete node_modules
-		}
-
-	}
-
-}
-
-plugins.withType(com.github.gradle.node.NodePlugin) {
-	node {
-		workDir = file("$rootProject.buildDir/nodejs")
-		nodeModulesDir = rootProject.projectDir
-	}
-}
-
 updateVersion {
 		doLast {
 			// custom code
 			def versionPattern = /\d+.\d+(.\d+)?/
 			def encoding = 'UTF-8'
 			def filesToUpdate = [
-				new File('vscode-faasit', 'package.json'),
+				new File('packages', 'vscode-faasit', 'package.json'),
 			]
 
 			// String replacements - isn't long enough to justify advanced code ;)

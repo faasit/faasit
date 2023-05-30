@@ -1,0 +1,101 @@
+{
+    "name": "vscode-faasit",
+    "displayName": "FaasIt Language Support",
+    "description": "Language support for FaasIt",
+    "version": "0.0.1",
+    "publisher": "brody715",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/brody715/faasit.git"
+    },
+    "bugs": {
+        "url": "https://github.com/brody715/faasit/issues"
+    },
+    "engines": {
+        "vscode": "^1.67.1"
+    },
+    "categories": [
+        "Programming Languages",
+        "Formatters"
+    ],
+    "activationEvents": [
+        "onLanguage:faasit"
+    ],
+    "main": "out/extension",
+    "contributes": {
+        "languages": [
+            {
+                "id": "faasit",
+                "aliases": [
+                    "FaasIt",
+                    "faasit"
+                ],
+                "extensions": [
+                    ".ft"
+                ],
+                "configuration": "./faasit.configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "faasit",
+                "scopeName": "source.faasit",
+                "path": "./syntaxes/faasit.tmLanguage.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "faasit.a",
+                "title": "FaasIt Command a"
+            },
+            {
+                "command": "faasit.b",
+                "title": "FaasIt: Command b"
+            },
+            {
+                "command": "faasit.restart",
+                "title": "FaasIt: Restart language server"
+            }
+        ],
+        "configuration": {
+            "type": "object",
+            "title": "FaasIt",
+            "properties": {
+                "faasit.lspMode": {
+                    "type": "string",
+                    "enum": [
+                        "remote",
+                        "local"
+                    ],
+                    "default": "local",
+                    "description": "Specify whether the remote or local language server should be used."
+                },
+                "faasit.lspPort": {
+                    "type": "number",
+                    "default": 25007,
+                    "description": "Specify the port to use for the language server."
+                }
+            }
+        }
+    },
+    "devDependencies": {
+        "@types/node": "^17.0.34",
+        "@types/vscode": "^1.67.0",
+        "@vscode/test-electron": "^2.1.3",
+        "js-yaml": "^4.1.0",
+        "nodemon": "^2.0.22",
+        "typescript": "^4.6.4"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^8.0.1"
+    },
+    "scripts": {
+        "prepublish": "npm run compile",
+        "precompile": "js-yaml syntaxes/faasit.tmLanguage.yml > syntaxes/faasit.tmLanguage.json",
+        "compile": "tsc -p ./src",
+        "watch-syntax": "nodemon -w syntaxes/ -e yml --exec npm run precompile",
+        "watch": "tsc -w -p ./src",
+        "update-vscode": "node ./node_modules/vscode/bin/install"
+    }
+}

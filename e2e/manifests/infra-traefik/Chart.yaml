@@ -1,0 +1,13 @@
+apiVersion: v2
+name: infra-traefik
+type: application
+
+version: 0.1.0
+
+appVersion: '2.4.8'
+
+dependencies:
+  - name: traefik
+    # version: 9.20.1 # support k8s 1.22
+    version: 10.15.0 # support k8s 1.22
+    repository: https://helm.traefik.io/traefik

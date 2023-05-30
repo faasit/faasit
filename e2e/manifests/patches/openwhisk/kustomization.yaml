@@ -1,0 +1,11 @@
+resources:
+  - all.yaml
+patches:
+  - path: patches/init-couchdb-job.yaml
+    target:
+      kind: Job
+      name: "owdev-init-couchdb"
+  - path: patches/install-package-job.yaml
+    target:
+      kind: Job
+      name: "owdev-install-packages"

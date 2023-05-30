@@ -1,0 +1,15 @@
+{
+  "name": "@faasit/examples",
+  "version": "0.0.0",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "scripts": {
+    "test:unit": "vitest"
+  },
+  "dependencies": {
+    "faasit": "workspace:^"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "ES2020",
+    "target": "es6",
+    "lib": [
+      "es2020"
+    ],
+    "declaration": true,
+    "declarationMap": false,
+    "strictNullChecks": true,
+    "resolveJsonModule": true,
+    "noImplicitAny": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true
+  }
+}

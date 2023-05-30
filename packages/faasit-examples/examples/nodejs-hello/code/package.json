@@ -1,0 +1,4 @@
+{
+  "name": "function-nodejs-hello",
+  "main": "handler.js"
+}

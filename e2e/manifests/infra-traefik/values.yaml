@@ -1,0 +1,105 @@
+traefik:
+  deployment:
+    replicas: 1
+  autoscaling:
+    enabled: true
+    minReplicas: 1
+    maxReplicas: 10
+  resources:
+    limits:
+      cpu: '2000m'
+      memory: '2048Mi'
+    requests:
+      cpu: '100m'
+      memory: '128Mi'
+
+  ingressRoute:
+    dashboard:
+      enabled: true
+
+  ports:
+    web:
+      port: 8080
+      nodePort: 30082
+
+  service:
+    enabled: true
+    type: NodePort
+
+  additionalArguments:
+    - '--providers.file.directory=/config'
+  volumes:
+    - name: traefik-infra-traefik-configs
+      # name: '{{ include "infra-traefik.fullname" . }}-configs'
+      type: configMap
+      mountPath: /config
+
+  logs:
+    general:
+      level: INFO
+
+  env:
+    - name: BASE_HOST
+      value: i2ec.top
+
+  ingressClass:
+    enabled: true
+    isDefaultClass: true
+
+dynamicConfigs:
+  dyn.yaml: |
+    _services: &services
+      kiali:
+        loadBalancer:
+          servers:
+            - url: "http://kiali.istio-system.svc.cluster.local:20001"
+      jaeger:
+        loadBalancer:
+          servers:
+            - url: "http://tracing.istio-system.svc.cluster.local:80"
+
+      grafana:
+        loadBalancer:
+          servers:
+            - url: "http://grafana.istio-system.svc.cluster.local:3000"
+
+      openfaas:
+        loadBalancer:
+          servers:
+            - url: "http://gateway.openfaas.svc.cluster.local:8080"
+
+    _middlewares: &middlewares
+      traefik-dashboard-auth:
+        basicAuth:
+          users:
+            - traefik:{SHA}nVhpQ5oLQG/rwM9WEdYI6GfMq7U= # HDuBK70ilKraqE3D
+
+    _routers: &routers
+      kiali:
+        service: kiali@file
+        rule: Host(`infra-was.{{ env "BASE_HOST" }}`) && PathPrefix(`/kiali`)
+      jaeger:
+        service: jaeger@file
+        rule: Host(`infra-was.{{ env "BASE_HOST" }}`) && PathPrefix(`/jaeger`)
+      grafana:
+        service: grafana@file
+        rule: Host(`grafana-infra-ft.{{ env "BASE_HOST" }}`)
+      prometheus:
+        service: prometheus@file
+        rule: Host(`prometheus-infra-ft.{{ env "BASE_HOST" }}`)
+      traefik-dashboard:
+        service: api@internal
+        rule: Host(`traefik-infra-ft.{{ env "BASE_HOST" }}`)
+        middlewares:
+          - traefik-dashboard-auth
+      openfaas:
+        service: openfaas@file
+        rule: Host(`openfaas-ft.{{ env "BASE_HOST" }}`)
+
+    http:
+      routers:
+        <<: *routers
+      services:
+        <<: *services
+      middlewares:
+        <<: *middlewares

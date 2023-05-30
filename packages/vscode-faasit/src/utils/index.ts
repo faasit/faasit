@@ -58,6 +58,7 @@ export function makeRestartHandler<Ctx>(opts: {
   let ctx = opts.init();
 
   let state = {
+    restartCnt: 0,
     allToStop: makeEvent(),
     onceToStop: makeEvent(),
   };
@@ -75,6 +76,12 @@ export function makeRestartHandler<Ctx>(opts: {
       // continue run until stopped
       await opts.onStart(ctx).catch((e) => console.error(e));
       await Promise.race([state.onceToStop.wait(), state.allToStop.wait()]);
+
+      state.restartCnt += 1;
+      if (state.restartCnt > 10) {
+        console.log(`restart more than ${state.restartCnt}, exit`)
+        return;
+      }
     }
 
     console.log(`RestartHandler: run finished`);

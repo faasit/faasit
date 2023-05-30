@@ -15,12 +15,6 @@ buildscript {
 apply plugin: 'net.researchgate.release'
 apply plugin: 'com.github.node-gradle.node'
 
-node {
-	download = false
-	version = '16.14.0'
-	nodeProjectDir = file("${project.projectDir}")
-}
-
 // Configuration for Xtext projects
 configure(subprojects.findAll { it.name.startsWith('faasit') }) {
 	ext.xtextVersion = '2.30.0'
@@ -48,6 +42,47 @@ configure(subprojects.findAll { it.name.startsWith('faasit') }) {
 
 	configurations.all {
 		exclude group: 'asm'
+	}
+
+}
+
+// Configuration for vscode projects
+configure(subprojects.findAll { it.name.startsWith('vscode') }) {
+
+	apply plugin: 'com.github.node-gradle.node'
+	node {
+		version = '16.14.0'
+		download = true
+	}
+
+	def inputFiles = fileTree(
+			dir: projectDir,
+			excludes: [ 'out/**', '.gitignore', '.gradle/**', 'build/**', '*.gradle' ]
+	)
+
+	task vscodeExtension(dependsOn: [pnpmInstall], type: PnpmTask) {
+		ext.destDir = new File(buildDir, 'vscode')
+		ext.archiveName = "$project.name-${project.version}.vsix"
+		ext.destPath = "$destDir/$archiveName"
+		inputs.with {
+			files inputFiles
+		}
+		outputs.dir destDir
+		doFirst {
+			destDir.mkdirs()
+		}
+		// @see https://github.com/microsoft/vscode-vsce/issues/421 to solve when use vsce and pnpm
+		args = [ 'run', 'package', '--out', destPath ]
+		execOverrides {
+			workingDir = projectDir
+		}
+	}
+
+	task clean {
+		doLast {
+			delete 'out' // output of npmInstall - don't want to delete node_modules
+		}
+
 	}
 
 }

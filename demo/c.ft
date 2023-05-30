@@ -1,0 +1,59 @@
+import (
+  "core/sema"
+)
+
+// Custom Blocks
+block k8s_resource {
+  props = map
+}
+
+block function {
+  props = {
+    inputs = type
+    outputs = type
+  }
+}
+
+extension example {
+  args = {
+    value = string
+  }
+}
+
+struct Page {
+  total = int
+  page = int
+  pageSize = int
+  data = [T]
+}
+
+struct A {
+  name = string
+  age = int
+}
+
+// use custom blocks
+
+function GetEmail {
+  inputs = {
+    receiver = string
+  }
+
+  outputs = {
+    receivers = [Page]
+  }
+
+  states = {
+  }
+}
+
+k8s_resource for GetEmail {
+  limits = {
+    cpu = "1000m"
+    cpu2 = "120m"
+  }
+
+  requests = {
+    cpu = "500m"
+  }
+}

@@ -2,19 +2,20 @@ import (
   "core/sema"
 )
 
-import (
-  "core/swagger"
-)
+// Serverless 概念模型
+// DSL
 
 // Custom Blocks
-block k8s_resource {
-  props = map
-}
-
 block function {
   props = {
     inputs = type
     outputs = type
+  }
+}
+
+block output {
+  props = {
+    functions = [function]
   }
 }
 
@@ -28,37 +29,45 @@ struct Page {
   total = int
   page = int
   pageSize = int
-  data = [T]
-}
-
-struct A {
-  name = string
-  age = int
+  data = [any]
 }
 
 // use custom blocks
 
 function GetEmail {
   inputs = {
-    receiver = string
+    name = string
   }
 
   outputs = {
-    receivers = [Page]
+    items = Page
   }
 
-  states = {
-
-  }
+  name = "Get Email"
+  codeUri = "./code"
+  handler = "index.handler"
+  triggers = [
+    {
+      kind = "timer"
+      name = "every 1 minute"
+      cron = "0 */1 * * * *"
+    },
+    {
+      kind = "http"
+      name = "http trigger"
+      methods: ["GET", "POST"]
+    }
+  ]
 }
 
-k8s_resource for GetEmail {
-  limits = {
-    cpu = "1000m"
-    cpu2 = "120m"
-  }
+application A {
+  functions = [
+    GetEmail
+  ]
+}
 
-  requests = {
-    cpu = "500m"
-  }
+output {
+  functions = [
+    GetEmail
+  ]
 }

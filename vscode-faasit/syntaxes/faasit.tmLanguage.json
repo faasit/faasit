@@ -1,7 +1,9 @@
 {
   "name": "FaasIt",
   "scopeName": "source.faasit",
-  "fileTypes": ["faasit"],
+  "fileTypes": [
+    "faasit"
+  ],
   "repository": {
     "general": {
       "patterns": [
@@ -19,6 +21,9 @@
         },
         {
           "include": "#numeric"
+        },
+        {
+          "include": "#builtin_type"
         }
       ]
     },
@@ -32,9 +37,13 @@
       "begin": "/\\*(\\*)?(?!/)",
       "end": "\\*/"
     },
+    "builtin_type": {
+      "name": "entity.name.type",
+      "match": "\\b(int|string|bool|type|map)\\b"
+    },
     "keyword": {
       "name": "keyword.control.faasit",
-      "match": "\\b(block|struct|import|extension)\\b|!"
+      "match": "\\b(block|struct|import|extension|for)\\b"
     },
     "string": {
       "name": "string.quoted.double.faasit",

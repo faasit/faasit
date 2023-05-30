@@ -3,6 +3,7 @@
  */
 package cn.njuics.faasit.dsl.tests;
 
+import cn.njuics.faasit.dsl.faasIt.Block;
 import cn.njuics.faasit.dsl.faasIt.Model;
 import com.google.inject.Inject;
 import java.util.List;
@@ -23,9 +24,30 @@ public class FaasItParsingTest {
 	
 	@Test
 	public void loadModel() throws Exception {
-		Model result = parseHelper.parse("Hello Xtext!");
+		Model result = parseHelper.parse("""
+				block A {
+					name = {
+						age = int
+					}
+				}
+				
+				function func1 {}
+				""");
 		Assert.assertNotNull(result);
 		List<Diagnostic> errors = result.eResource().getErrors();
 		Assert.assertTrue("Unexpected errors: " + IterableExtensions.join(errors, ", "), errors.isEmpty());
+		Assert.assertEquals(2, result.getBlocks().size());
+
+		var block1 = result.getBlocks().get(0);
+
+		Assert.assertEquals("block", block1.getBlock_type());
+		Assert.assertEquals("A", block1.getName());
+		Assert.assertEquals("name", block1.getProps().get(0).getName());
+
+		{
+			var block1_1 = block1.getProps().get(0).getRight();
+			Assert.assertTrue(block1_1 instanceof Block);
+			Assert.assertEquals("age", ((Block) block1_1).getProps().get(0).getName());
+		}
 	}
 }

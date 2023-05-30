@@ -1,11 +1,56 @@
+import (
+  "core/sema"
+  "core/swagger"
+)
 
+// Custom Blocks
+block k8s_resource {
+  props = map
+}
 
-Hello Xtext!
+block function {
+  props = {
+    inputs = type
+    outputs = type
+  }
+}
 
-Hello VSCode
-from Xtext!
+extension example {
+  args = {
+    value = string
+  }
+}
 
-Hello ThisFile
-from Other!
+struct Page {
+  total = int
+  page = int
+  pageSize = int?
+  data = any
+}
 
-Hello You!
+// use custom blocks
+
+@function GetEmail {
+  inputs = {
+    receiver = string
+  }
+
+  outputs = {
+    receivers = [Page]
+  }
+
+  states = {
+
+  }
+}
+
+@k8s_resource for GetEmail {
+  limits = {
+    cpu = "1000m",
+    cpu2 = "120m"
+  }
+
+  requests = {
+    cpu = "500m"
+  }
+}

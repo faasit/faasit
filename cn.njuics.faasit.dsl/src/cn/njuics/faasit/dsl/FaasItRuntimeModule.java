@@ -3,9 +3,10 @@
  */
 package cn.njuics.faasit.dsl;
 
-
 /**
  * Use this class to register components to be used at runtime / without the Equinox extension registry.
  */
 public class FaasItRuntimeModule extends AbstractFaasItRuntimeModule {
+  public static void main(String[] args) {
+  }
 }

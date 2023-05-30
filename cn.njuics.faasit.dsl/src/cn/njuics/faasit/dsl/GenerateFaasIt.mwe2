@@ -39,8 +39,8 @@ Workflow {
 				generateXtendStub = false
 			}
 			generator = {
-				generateStub = true
-				generateXtendStub = true
+				generateStub = false
+				generateXtendStub = false
 			}
 			junitSupport = {
 				generateXtendStub = false

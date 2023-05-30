@@ -3,7 +3,6 @@
  */
 package cn.njuics.faasit.dsl.validation;
 
-import cn.njuics.faasit.dsl.faasIt.Greeting;
 import cn.njuics.faasit.dsl.faasIt.FaasItPackage;
 import org.eclipse.xtext.validation.Check;
 
@@ -15,13 +14,4 @@ import org.eclipse.xtext.validation.Check;
 public class FaasItValidator extends AbstractFaasItValidator {
 	
 	public static final String INVALID_NAME = "invalidName";
-
-	@Check
-	public void checkGreetingStartsWithCapital(Greeting greeting) {
-		if (!Character.isUpperCase(greeting.getName().charAt(0))) {
-			error("Name should start with a capital", 
-					FaasItPackage.Literals.GREETING__NAME,
-					INVALID_NAME);
-		}
-	}
 }

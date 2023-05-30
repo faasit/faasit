@@ -3,7 +3,40 @@ grammar cn.njuics.faasit.dsl.FaasIt with org.eclipse.xtext.common.Terminals
 generate faasIt "http://www.njuics.cn/faasit/FaasIt"
 
 Model:
-	greetings+=Greeting*;
-	
-Greeting:
-	'Hello' name=ID ('from' from=[Greeting])? '!';
+  imports+=Import*
+  blocks+=Block*;
+
+Import:
+  'import' '(' uri=STRING ')' ;
+
+// block is the core component of our DSL
+Block:
+	block_type=ID name=ID ('for' for_target=ID)? '{'
+		props+=Property*
+	'}' |
+	block_type=ID '{'
+		props+=Property*
+	'}' |
+	'{'
+		props+=Property*
+	'}';
+
+Property:
+  name=ID '=' right=Expr;
+
+Expr: QualifiedName | Literal | ListExpr | TypeCallExpr | Block;
+
+ListExpr:
+	'[' elements+=Expr (',' elements+=Expr)* ']';
+
+TypeCallExpr: QualifiedName '<' elements+=Expr (',' elements+=Expr)* '>';
+
+Literal:
+	STRING | INT | BOOL;
+
+QualifiedName:
+  ID ('.' ID)*;
+
+terminal BOOL:
+	 'true' | 'false'
+;

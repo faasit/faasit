@@ -3,7 +3,7 @@
  */
 package cn.njuics.faasit.dsl.formatting2;
 
-import cn.njuics.faasit.dsl.faasIt.Greeting;
+import cn.njuics.faasit.dsl.faasIt.Block;
 import cn.njuics.faasit.dsl.faasIt.Model;
 import org.eclipse.xtext.formatting2.AbstractJavaFormatter;
 import org.eclipse.xtext.formatting2.IFormattableDocument;
@@ -11,17 +11,5 @@ import org.eclipse.xtext.formatting2.IFormattableDocument;
 public class FaasItFormatter extends AbstractJavaFormatter {
 
 	protected void format(Model model, IFormattableDocument doc) {
-		for (Greeting greeting : model.getGreetings()) {
-			doc.format(greeting);
-		}
 	}
-	
-	protected void format(Greeting model, IFormattableDocument doc) {
-		doc.prepend(model, it -> it.setNewLines(2));
-		if (model.getFrom() != null) {
-			doc.prepend(regionFor(model).keyword("from"), this::newLine);
-			doc.interior(regionFor(model).keyword("from"), regionFor(model).keyword("!"), this::indent);
-		}
-	}
-	
 }

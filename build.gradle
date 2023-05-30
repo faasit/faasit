@@ -42,8 +42,8 @@ configure(subprojects.findAll { it.name.startsWith('cn.njuics.faasit') }) {
 	group = 'cn.njuics.faasit.dsl'
 	version = '1.0.0-SNAPSHOT'
 	
-	sourceCompatibility = '1.8'
-	targetCompatibility = '1.8'
+	sourceCompatibility = '1.17'
+	targetCompatibility = '1.17'
 	
 	configurations.all {
 		exclude group: 'asm'

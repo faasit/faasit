@@ -23,8 +23,8 @@ public class FaasItIdeContentProposalProvider extends IdeContentProposalProvider
 	@Override
 	protected void _createProposals(RuleCall ruleCall, ContentAssistContext context,
 			IIdeContentProposalAcceptor acceptor) {
-		if (myDslGrammarAccess.getGreetingRule().equals(ruleCall.getRule()) && context.getCurrentModel() != null) {
-			IScope scope = scopeProvider.getScope(context.getCurrentModel(), FaasItPackage.Literals.GREETING__FROM);
+		if (myDslGrammarAccess.getBlockRule().equals(ruleCall.getRule()) && context.getCurrentModel() != null) {
+			IScope scope = scopeProvider.getScope(context.getCurrentModel(), FaasItPackage.Literals.BLOCK__PROPS);
 			acceptor.accept(getProposalCreator().createSnippet(
 					"Hello ${1|A,B,C|} from ${2|" + Joiner.on(",")
 							.join(Iterables.transform(scope.getAllElements(), it -> it.getName().toString())) + "|}!",

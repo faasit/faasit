@@ -2,6 +2,12 @@
 
 ## Intro
 
+## Dir structure
+
+**provider-examples**
+
+将使用阿里云，腾讯云等 Serverless 平台的 API 调用实例代码，放在这个目录下
+
 ## Development
 
 ### VSCode Plugin & Language Server

@@ -34,7 +34,7 @@ struct Page {
 
 // use custom blocks
 
-function GetEmail {
+@function GetEmail {
   inputs = {
     name = string
   }
@@ -60,13 +60,7 @@ function GetEmail {
   ]
 }
 
-application A {
-  functions = [
-    GetEmail
-  ]
-}
-
-output {
+@application A {
   functions = [
     GetEmail
   ]

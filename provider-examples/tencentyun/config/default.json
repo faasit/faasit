@@ -1,0 +1,14 @@
+{
+  "clientConfig": {
+    "credential": {
+      "secretId": "AKID9apBLKsEQRI1d2HI8o9HExVYQeidR7as",
+      "secretKey": "98vVyLYY9jBPSlwueHsHUTQGxDtMgoiR"
+    },
+    "region": "ap-guangzhou",
+    "profile": {
+      "httpProfile": {
+        "endpoint": "scf.tencentcloudapi.com"
+      }
+    }
+  }
+}

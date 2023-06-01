@@ -1,0 +1,19 @@
+{
+  "name": "tencent-scf-api-test",
+  "version": "1.0.0",
+  "description": "Test some api of tencent scf",
+  "main": "index.js",
+  "directories": {
+    "example": "example"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "type": "module",
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "config": "^3.3.9",
+    "tencentcloud-sdk-nodejs-scf": "^4.0.611"
+  }
+}

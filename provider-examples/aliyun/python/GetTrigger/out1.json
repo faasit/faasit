@@ -1,0 +1,20 @@
+{
+    "headers": {
+        "access-control-expose-headers": "Date,x-fc-request-id,x-fc-error-type,x-fc-code-checksum,x-fc-invocation-duration,x-fc-max-memory-usage,x-fc-log-result,x-fc-invocation-code-version,x-fc-instance-id",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "f1a3d724f6804ee3800a2207f5f2dc9e",
+        "x-fc-request-id": "1-64799c90-a3f4fb553e15f3f489b215d4",
+        "date": "Fri, 02 Jun 2023 07:38:56 GMT",
+        "content-length": "427"
+    },
+    "statusCode": 200,
+    "body": {
+        "createdTime": "2023-06-02T06:22:10Z",
+        "description": "",
+        "lastModifiedTime": "2023-06-02T06:22:10Z",
+        "triggerConfig": "{\"payload\":\"\",\"cronExpression\":\"@every 1m\",\"enable\":true}",
+        "triggerId": "56e39604-39a4-43bf-890e-34660776bf4a",
+        "triggerName": "testTrigger",
+        "triggerType": "timer"
+    }
+}

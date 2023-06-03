@@ -1,0 +1,48 @@
+{
+    "body": {
+        "serviceName": "testService",
+        "description": "This is a test service",
+        "role": "",
+        "logConfig": {
+            "project": "",
+            "logstore": "",
+            "enableRequestMetrics": false,
+            "enableInstanceMetrics": false,
+            "logBeginRule": null
+        },
+        "serviceId": "1263bb59-b613-4413-ae7b-bb6b2b2e128e",
+        "createdTime": "2023-06-02T01:00:24Z",
+        "lastModifiedTime": "2023-06-02T01:00:24Z",
+        "vpcConfig": {
+            "vpcId": "",
+            "vSwitchIds": [],
+            "securityGroupId": "",
+            "role": null,
+            "anytunnelViaENI": null
+        },
+        "internetAccess": true,
+        "nasConfig": {
+            "userId": 0,
+            "groupId": 0,
+            "mountPoints": []
+        },
+        "ossMountConfig": {
+            "mountPoints": []
+        },
+        "vendorConfig": null,
+        "tracingConfig": {
+            "type": null,
+            "params": null,
+            "jaegerConfig": null
+        }
+    },
+    "headers": {
+        "access-control-expose-headers": "Date,x-fc-request-id,x-fc-error-type,x-fc-code-checksum,x-fc-invocation-duration,x-fc-max-memory-usage,x-fc-log-result,x-fc-invocation-code-version,x-fc-instance-id",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "521b2f776f501014a5d3e075b7c418b7",
+        "x-fc-request-id": "1-64793f28-70bcfaa70a22e81d6531686d",
+        "date": "Fri, 02 Jun 2023 01:00:24 GMT",
+        "content-length": "621"
+    },
+    "statusCode": 200
+}

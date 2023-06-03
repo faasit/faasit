@@ -1,0 +1,28 @@
+{
+    "headers": {
+        "access-control-expose-headers": "Date,x-fc-request-id,x-fc-error-type,x-fc-code-checksum,x-fc-invocation-duration,x-fc-max-memory-usage,x-fc-log-result,x-fc-invocation-code-version,x-fc-instance-id",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "7a1b6b7c95dc7bbc9342b2e662f0ed5a",
+        "x-fc-request-id": "1-64797f5e-7c9cb0b0d3ec68d32b35518b",
+        "date": "Fri, 02 Jun 2023 05:34:22 GMT",
+        "content-length": "681"
+    },
+    "statusCode": 200,
+    "body": {
+        "codeChecksum": "4724431253582600553",
+        "codeSize": 218,
+        "createdTime": "2023-06-02T01:55:26Z",
+        "description": "This is a test function",
+        "environmentVariables": {},
+        "functionId": "44c90701-8b9c-4497-963f-e05cb7a11121",
+        "functionName": "testFunction",
+        "handler": "index.handler",
+        "initializationTimeout": 60,
+        "instanceConcurrency": 1,
+        "instanceType": "e1",
+        "lastModifiedTime": "2023-06-02T01:55:26Z",
+        "memorySize": 128,
+        "runtime": "python3.9",
+        "timeout": 3
+    }
+}

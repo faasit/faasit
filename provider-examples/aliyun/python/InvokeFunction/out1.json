@@ -1,0 +1,16 @@
+{
+    "headers": {
+        "access-control-expose-headers": "Date,x-fc-request-id,x-fc-error-type,x-fc-code-checksum,x-fc-invocation-duration,x-fc-max-memory-usage,x-fc-log-result,x-fc-invocation-code-version,x-fc-instance-id",
+        "content-type": "application/octet-stream",
+        "x-fc-code-checksum": "4724431253582600553",
+        "x-fc-instance-id": "c-6479812f-129ac7266540485e8405",
+        "x-fc-invocation-duration": "2",
+        "x-fc-invocation-service-version": "LATEST",
+        "x-fc-max-memory-usage": "8.89",
+        "x-fc-request-id": "1-64798139-82287a1bb47bcb1ab476e0db",
+        "date": "Fri, 02 Jun 2023 05:42:17 GMT",
+        "content-length": "11"
+    },
+    "statusCode": 200,
+    "body": "Hello World"
+}

@@ -1,0 +1,5 @@
+alibabacloud_fc_open20210406==2.0.0
+alibabacloud_openapi_util==0.2.1
+alibabacloud_tea_openapi==0.3.6
+alibabacloud_tea_util==0.3.8
+python-dotenv==1.0.0

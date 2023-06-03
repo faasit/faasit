@@ -1,0 +1,40 @@
+{
+    "headers": {
+        "access-control-expose-headers": "Date,x-fc-request-id,x-fc-error-type,x-fc-code-checksum,x-fc-invocation-duration,x-fc-max-memory-usage,x-fc-log-result,x-fc-invocation-code-version,x-fc-instance-id",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "2eac4c1056aaf38abacec2bbe3f67478",
+        "x-fc-request-id": "1-64793ec5-87e87559db926c70a7de639c",
+        "date": "Fri, 02 Jun 2023 00:58:45 GMT",
+        "content-length": "621"
+    },
+    "statusCode": 200,
+    "body": {
+        "createdTime": "2023-05-31T13:23:52Z",
+        "description": "This is a test service",
+        "internetAccess": true,
+        "lastModifiedTime": "2023-05-31T13:23:52Z",
+        "logConfig": {
+            "enableInstanceMetrics": false,
+            "enableRequestMetrics": false,
+            "logstore": "",
+            "project": ""
+        },
+        "nasConfig": {
+            "groupId": 0,
+            "mountPoints": [],
+            "userId": 0
+        },
+        "ossMountConfig": {
+            "mountPoints": []
+        },
+        "role": "",
+        "serviceId": "fdcfa000-a971-4021-b7c9-d2a95d087c91",
+        "serviceName": "testService",
+        "tracingConfig": {},
+        "vpcConfig": {
+            "securityGroupId": "",
+            "vSwitchIds": [],
+            "vpcId": ""
+        }
+    }
+}

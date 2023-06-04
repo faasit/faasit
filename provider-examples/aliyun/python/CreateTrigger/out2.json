@@ -1,0 +1,22 @@
+{
+    "headers": {
+        "access-control-expose-headers": "Date,x-fc-request-id,x-fc-error-type,x-fc-code-checksum,x-fc-invocation-duration,x-fc-max-memory-usage,x-fc-log-result,x-fc-invocation-code-version,x-fc-instance-id",
+        "content-type": "application/json; charset=utf-8",
+        "etag": "558391a111595cf21a629d13c99b24dc",
+        "x-fc-request-id": "1-647b2ffb-a966f674a34d808a51bed8d2",
+        "date": "Sat, 03 Jun 2023 12:20:11 GMT",
+        "content-length": "595"
+    },
+    "statusCode": 200,
+    "body": {
+        "createdTime": "2023-06-03T12:20:11Z",
+        "description": "",
+        "lastModifiedTime": "2023-06-03T12:20:11Z",
+        "triggerConfig": "{\"methods\":[\"POST\",\"GET\",\"PUT\",\"DELETE\"],\"authType\":\"function\",\"disableURLInternet\":false}",
+        "triggerId": "873e9491-9bfc-4f02-9151-2270765050c9",
+        "triggerName": "testTrigger",
+        "triggerType": "http",
+        "urlInternet": "https://testfunction-testservice-miuyyoiyud.cn-hangzhou.fcapp.run",
+        "urlIntranet": "https://testfunction-testservice-miuyyoiyud.cn-hangzhou-vpc.fcapp.run"
+    }
+}

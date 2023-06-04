@@ -73,4 +73,5 @@ class CreateTrigger:
 
 if __name__ == "__main__":
     resp = CreateTrigger.main()
-    print(resp)
+    resp = resp.to_map()
+    print(json.dumps(resp,indent=4))

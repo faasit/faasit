@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
-# This file is auto-generated, don't edit it. Thanks.
+# 该示例演示如何带参数调用函数
 import os
+import json
 
 from dotenv import load_dotenv,find_dotenv
 load_dotenv(find_dotenv())
@@ -46,7 +47,11 @@ class InvokeFunction:
     def create_api_info() :
         client = InvokeFunction.create_client(ACCESS_ID, ACCESS_KEY)
         invoke_function_headers = fc__open_20210406_models.InvokeFunctionHeaders()
-        invoke_function_request = fc__open_20210406_models.InvokeFunctionRequest()
+        invoke_function_request = fc__open_20210406_models.InvokeFunctionRequest(
+            body=UtilClient.to_bytes({
+                "Hello" : "World"
+            })
+        )
         runtime = util_models.RuntimeOptions()
         return client,invoke_function_headers,invoke_function_request,runtime
 
@@ -61,7 +66,7 @@ class InvokeFunction:
             print(error)
 
 
-import json
+
 if __name__ == '__main__':
     resp =InvokeFunction.main()
     resp = resp.to_map()

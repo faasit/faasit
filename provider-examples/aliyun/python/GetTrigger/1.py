@@ -35,9 +35,7 @@ class GetTrigger:
         @throws Exception
         """
         config = open_api_models.Config(
-            # 必填，您的 AccessKey ID,
             access_key_id=access_key_id,
-            # 必填，您的 AccessKey Secret,
             access_key_secret=access_key_secret
         )
         # 访问的域名
@@ -62,7 +60,8 @@ class GetTrigger:
             UtilClient.assert_as_string(error.message)
             print(error)
 
-
+import json
 if __name__ == "__main__":
     resp = GetTrigger.main()
-    print(resp)
+    resp = resp.to_map()
+    print(json.dumps(resp,indent=4))

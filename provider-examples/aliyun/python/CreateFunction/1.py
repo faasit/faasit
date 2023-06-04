@@ -79,7 +79,8 @@ class CreateFunction:
             print(error)
 
 
-
+import json
 if __name__ == '__main__':
     resp = CreateFunction.main()
-    print(resp)
+    resp = resp.to_map()
+    print(json.dumps(resp,indent=4))

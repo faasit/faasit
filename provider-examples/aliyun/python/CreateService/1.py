@@ -33,9 +33,7 @@ class CreateService:
         @throws Exception
         """
         config = open_api_models.Config(
-            # 必填，您的 AccessKey ID,
             access_key_id=access_key_id,
-            # 必填，您的 AccessKey Secret,
             access_key_secret=access_key_secret
         )
         # 访问的域名

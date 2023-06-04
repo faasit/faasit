@@ -7,10 +7,10 @@
         "x-fc-invocation-duration": "2",
         "x-fc-invocation-service-version": "LATEST",
         "x-fc-max-memory-usage": "8.80",
-        "x-fc-request-id": "1-647c36fe-d5107954ff8735a23d0552de",
-        "date": "Sun, 04 Jun 2023 07:02:22 GMT",
-        "content-length": "0"
+        "x-fc-request-id": "1-647c36db-cb56d2825b73bc87de00c63e",
+        "date": "Sun, 04 Jun 2023 07:01:48 GMT",
+        "content-length": "18"
     },
     "statusCode": 200,
-    "body": "b''"
+    "body": "b\"{'Hello': 'World'}\""
 }

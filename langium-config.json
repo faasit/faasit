@@ -1,0 +1,16 @@
+{
+  "projectName": "Faasit",
+  "languages": [{
+      "id": "faasit",
+      "grammar": "grammar/faasit.langium",
+      "fileExtensions": [".ft"],
+      "caseInsensitive": true,
+      "textMate": {
+          "out": "packages/vscode-faasit/syntaxes/faasit.tmLanguage.json"
+      },
+      "monarch": {
+          "out": "packages/vscode-faasit/syntaxes/faasit.monarch.ts"
+      }
+  }],
+  "out": "packages/faasit-core/src/generated"
+}

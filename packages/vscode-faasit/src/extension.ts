@@ -1,151 +1,57 @@
-"use strict";
+import type { LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
+import * as vscode from 'vscode';
+import * as path from 'path';
+import { LanguageClient, TransportKind } from 'vscode-languageclient/node';
 
-import * as net from "net";
-import * as os from "os";
-import * as path from "path";
+let client: LanguageClient;
 
-import {Disposable, ExtensionContext, workspace} from "vscode";
-import * as vscode from "vscode";
-import {Trace} from "vscode-jsonrpc";
-import {
-  LanguageClient,
-  LanguageClientOptions,
-  ServerOptions,
-} from "vscode-languageclient/node";
-import {getFaasitConfig, makeRestartHandler} from "./utils";
-
-// remote is used for debug
-interface MyLanguageClient {
-  start(): Promise<void>;
-  dispose(): Promise<void>;
+// This function is called when the extension is activated.
+export function activate(context: vscode.ExtensionContext): void {
+    client = startLanguageClient(context);
 }
 
-export function createLanguageClient(
-  context: ExtensionContext
-): MyLanguageClient {
-  const config = getFaasitConfig();
+// This function is called when the extension is deactivated.
+export function deactivate(): Thenable<void> | undefined {
+    if (client) {
+        return client.stop();
+    }
+    return undefined;
+}
 
-  const lspMode = config.get<"local" | "remote">("lspMode", "local");
-  const lspPort = config.get("lspPort", 25007);
-  const clientName = "FaasIt Language Server";
+function startLanguageClient(context: vscode.ExtensionContext): LanguageClient {
+    const serverModule = context.asAbsolutePath(path.join('out', 'language-server', 'main'));
+    // The debug options for the server
+    // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging
+    const debugOptions = { execArgv: ['--nolazy', '--inspect=6009'] };
 
-  if (lspMode == "local") {
-    // The server is a locally installed in src/faasit
-    let launcher =
-      os.platform() === "win32" ? "faasit-standalone.bat" : "faasit-standalone";
-    let script = context.asAbsolutePath(
-      path.join("src", "faasit", "bin", launcher)
-    );
-
-    let serverOptions: ServerOptions = {
-      run: {command: script},
-      debug: {
-        command: script,
-        args: [],
-        options: {
-          env: {
-            // jdwp port, default=no
-            JAVA_OPTS: `-Xdebug -Xrunjdwp:server=n,transport=dt_socket,address=8000,suspend=n,quiet=y`,
-            ...process.env,
-          },
-        },
-      },
+    // If the extension is launched in debug mode then the debug server options are used
+    // Otherwise the run options are used
+    const serverOptions: ServerOptions = {
+        run: { module: serverModule, transport: TransportKind.ipc },
+        debug: { module: serverModule, transport: TransportKind.ipc, options: debugOptions }
     };
 
-    let clientOptions: LanguageClientOptions = {
-      documentSelector: ["faasit"],
-      synchronize: {
-        fileEvents: workspace.createFileSystemWatcher("**/*.*"),
-      },
+    const fileSystemWatcher = vscode.workspace.createFileSystemWatcher('**/*.ft');
+    context.subscriptions.push(fileSystemWatcher);
+
+    // Options to control the language client
+    const clientOptions: LanguageClientOptions = {
+        documentSelector: [{ scheme: 'file', language: 'faasit' }],
+        synchronize: {
+            // Notify the server about file changes to files contained in the workspace
+            fileEvents: fileSystemWatcher
+        }
     };
 
     // Create the language client and start the client.
-    const lc = new LanguageClient(clientName, serverOptions, clientOptions);
-    lc.setTrace(Trace.Verbose);
-
-    return lc;
-  }
-
-  if (lspMode == "remote") {
-    const connectionInfo = {
-      port: lspPort,
-    };
-
-    const serverOptions: ServerOptions = async () => {
-      const socket = net.connect(connectionInfo);
-      return {
-        writer: socket,
-        reader: socket,
-      };
-    };
-
-    const clientOptions: LanguageClientOptions = {
-      documentSelector: ["faasit"],
-      synchronize: {
-        fileEvents: workspace.createFileSystemWatcher("**/*.*"),
-      },
-    };
-
-    const lc = new LanguageClient(clientName, serverOptions, clientOptions);
-    lc.setTrace(Trace.Verbose);
-
-    return {
-      start() {
-        return lc.start();
-      },
-      async dispose() {
-        // do nothing
-        // NOTICE: if we call lc.stop(), the remote server will also stopped, it's not ok for debug
-        // NOTICE: It may leak the resource of connections
-      },
-    };
-  }
-
-  throw Error(`unknown lsp mode: ${lspMode}`);
-}
-
-let disposable: {dispose(): any} | undefined;
-
-export function activate(context: ExtensionContext) {
-  const handler = makeRestartHandler<{
-    lc: MyLanguageClient | undefined;
-  }>({
-    init() {
-      return {lc: undefined};
-    },
-    async onStart(ctx) {
-      const lc = createLanguageClient(context);
-      ctx.lc = lc;
-      await lc.start();
-    },
-    async onStop(ctx) {
-      if (ctx.lc) {
-        ctx.lc.dispose();
-      }
-      ctx.lc = undefined;
-    },
-  });
-
-  handler.run();
-
-  // register commands
-  {
-    const dispose = vscode.commands.registerCommand(
-      "faasit.restart",
-      async () => {
-        await handler.restart();
-      }
+    const client = new LanguageClient(
+        'faasit',
+        'Faasit',
+        serverOptions,
+        clientOptions
     );
 
-    context.subscriptions.push(dispose);
-  }
-
-  disposable = handler;
-}
-
-export function deactivate() {
-  if (disposable) {
-    disposable.dispose();
-    disposable = undefined;
-  }
+    // Start the client. This will also launch the server
+    client.start();
+    return client;
 }

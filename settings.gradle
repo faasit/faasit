@@ -1,4 +1,0 @@
-include 'java:faasit.dsl'
-include 'java:faasit.dsl.ide'
-include 'java:faasit.dsl.tests'
-include 'packages:vscode-faasit'

@@ -22,7 +22,10 @@
     "activationEvents": [
         "onLanguage:faasit"
     ],
-    "main": "out/extension",
+    "main": "out/extension.cjs",
+    "files": [
+        "./out/**"
+    ],
     "contributes": {
         "languages": [
             {
@@ -84,22 +87,21 @@
         "@types/vscode": "^1.67.0",
         "@vscode/test-electron": "^2.1.3",
         "esbuild": "^0.17.19",
-        "js-yaml": "^4.1.0",
         "nodemon": "^2.0.22",
         "typescript": "^4.6.4"
     },
     "dependencies": {
-        "vscode-languageclient": "^8.0.1"
+        "@faasit/core": "workspace:^",
+        "langium": "^1.2.0",
+        "vscode-languageclient": "^8.1.0",
+        "vscode-languageserver": "^8.1.0"
     },
     "scripts": {
         "package": "vsce package --no-dependencies",
         "publish": "vsce publish --no-dependencies",
-
-        "vscode:prepublish": "npm run compile -- --minify",
-        "compile": "esbuild ./src/extension.ts --bundle --outfile=out/extension.js --external:vscode --format=cjs --platform=node",
-
-        "precompile": "js-yaml syntaxes/faasit.tmLanguage.yml > syntaxes/faasit.tmLanguage.json",
-        "watch-syntax": "nodemon -w syntaxes/ -e yml --exec npm run precompile",
+        "vscode:prepublish": "npm run build",
+        "build": "unbuild",
+        "dev": "unbuild --stub",
         "update-vscode": "node ./node_modules/vscode/bin/install"
     }
 }

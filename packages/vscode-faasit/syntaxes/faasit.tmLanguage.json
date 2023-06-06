@@ -1,87 +1,71 @@
 {
-  "name": "FaasIt",
+  "name": "faasit",
   "scopeName": "source.faasit",
   "fileTypes": [
-    "faasit"
+    ".ft"
   ],
-  "repository": {
-    "general": {
-      "patterns": [
-        {
-          "include": "#linecomment"
-        },
-        {
-          "include": "#blockcomment"
-        },
-        {
-          "include": "#keyword"
-        },
-        {
-          "include": "#string"
-        },
-        {
-          "include": "#numeric"
-        },
-        {
-          "include": "#builtin_type"
-        }
-      ]
+  "patterns": [
+    {
+      "include": "#comments"
     },
-    "linecomment": {
-      "name": "comment.line.double-dash.faasit",
-      "begin": "(^[ \\t]+)?(?=//)",
-      "end": "(?=$)"
-    },
-    "blockcomment": {
-      "name": "comment.block.faasit",
-      "begin": "/\\*(\\*)?(?!/)",
-      "end": "\\*/"
-    },
-    "builtin_type": {
-      "name": "entity.name.type",
-      "match": "\\b(int|string|bool|type|map)\\b"
-    },
-    "keyword": {
+    {
       "name": "keyword.control.faasit",
-      "match": "\\b(block|struct|import|extension|for)\\b"
+      "match": "\\b([bB][lL][oO][cC][kK]|[fF][oO][rR]|[iI][mM][pP][oO][rR][tT]|[sS][tT][rR][uU][cC][tT])\\b"
     },
-    "string": {
+    {
       "name": "string.quoted.double.faasit",
       "begin": "\"",
       "end": "\"",
       "patterns": [
         {
-          "include": "#escape"
+          "include": "#string-character-escape"
         }
       ]
     },
-    "escape": {
-      "name": "constant.character.escape.faasit",
-      "match": "\\\\."
-    },
-    "numeric": {
+    {
+      "name": "string.quoted.single.faasit",
+      "begin": "'",
+      "end": "'",
       "patterns": [
         {
-          "include": "#integer"
+          "include": "#string-character-escape"
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "comments": {
+      "patterns": [
+        {
+          "name": "comment.block.faasit",
+          "begin": "/\\*",
+          "beginCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.faasit"
+            }
+          },
+          "end": "\\*/",
+          "endCaptures": {
+            "0": {
+              "name": "punctuation.definition.comment.faasit"
+            }
+          }
         },
         {
-          "include": "#float"
+          "begin": "//",
+          "beginCaptures": {
+            "1": {
+              "name": "punctuation.whitespace.comment.leading.faasit"
+            }
+          },
+          "end": "(?=$)",
+          "name": "comment.line.faasit"
         }
-      ],
-      "name": "constant.numeric.faasit"
+      ]
     },
-    "integer": {
-      "name": "constant.numeric.integer.faasit",
-      "match": "\\b[0-9]+\\b"
-    },
-    "float": {
-      "name": "constant.numeric.float.faasit",
-      "match": "\\b[0-9]+\\.[0-9]+\\b"
+    "string-character-escape": {
+      "name": "constant.character.escape.faasit",
+      "match": "\\\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|u\\{[0-9A-Fa-f]+\\}|[0-2][0-7]{0,2}|3[0-6][0-7]?|37[0-7]?|[4-7][0-7]?|.|$)"
     }
-  },
-  "patterns": [
-    {
-      "include": "#general"
-    }
-  ]
+  }
 }

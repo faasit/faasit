@@ -10,13 +10,13 @@
 
 ## Development
 
-### VSCode Plugin & Language Server
+### Generate langium code
 
-Run following command to package plugin, install plugin and then start vscode
-
-```sh
-./gradlew startCode
 ```
+pnpm langium:generate
+```
+
+### VSCode Plugin & Language Server
 
 ## Credits
 

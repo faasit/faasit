@@ -4,7 +4,7 @@
  ******************************************************************************/
 
 /* eslint-disable */
-import type { AstNode, ReferenceInfo, TypeMetaData } from 'langium';
+import type { AstNode, Reference, ReferenceInfo, TypeMetaData } from 'langium';
 import { AbstractAstReflection } from 'langium';
 
 export type Block = CustomBlock | CustomDeclBlock | StructBlock;
@@ -15,7 +15,7 @@ export function isBlock(item: unknown): item is Block {
     return reflection.isInstance(item, Block);
 }
 
-export type Expr = ListExpr | Literal | ObjectExpr | TypeCallExpr;
+export type Expr = BlockExpr | ListExpr | Literal | QualifiedName | TypeCallExpr;
 
 export const Expr = 'Expr';
 
@@ -23,16 +23,22 @@ export function isExpr(item: unknown): item is Expr {
     return reflection.isInstance(item, Expr);
 }
 
-export type QualifiedName = string;
+export interface BlockExpr extends AstNode {
+    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $type: 'BlockExpr';
+    props: Array<Property>
+}
 
-export function isQualifiedName(item: unknown): item is QualifiedName {
-    return typeof item === 'string';
+export const BlockExpr = 'BlockExpr';
+
+export function isBlockExpr(item: unknown): item is BlockExpr {
+    return reflection.isInstance(item, BlockExpr);
 }
 
 export interface CustomBlock extends AstNode {
     readonly $container: Module;
     readonly $type: 'CustomBlock';
-    block_type: string
+    block_type: Reference<CustomDeclBlock>
     for_target?: string
     name?: string
     props: Array<Property>
@@ -105,23 +111,11 @@ export function isModule(item: unknown): item is Module {
     return reflection.isInstance(item, Module);
 }
 
-export interface ObjectExpr extends AstNode {
-    readonly $container: ListExpr | Property | TypeCallExpr;
-    readonly $type: 'ObjectExpr';
-    props: Array<Property>
-}
-
-export const ObjectExpr = 'ObjectExpr';
-
-export function isObjectExpr(item: unknown): item is ObjectExpr {
-    return reflection.isInstance(item, ObjectExpr);
-}
-
 export interface Property extends AstNode {
-    readonly $container: CustomBlock | CustomDeclBlock | ObjectExpr | StructBlock;
+    readonly $container: BlockExpr | CustomBlock | CustomDeclBlock | StructBlock;
     readonly $type: 'Property';
     name: string
-    right: Expr
+    value: Expr
 }
 
 export const Property = 'Property';
@@ -155,8 +149,21 @@ export function isTypeCallExpr(item: unknown): item is TypeCallExpr {
     return reflection.isInstance(item, TypeCallExpr);
 }
 
+export interface QualifiedName extends TypeCallExpr {
+    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $type: 'QualifiedName';
+    name: Array<string>
+}
+
+export const QualifiedName = 'QualifiedName';
+
+export function isQualifiedName(item: unknown): item is QualifiedName {
+    return reflection.isInstance(item, QualifiedName);
+}
+
 export type FaasitAstType = {
     Block: Block
+    BlockExpr: BlockExpr
     CustomBlock: CustomBlock
     CustomDeclBlock: CustomDeclBlock
     Expr: Expr
@@ -164,8 +171,8 @@ export type FaasitAstType = {
     ListExpr: ListExpr
     Literal: Literal
     Module: Module
-    ObjectExpr: ObjectExpr
     Property: Property
+    QualifiedName: QualifiedName
     StructBlock: StructBlock
     TypeCallExpr: TypeCallExpr
 }
@@ -173,21 +180,24 @@ export type FaasitAstType = {
 export class FaasitAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Block', 'CustomBlock', 'CustomDeclBlock', 'Expr', 'Import', 'ListExpr', 'Literal', 'Module', 'ObjectExpr', 'Property', 'StructBlock', 'TypeCallExpr'];
+        return ['Block', 'BlockExpr', 'CustomBlock', 'CustomDeclBlock', 'Expr', 'Import', 'ListExpr', 'Literal', 'Module', 'Property', 'QualifiedName', 'StructBlock', 'TypeCallExpr'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
         switch (subtype) {
+            case BlockExpr:
+            case ListExpr:
+            case Literal:
+            case TypeCallExpr: {
+                return this.isSubtype(Expr, supertype);
+            }
             case CustomBlock:
             case CustomDeclBlock:
             case StructBlock: {
                 return this.isSubtype(Block, supertype);
             }
-            case ListExpr:
-            case Literal:
-            case ObjectExpr:
-            case TypeCallExpr: {
-                return this.isSubtype(Expr, supertype);
+            case QualifiedName: {
+                return this.isSubtype(Expr, supertype) || this.isSubtype(TypeCallExpr, supertype);
             }
             default: {
                 return false;
@@ -198,6 +208,9 @@ export class FaasitAstReflection extends AbstractAstReflection {
     getReferenceType(refInfo: ReferenceInfo): string {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
+            case 'CustomBlock:block_type': {
+                return CustomDeclBlock;
+            }
             default: {
                 throw new Error(`${referenceId} is not a valid reference id.`);
             }
@@ -206,6 +219,14 @@ export class FaasitAstReflection extends AbstractAstReflection {
 
     getTypeMetaData(type: string): TypeMetaData {
         switch (type) {
+            case 'BlockExpr': {
+                return {
+                    name: 'BlockExpr',
+                    mandatory: [
+                        { name: 'props', type: 'array' }
+                    ]
+                };
+            }
             case 'CustomBlock': {
                 return {
                     name: 'CustomBlock',
@@ -255,14 +276,6 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     ]
                 };
             }
-            case 'ObjectExpr': {
-                return {
-                    name: 'ObjectExpr',
-                    mandatory: [
-                        { name: 'props', type: 'array' }
-                    ]
-                };
-            }
             case 'StructBlock': {
                 return {
                     name: 'StructBlock',
@@ -276,6 +289,14 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     name: 'TypeCallExpr',
                     mandatory: [
                         { name: 'elements', type: 'array' }
+                    ]
+                };
+            }
+            case 'QualifiedName': {
+                return {
+                    name: 'QualifiedName',
+                    mandatory: [
+                        { name: 'name', type: 'array' }
                     ]
                 };
             }

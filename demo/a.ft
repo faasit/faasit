@@ -1,9 +1,17 @@
 import (
   "core/sema"
+  "std/faas"
 )
 
 // Serverless 概念模型
 // DSL
+
+/* Block Comment */
+
+block application {
+  props = {
+  }
+}
 
 // Custom Blocks
 block function {
@@ -15,7 +23,7 @@ block function {
 
 block output {
   props = {
-    functions = [function]
+    functions = [function, [1, 2, 3]]
   }
 }
 
@@ -32,11 +40,9 @@ struct Page {
   inputs = {
     name = string
   }
-
   outputs = {
     items = Page
   }
-
   name = "Get Email"
   codeUri = "./code"
   handler = "index.handler"
@@ -55,7 +61,5 @@ struct Page {
 }
 
 @application A {
-  functions = [
-    GetEmail
-  ]
+  functions = [GetEmail]
 }

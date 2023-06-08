@@ -14,6 +14,7 @@ import type {
 import { createDefaultModule, createDefaultSharedModule, inject } from 'langium'
 import { module } from '@faasit/core'
 import { registerValidationChecks, FaasitValidator } from './faasit-validator'
+import { FaasitFormatter } from './faasit-formatter'
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -39,6 +40,9 @@ export const FaasitModule: Module<
   FaasitServices,
   PartialLangiumServices & FaasitAddedServices
 > = {
+  lsp: {
+    Formatter: () => new FaasitFormatter(),
+  },
   validation: {
     FaasitValidator: () => new FaasitValidator(),
   },

@@ -1,0 +1,27 @@
+{
+  "configurations": [
+    {
+      "name": "Run Extension",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/demo",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-faasit",
+        "--disable-extensions"
+      ]
+    },
+    {
+      "name": "Run Extension & Build",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/demo",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-faasit",
+        "--disable-extensions"
+      ],
+      "preLaunchTask": "build-vscode-faasit"
+    },
+  ]
+}

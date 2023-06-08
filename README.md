@@ -10,6 +10,18 @@
 
 ## Development
 
+### Quick Start
+
+1. Install dependencies
+
+```
+pnpm install
+```
+
+2. Start vscode extension
+
+Use Vscode launch > "Run Extension & Build"
+
 ### Generate langium code
 
 ```

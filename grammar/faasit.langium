@@ -5,43 +5,42 @@ entry Module:
   blocks+=Block*;
 
 Import:
-  'import' '(' url+=STRING  ')';
+  'import' '(' url+=STRING+  ')';
 
 Block:
   CustomBlock | CustomDeclBlock | StructBlock;
 
 StructBlock:
-  'struct' name=ID '{' props+=Property '}';
+  'struct' name=ID '{' props+=Property* '}';
 
 CustomDeclBlock:
-  'block' name=ID '{' props+=Property '}';
+  'block' name=ID '{' props+=Property* '}';
 
 CustomBlock:
-  '@' block_type=ID (name=ID)? ('for' for_target=ID)? '{'
-  props+=Property
+  '@' block_type=[CustomDeclBlock:ID] (name=ID)? ('for' for_target=ID)? '{'
+  props+=Property*
    '}';
 
-
 Property:
-  name=ID '=' right=Expr;
+  name=ID '=' value=Expr;
 
 Expr:
-  QualifiedName | Literal | ListExpr | TypeCallExpr | ObjectExpr;
+  QualifiedName | Literal | ListExpr | TypeCallExpr | BlockExpr;
 
-ObjectExpr:
-  '{' props+=Property* '}';
+BlockExpr:
+  '{' (props+=Property)* '}';
 
 ListExpr:
-  '[' (elements+=Expr (',' elements+=Expr)*)? ']';
+  '[' (elements+=Expr (',' elements+=Expr)* ','?)? ']';
 
 TypeCallExpr:
   QualifiedName '<' elements+=Expr (',' elements+=Expr)* '>';
 
 Literal:
-  value=STRING | value=INT | value=BOOL;
+  value=STRING | value=INT | value=FLOAT | value=BOOL;
 
-QualifiedName returns string:
-  ID ('.' ID)*;
+QualifiedName:
+  name+=ID ('.' name+=ID)*;
 
 hidden terminal WS: /\s+/;
 terminal ID: /[_a-zA-Z][\w_]*/;

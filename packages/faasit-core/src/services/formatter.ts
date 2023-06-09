@@ -1,5 +1,5 @@
 import { AbstractFormatter, AstNode, Formatting } from 'langium'
-import { ast } from '@faasit/core'
+import { ast } from '../gen'
 
 export class FaasitFormatter extends AbstractFormatter {
   protected format(node: AstNode): void {
@@ -50,7 +50,7 @@ export class FaasitFormatter extends AbstractFormatter {
 
       const shouldMultiLine =
         node.elements.some((e) => ast.isBlockExpr(e)) ||
-        node.$cstNode.length >= 80
+        (node.$cstNode?.length || 0) >= 80
       if (shouldMultiLine) {
         formatter.nodes(...node.elements).prepend(Formatting.indent())
         rbracket.prepend(Formatting.newLine())

@@ -12,7 +12,7 @@ import {
   createConnection,
   NotificationType,
 } from 'vscode-languageserver/browser'
-import { createFaasitServices } from './faasit-module'
+import { services } from '@faasit/core'
 
 declare var self: unknown
 
@@ -23,7 +23,7 @@ const messageWriter = new BrowserMessageWriter(self)
 const connection = createConnection(messageReader, messageWriter)
 
 // Inject the shared services and language-specific services
-const { shared, faasit: statemachine } = createFaasitServices({
+const { shared, faasit } = services.createFaasitServices({
   connection: connection as any,
   ...EmptyFileSystem,
 })
@@ -40,7 +40,7 @@ type DocumentChange = {
 const documentChangeNotification = new NotificationType<DocumentChange>(
   'browser/DocumentChange'
 )
-const jsonSerializer = statemachine.serializer.JsonSerializer
+const jsonSerializer = faasit.serializer.JsonSerializer
 shared.workspace.DocumentBuilder.onBuildPhase(
   DocumentState.Validated,
   (documents) => {

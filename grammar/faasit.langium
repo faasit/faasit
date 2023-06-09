@@ -17,7 +17,7 @@ CustomDeclBlock:
   'block' name=ID '{' props+=Property* '}';
 
 CustomBlock:
-  '@' block_type=[CustomDeclBlock:ID] (name=ID)? ('for' for_target=ID)? '{'
+  '@' block_type=[CustomDeclBlock:ID] (name=ID)? ('for' for_target=[Block:ID])? '{'
   props+=Property*
    '}';
 
@@ -37,7 +37,19 @@ TypeCallExpr:
   QualifiedName '<' elements+=Expr (',' elements+=Expr)* '>';
 
 Literal:
-  value=STRING | value=INT | value=FLOAT | value=BOOL;
+  LiteralString | LiteralInt | LiteralFloat | LiteralBool;
+
+LiteralString:
+  value=STRING;
+
+LiteralInt:
+  value=INT;
+
+LiteralBool:
+  value=BOOL;
+
+LiteralFloat:
+  value=FLOAT;
 
 QualifiedName:
   name+=ID ('.' name+=ID)*;

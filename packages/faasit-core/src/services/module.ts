@@ -12,9 +12,10 @@ import type {
   PartialLangiumServices,
 } from 'langium'
 import { createDefaultModule, createDefaultSharedModule, inject } from 'langium'
-import { module } from '@faasit/core'
-import { registerValidationChecks, FaasitValidator } from './faasit-validator'
-import { FaasitFormatter } from './faasit-formatter'
+import { module } from '../gen'
+import { FaasitValidationRegistry, FaasitValidator } from './validator'
+import { FaasitFormatter } from './formatter'
+import { FaasitSemanticTokenProvider } from './semantic-token'
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -41,9 +42,11 @@ export const FaasitModule: Module<
   PartialLangiumServices & FaasitAddedServices
 > = {
   lsp: {
+    SemanticTokenProvider: (s) => new FaasitSemanticTokenProvider(s),
     Formatter: () => new FaasitFormatter(),
   },
   validation: {
+    ValidationRegistry: (s) => new FaasitValidationRegistry(s),
     FaasitValidator: () => new FaasitValidator(),
   },
 }
@@ -77,6 +80,5 @@ export function createFaasitServices(context: DefaultSharedModuleContext): {
     FaasitModule
   )
   shared.ServiceRegistry.register(faasit)
-  registerValidationChecks(faasit)
   return { shared, faasit }
 }

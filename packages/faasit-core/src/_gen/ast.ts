@@ -23,6 +23,14 @@ export function isExpr(item: unknown): item is Expr {
     return reflection.isInstance(item, Expr);
 }
 
+export type Literal = LiteralBool | LiteralFloat | LiteralInt | LiteralString;
+
+export const Literal = 'Literal';
+
+export function isLiteral(item: unknown): item is Literal {
+    return reflection.isInstance(item, Literal);
+}
+
 export interface BlockExpr extends AstNode {
     readonly $container: ListExpr | Property | TypeCallExpr;
     readonly $type: 'BlockExpr';
@@ -39,7 +47,7 @@ export interface CustomBlock extends AstNode {
     readonly $container: Module;
     readonly $type: 'CustomBlock';
     block_type: Reference<CustomDeclBlock>
-    for_target?: string
+    for_target?: Reference<Block>
     name?: string
     props: Array<Property>
 }
@@ -87,16 +95,52 @@ export function isListExpr(item: unknown): item is ListExpr {
     return reflection.isInstance(item, ListExpr);
 }
 
-export interface Literal extends AstNode {
+export interface LiteralBool extends AstNode {
     readonly $container: ListExpr | Property | TypeCallExpr;
-    readonly $type: 'Literal';
-    value: boolean | number | string
+    readonly $type: 'LiteralBool';
+    value: boolean
 }
 
-export const Literal = 'Literal';
+export const LiteralBool = 'LiteralBool';
 
-export function isLiteral(item: unknown): item is Literal {
-    return reflection.isInstance(item, Literal);
+export function isLiteralBool(item: unknown): item is LiteralBool {
+    return reflection.isInstance(item, LiteralBool);
+}
+
+export interface LiteralFloat extends AstNode {
+    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $type: 'LiteralFloat';
+    value: number
+}
+
+export const LiteralFloat = 'LiteralFloat';
+
+export function isLiteralFloat(item: unknown): item is LiteralFloat {
+    return reflection.isInstance(item, LiteralFloat);
+}
+
+export interface LiteralInt extends AstNode {
+    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $type: 'LiteralInt';
+    value: number
+}
+
+export const LiteralInt = 'LiteralInt';
+
+export function isLiteralInt(item: unknown): item is LiteralInt {
+    return reflection.isInstance(item, LiteralInt);
+}
+
+export interface LiteralString extends AstNode {
+    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $type: 'LiteralString';
+    value: string
+}
+
+export const LiteralString = 'LiteralString';
+
+export function isLiteralString(item: unknown): item is LiteralString {
+    return reflection.isInstance(item, LiteralString);
 }
 
 export interface Module extends AstNode {
@@ -170,6 +214,10 @@ export type FaasitAstType = {
     Import: Import
     ListExpr: ListExpr
     Literal: Literal
+    LiteralBool: LiteralBool
+    LiteralFloat: LiteralFloat
+    LiteralInt: LiteralInt
+    LiteralString: LiteralString
     Module: Module
     Property: Property
     QualifiedName: QualifiedName
@@ -180,7 +228,7 @@ export type FaasitAstType = {
 export class FaasitAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Block', 'BlockExpr', 'CustomBlock', 'CustomDeclBlock', 'Expr', 'Import', 'ListExpr', 'Literal', 'Module', 'Property', 'QualifiedName', 'StructBlock', 'TypeCallExpr'];
+        return ['Block', 'BlockExpr', 'CustomBlock', 'CustomDeclBlock', 'Expr', 'Import', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Module', 'Property', 'QualifiedName', 'StructBlock', 'TypeCallExpr'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
@@ -196,6 +244,12 @@ export class FaasitAstReflection extends AbstractAstReflection {
             case StructBlock: {
                 return this.isSubtype(Block, supertype);
             }
+            case LiteralBool:
+            case LiteralFloat:
+            case LiteralInt:
+            case LiteralString: {
+                return this.isSubtype(Literal, supertype);
+            }
             case QualifiedName: {
                 return this.isSubtype(Expr, supertype) || this.isSubtype(TypeCallExpr, supertype);
             }
@@ -210,6 +264,9 @@ export class FaasitAstReflection extends AbstractAstReflection {
         switch (referenceId) {
             case 'CustomBlock:block_type': {
                 return CustomDeclBlock;
+            }
+            case 'CustomBlock:for_target': {
+                return Block;
             }
             default: {
                 throw new Error(`${referenceId} is not a valid reference id.`);
@@ -259,9 +316,9 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     ]
                 };
             }
-            case 'Literal': {
+            case 'LiteralBool': {
                 return {
-                    name: 'Literal',
+                    name: 'LiteralBool',
                     mandatory: [
                         { name: 'value', type: 'boolean' }
                     ]

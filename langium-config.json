@@ -16,5 +16,5 @@
             }
         }
     ],
-    "out": "packages/faasit-core/src/generated"
+    "out": "packages/faasit-core/src/_gen"
 }

@@ -7,13 +7,15 @@
 import { startLanguageServer } from 'langium'
 import { NodeFileSystem } from 'langium/node'
 import { createConnection, ProposedFeatures } from 'vscode-languageserver/node'
-import { createFaasitServices } from './faasit-module'
+import { services } from '@faasit/core'
+
+import { SemanticTokenTypes } from 'vscode-languageserver/node'
 
 // Create a connection to the client
 const connection = createConnection(ProposedFeatures.all)
 
 // Inject the shared services and language-specific services
-const { shared } = createFaasitServices({
+const { shared } = services.createFaasitServices({
   connection: connection as any,
   ...NodeFileSystem,
 })

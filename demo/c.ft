@@ -14,12 +14,6 @@ block function {
   }
 }
 
-extension example {
-  args = {
-    value = string
-  }
-}
-
 struct Page {
   total = int
   page = int
@@ -34,25 +28,23 @@ struct A {
 
 // use custom blocks
 
-function GetEmail {
+@function GetEmail {
   inputs = {
     receiver = string
   }
-
   outputs = {
     receivers = [Page]
   }
-
   states = {
+    a = 1
   }
 }
 
-k8s_resource for GetEmail {
+@k8s_resource for GetEmail {
   limits = {
     cpu = "1000m"
     cpu2 = "120m"
   }
-
   requests = {
     cpu = "500m"
   }

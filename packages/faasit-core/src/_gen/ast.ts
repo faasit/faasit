@@ -7,7 +7,7 @@
 import type { AstNode, Reference, ReferenceInfo, TypeMetaData } from 'langium';
 import { AbstractAstReflection } from 'langium';
 
-export type Block = CustomBlock | CustomDeclBlock | StructBlock;
+export type Block = BlockBlock | CustomBlock | StructBlock;
 
 export const Block = 'Block';
 
@@ -31,6 +31,19 @@ export function isLiteral(item: unknown): item is Literal {
     return reflection.isInstance(item, Literal);
 }
 
+export interface BlockBlock extends AstNode {
+    readonly $container: Module;
+    readonly $type: 'BlockBlock';
+    name: string
+    props: Array<Property>
+}
+
+export const BlockBlock = 'BlockBlock';
+
+export function isBlockBlock(item: unknown): item is BlockBlock {
+    return reflection.isInstance(item, BlockBlock);
+}
+
 export interface BlockExpr extends AstNode {
     readonly $container: ListExpr | Property | TypeCallExpr;
     readonly $type: 'BlockExpr';
@@ -46,7 +59,7 @@ export function isBlockExpr(item: unknown): item is BlockExpr {
 export interface CustomBlock extends AstNode {
     readonly $container: Module;
     readonly $type: 'CustomBlock';
-    block_type: Reference<CustomDeclBlock>
+    block_type: Reference<BlockBlock>
     for_target?: Reference<Block>
     name?: string
     props: Array<Property>
@@ -56,19 +69,6 @@ export const CustomBlock = 'CustomBlock';
 
 export function isCustomBlock(item: unknown): item is CustomBlock {
     return reflection.isInstance(item, CustomBlock);
-}
-
-export interface CustomDeclBlock extends AstNode {
-    readonly $container: Module;
-    readonly $type: 'CustomDeclBlock';
-    name: string
-    props: Array<Property>
-}
-
-export const CustomDeclBlock = 'CustomDeclBlock';
-
-export function isCustomDeclBlock(item: unknown): item is CustomDeclBlock {
-    return reflection.isInstance(item, CustomDeclBlock);
 }
 
 export interface Import extends AstNode {
@@ -86,7 +86,7 @@ export function isImport(item: unknown): item is Import {
 export interface ListExpr extends AstNode {
     readonly $container: ListExpr | Property | TypeCallExpr;
     readonly $type: 'ListExpr';
-    elements: Array<Expr>
+    items: Array<Expr>
 }
 
 export const ListExpr = 'ListExpr';
@@ -156,7 +156,7 @@ export function isModule(item: unknown): item is Module {
 }
 
 export interface Property extends AstNode {
-    readonly $container: BlockExpr | CustomBlock | CustomDeclBlock | StructBlock;
+    readonly $container: BlockBlock | BlockExpr | CustomBlock | StructBlock;
     readonly $type: 'Property';
     name: string
     value: Expr
@@ -166,6 +166,18 @@ export const Property = 'Property';
 
 export function isProperty(item: unknown): item is Property {
     return reflection.isInstance(item, Property);
+}
+
+export interface QualifiedName extends AstNode {
+    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $type: 'QualifiedName';
+    names: Array<string>
+}
+
+export const QualifiedName = 'QualifiedName';
+
+export function isQualifiedName(item: unknown): item is QualifiedName {
+    return reflection.isInstance(item, QualifiedName);
 }
 
 export interface StructBlock extends AstNode {
@@ -183,7 +195,8 @@ export function isStructBlock(item: unknown): item is StructBlock {
 
 export interface TypeCallExpr extends AstNode {
     readonly $container: ListExpr | Property | TypeCallExpr;
-    readonly $type: 'QualifiedName' | 'TypeCallExpr';
+    readonly $type: 'TypeCallExpr';
+    callee: QualifiedName
     elements: Array<Expr>
 }
 
@@ -193,23 +206,11 @@ export function isTypeCallExpr(item: unknown): item is TypeCallExpr {
     return reflection.isInstance(item, TypeCallExpr);
 }
 
-export interface QualifiedName extends TypeCallExpr {
-    readonly $container: ListExpr | Property | TypeCallExpr;
-    readonly $type: 'QualifiedName';
-    name: Array<string>
-}
-
-export const QualifiedName = 'QualifiedName';
-
-export function isQualifiedName(item: unknown): item is QualifiedName {
-    return reflection.isInstance(item, QualifiedName);
-}
-
 export type FaasitAstType = {
     Block: Block
+    BlockBlock: BlockBlock
     BlockExpr: BlockExpr
     CustomBlock: CustomBlock
-    CustomDeclBlock: CustomDeclBlock
     Expr: Expr
     Import: Import
     ListExpr: ListExpr
@@ -228,30 +229,28 @@ export type FaasitAstType = {
 export class FaasitAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Block', 'BlockExpr', 'CustomBlock', 'CustomDeclBlock', 'Expr', 'Import', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Module', 'Property', 'QualifiedName', 'StructBlock', 'TypeCallExpr'];
+        return ['Block', 'BlockBlock', 'BlockExpr', 'CustomBlock', 'Expr', 'Import', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Module', 'Property', 'QualifiedName', 'StructBlock', 'TypeCallExpr'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
         switch (subtype) {
+            case BlockBlock:
+            case CustomBlock:
+            case StructBlock: {
+                return this.isSubtype(Block, supertype);
+            }
             case BlockExpr:
             case ListExpr:
             case Literal:
+            case QualifiedName:
             case TypeCallExpr: {
                 return this.isSubtype(Expr, supertype);
-            }
-            case CustomBlock:
-            case CustomDeclBlock:
-            case StructBlock: {
-                return this.isSubtype(Block, supertype);
             }
             case LiteralBool:
             case LiteralFloat:
             case LiteralInt:
             case LiteralString: {
                 return this.isSubtype(Literal, supertype);
-            }
-            case QualifiedName: {
-                return this.isSubtype(Expr, supertype) || this.isSubtype(TypeCallExpr, supertype);
             }
             default: {
                 return false;
@@ -263,7 +262,7 @@ export class FaasitAstReflection extends AbstractAstReflection {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
             case 'CustomBlock:block_type': {
-                return CustomDeclBlock;
+                return BlockBlock;
             }
             case 'CustomBlock:for_target': {
                 return Block;
@@ -276,6 +275,14 @@ export class FaasitAstReflection extends AbstractAstReflection {
 
     getTypeMetaData(type: string): TypeMetaData {
         switch (type) {
+            case 'BlockBlock': {
+                return {
+                    name: 'BlockBlock',
+                    mandatory: [
+                        { name: 'props', type: 'array' }
+                    ]
+                };
+            }
             case 'BlockExpr': {
                 return {
                     name: 'BlockExpr',
@@ -287,14 +294,6 @@ export class FaasitAstReflection extends AbstractAstReflection {
             case 'CustomBlock': {
                 return {
                     name: 'CustomBlock',
-                    mandatory: [
-                        { name: 'props', type: 'array' }
-                    ]
-                };
-            }
-            case 'CustomDeclBlock': {
-                return {
-                    name: 'CustomDeclBlock',
                     mandatory: [
                         { name: 'props', type: 'array' }
                     ]
@@ -312,7 +311,7 @@ export class FaasitAstReflection extends AbstractAstReflection {
                 return {
                     name: 'ListExpr',
                     mandatory: [
-                        { name: 'elements', type: 'array' }
+                        { name: 'items', type: 'array' }
                     ]
                 };
             }
@@ -333,6 +332,14 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     ]
                 };
             }
+            case 'QualifiedName': {
+                return {
+                    name: 'QualifiedName',
+                    mandatory: [
+                        { name: 'names', type: 'array' }
+                    ]
+                };
+            }
             case 'StructBlock': {
                 return {
                     name: 'StructBlock',
@@ -346,14 +353,6 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     name: 'TypeCallExpr',
                     mandatory: [
                         { name: 'elements', type: 'array' }
-                    ]
-                };
-            }
-            case 'QualifiedName': {
-                return {
-                    name: 'QualifiedName',
-                    mandatory: [
-                        { name: 'name', type: 'array' }
                     ]
                 };
             }

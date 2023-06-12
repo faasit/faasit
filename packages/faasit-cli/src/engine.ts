@@ -1,5 +1,5 @@
 import { faas } from './core'
-import { ir } from './core/ir'
+import { ir } from '@faasit/core'
 import { PluginContext } from './core/plugin'
 import { OpenFaasPlugin } from './plugins/openfaas'
 import { exec } from 'child_process'

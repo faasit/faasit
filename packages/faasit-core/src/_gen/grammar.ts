@@ -183,7 +183,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
     },
     {
       "$type": "ParserRule",
-      "name": "CustomDeclBlock",
+      "name": "BlockBlock",
       "definition": {
         "$type": "Group",
         "elements": [
@@ -478,7 +478,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "elements": [
               {
                 "$type": "Assignment",
-                "feature": "elements",
+                "feature": "items",
                 "operator": "+=",
                 "terminal": {
                   "$type": "RuleCall",
@@ -497,7 +497,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
                   },
                   {
                     "$type": "Assignment",
-                    "feature": "elements",
+                    "feature": "items",
                     "operator": "+=",
                     "terminal": {
                       "$type": "RuleCall",
@@ -538,11 +538,16 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
         "$type": "Group",
         "elements": [
           {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@16"
-            },
-            "arguments": []
+            "$type": "Assignment",
+            "feature": "callee",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@16"
+              },
+              "arguments": []
+            }
           },
           {
             "$type": "Keyword",
@@ -734,7 +739,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
         "elements": [
           {
             "$type": "Assignment",
-            "feature": "name",
+            "feature": "names",
             "operator": "+=",
             "terminal": {
               "$type": "RuleCall",
@@ -753,7 +758,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
               },
               {
                 "$type": "Assignment",
-                "feature": "name",
+                "feature": "names",
                 "operator": "+=",
                 "terminal": {
                   "$type": "RuleCall",

@@ -8,16 +8,16 @@ Import:
   'import' '(' url+=STRING+  ')';
 
 Block:
-  CustomBlock | CustomDeclBlock | StructBlock;
+  CustomBlock | BlockBlock | StructBlock;
 
 StructBlock:
   'struct' name=ID '{' props+=Property* '}';
 
-CustomDeclBlock:
+BlockBlock:
   'block' name=ID '{' props+=Property* '}';
 
 CustomBlock:
-  '@' block_type=[CustomDeclBlock:ID] (name=ID)? ('for' for_target=[Block:ID])? '{'
+  '@' block_type=[BlockBlock:ID] (name=ID)? ('for' for_target=[Block:ID])? '{'
   props+=Property*
    '}';
 
@@ -31,10 +31,10 @@ BlockExpr:
   '{' (props+=Property)* '}';
 
 ListExpr:
-  '[' (elements+=Expr (',' elements+=Expr)* ','?)? ']';
+  '[' (items+=Expr (',' items+=Expr)* ','?)? ']';
 
 TypeCallExpr:
-  QualifiedName '<' elements+=Expr (',' elements+=Expr)* '>';
+  callee=QualifiedName '<' elements+=Expr (',' elements+=Expr)* '>';
 
 Literal:
   LiteralString | LiteralInt | LiteralFloat | LiteralBool;
@@ -52,7 +52,7 @@ LiteralFloat:
   value=FLOAT;
 
 QualifiedName:
-  name+=ID ('.' name+=ID)*;
+  names+=ID ('.' names+=ID)*;
 
 hidden terminal WS: /\s+/;
 terminal ID: /[_a-zA-Z][\w_]*/;

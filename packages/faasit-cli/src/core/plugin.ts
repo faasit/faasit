@@ -1,5 +1,4 @@
 import { Application } from './faas'
-import { ir } from './ir'
 
 export interface PluginRuntime {
   runCommand(cmd: string): Promise<{ stdout: string; stderr: string }>

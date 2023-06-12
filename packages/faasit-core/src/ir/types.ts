@@ -1,5 +1,4 @@
 import { z } from 'zod'
-export * from './service'
 
 export type Value =
   | {
@@ -8,6 +7,7 @@ export type Value =
     }
   | { kind: 'v_int'; value: number }
   | { kind: 'v_bool'; value: boolean }
+  | { kind: 'v_float'; value: number }
   | { kind: 'v_any'; value: unknown }
   | { kind: 'v_list'; items: Value[] }
   | {
@@ -16,6 +16,10 @@ export type Value =
         key: string
         value: Value
       }[]
+    }
+  | {
+      kind: 'v_ref'
+      id: string
     }
 
 export type Spec = {
@@ -27,12 +31,18 @@ export type Module = {
   id: string
   blocks: Block[]
 }
-export type Block = {
-  kind: 'b_custom'
-  block_type: string
-  name: string
-  props: { key: string; value: Value }[]
-}
+
+export type Property = { key: string; value: Value }
+
+export type Block =
+  | {
+      kind: 'b_custom'
+      block_type: string
+      name: string
+      props: Property[]
+    }
+  | { kind: 'b_struct'; name: string; props: Property[] }
+  | { kind: 'b_block'; name: string; props: Property[] }
 
 export function validateSpec(o: unknown): Spec {
   return SpecSchema.parse(o)
@@ -73,19 +83,45 @@ const ValueSchema: z.ZodType<Value> = z.union([
       })
     ),
   }),
+  z.object({
+    kind: z.literal('v_ref'),
+    id: z.string(),
+  }),
 ])
 
-const BlockSchema: z.ZodType<Block> = z.object({
-  kind: z.literal('b_custom'),
-  block_type: z.string(),
-  name: z.string(),
-  props: z.array(
-    z.object({
-      key: z.string(),
-      value: ValueSchema,
-    })
-  ),
-})
+const BlockSchema: z.ZodType<Block> = z.union([
+  z.object({
+    kind: z.literal('b_custom'),
+    block_type: z.string(),
+    name: z.string(),
+    props: z.array(
+      z.object({
+        key: z.string(),
+        value: ValueSchema,
+      })
+    ),
+  }),
+  z.object({
+    kind: z.literal('b_struct'),
+    name: z.string(),
+    props: z.array(
+      z.object({
+        key: z.string(),
+        value: ValueSchema,
+      })
+    ),
+  }),
+  z.object({
+    kind: z.literal('b_block'),
+    name: z.string(),
+    props: z.array(
+      z.object({
+        key: z.string(),
+        value: ValueSchema,
+      })
+    ),
+  }),
+])
 
 const ModuleSchema: z.ZodType<Module> = z.object({
   kind: z.literal('m_inline'),

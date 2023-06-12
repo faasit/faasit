@@ -35,6 +35,9 @@ importers:
 
   packages/faasit-cli:
     dependencies:
+      '@faasit/core':
+        specifier: workspace:^
+        version: link:../faasit-core
       chokidar:
         specifier: ^3.5.3
         version: 3.5.3
@@ -66,9 +69,15 @@ importers:
 
   packages/faasit-core:
     dependencies:
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.0
       langium:
         specifier: ^1.2.0
         version: 1.2.0
+      zod:
+        specifier: ^3.21.4
+        version: 3.21.4
 
   packages/faasit-examples:
     dependencies:

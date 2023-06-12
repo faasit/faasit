@@ -1,5 +1,4 @@
 import { z } from 'zod'
-import { ir } from './ir'
 
 const FunctionTriggerSchema = z.object({
   name: z.string(),
@@ -27,10 +26,6 @@ const ApplicationSchema = z.object({
 })
 
 export type Application = z.infer<typeof ApplicationSchema>
-
-export function resolveApplication(spec: ir.SpecService): Application {
-  throw new Error(`not impl`)
-}
 
 export function parseApplication(o: unknown): Application {
   return ApplicationSchema.parse(o)

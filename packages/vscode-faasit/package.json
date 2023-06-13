@@ -1,5 +1,5 @@
 {
-    "name": "vscode-faasit",
+    "name": "@faasit/vscode-extension",
     "displayName": "FaasIt Language Support",
     "description": "Language support for FaasIt",
     "version": "0.0.1",

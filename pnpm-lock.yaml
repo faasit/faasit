@@ -38,6 +38,9 @@ importers:
       '@faasit/core':
         specifier: workspace:^
         version: link:../faasit-core
+      chalk:
+        specifier: ^5.2.0
+        version: 5.2.0
       chokidar:
         specifier: ^3.5.3
         version: 3.5.3
@@ -69,15 +72,19 @@ importers:
 
   packages/faasit-core:
     dependencies:
-      js-yaml:
-        specifier: ^4.1.0
-        version: 4.1.0
       langium:
         specifier: ^1.2.0
         version: 1.2.0
+      vscode-uri:
+        specifier: ^3.0.7
+        version: 3.0.7
       zod:
         specifier: ^3.21.4
         version: 3.21.4
+    devDependencies:
+      vscode-languageserver-types:
+        specifier: ^3.17.3
+        version: 3.17.3
 
   packages/faasit-examples:
     dependencies:
@@ -1001,7 +1008,6 @@ packages:
   /chalk@5.2.0:
     resolution: {integrity: sha512-ree3Gqw/nazQAPuJJEy+avdl7QfZMcUvmHIKgEZkGL+xOBzRvup5Hxo6LHuMceSxOabuJLJm5Yp/92R9eMmMvA==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
-    dev: true
 
   /check-error@1.0.2:
     resolution: {integrity: sha512-BrgHpW9NURQgzoNyjfq0Wu6VFO6D7IZEmJNdtgNqpzGG8RuNFHt2jQxWlAs4HMe119chBnv+34syEZtc6IhLtA==}
@@ -2624,7 +2630,6 @@ packages:
 
   /vscode-languageserver-types@3.17.3:
     resolution: {integrity: sha512-SYU4z1dL0PyIMd4Vj8YOqFvHu7Hz/enbWtpfnVbJHU4Nd1YNYx8u0ennumc6h48GQNeOLxmwySmnADouT/AuZA==}
-    dev: false
 
   /vscode-languageserver@8.0.2:
     resolution: {integrity: sha512-bpEt2ggPxKzsAOZlXmCJ50bV7VrxwCS5BI4+egUmure/oI/t4OlFzi/YNtVvY24A2UDOZAgwFGgnZPwqSJubkA==}

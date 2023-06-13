@@ -1,5 +1,5 @@
 import { faas } from './core'
-import { ir } from '@faasit/core'
+import { ir, parser, URI } from '@faasit/core'
 import { PluginContext } from './core/plugin'
 import { OpenFaasPlugin } from './plugins/openfaas'
 import { exec } from 'child_process'
@@ -7,18 +7,15 @@ import { promisify } from 'node:util'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
 import yaml from 'js-yaml'
+import { NodeFileSystemProvider } from './runtime'
+import chalk from 'chalk'
 
 const execp = promisify(exec)
-
-export interface BaseOptions {
-  config: string
-  workingDir: string
-}
 
 export class Engine {
   constructor() {}
 
-  async deploy(opts: BaseOptions) {
+  async deploy(opts: { config: string; workingDir: string }) {
     const app = await this.resolveApplication(opts.config)
     console.log(`using app`, app)
 
@@ -29,7 +26,7 @@ export class Engine {
     }
   }
 
-  async invoke(opts: BaseOptions & { func?: string }) {
+  async invoke(opts: { config: string; workingDir: string; func?: string }) {
     const app = await this.resolveApplication(opts.config)
 
     const plugin = this.getPlugin(app.provider.name)
@@ -42,6 +39,36 @@ export class Engine {
       }
       await plugin.invoke({ app, funcName }, this.getPluginRuntime())
     }
+  }
+
+  async compile(opts: { workingDir: string; file: string }) {
+    const file = path.resolve(path.join(opts.workingDir, opts.file))
+    const fileUri = URI.file(file)
+
+    const parseResult = await parser.parse({
+      file: fileUri,
+      fileSystemProvider: () => new NodeFileSystemProvider(),
+    })
+
+    if (parseResult.errors.length > 0) {
+      console.error(`failed to compile ${opts.file}`)
+      for (const error of parseResult.errors) {
+        console.error(
+          chalk.red(
+            `line ${error.range.start.line}: ${
+              error.message
+            } [${parseResult.textDocument.getText(error.range)}]`
+          )
+        )
+      }
+      return
+    }
+
+    const module = parseResult.parsedValue
+
+    // just print as ir currently
+    const irSpec = await ir.convertFromAst({ main: module })
+    console.log(yaml.dump(irSpec))
   }
 
   private async resolveApplication(configPath: string) {
@@ -57,21 +84,6 @@ export class Engine {
     }
 
     throw new Error(`unsupport file format: ${configPath}`)
-  }
-
-  private compile(fileUri: string): ir.Spec {
-    const spec: ir.Spec = {
-      version: '0.0.1',
-      modules: [
-        {
-          id: '__main__',
-          kind: 'm_inline',
-          blocks: [],
-        },
-      ],
-    }
-
-    return ir.validateSpec(spec)
   }
 
   private getPlugin(name: string) {

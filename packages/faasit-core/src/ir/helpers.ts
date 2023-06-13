@@ -1,36 +1,32 @@
-import {
-  CodeGenreateContext,
-  CodeGenerateOutput,
-  CodeGenerateOutputCollector,
-  CodeGenerator,
-} from './common'
-import { ast } from '../gen'
-import * as ir from '../ir'
-import yaml from 'js-yaml'
+import { ast } from '../parser'
+import { ir_types } from '.'
 
-class IRGeneratorImpl {
-  constructor(private ctx: CodeGenreateContext) {}
+export async function convertFromAst(opts: {
+  main: ast.Module
+}): Promise<ir_types.Spec> {
+  return new IrConverter(opts).convert()
+}
 
-  generate(): CodeGenerateOutput {
-    const { mainModule } = this.ctx
+class IrConverter {
+  constructor(private ctx: { main: ast.Module }) {}
 
-    const irModule: ir.Module = {
+  convert(): ir_types.Spec {
+    const { main } = this.ctx
+
+    const irMain: ir_types.Module = {
       kind: 'm_inline',
       id: '__main__',
       blocks: [],
     }
 
-    for (const block of mainModule.blocks) {
-      irModule.blocks.push(this.handleBlock(block))
+    for (const block of main.blocks) {
+      irMain.blocks.push(this.handleBlock(block))
     }
 
-    const collector = CodeGenerateOutputCollector.create()
-    collector.addFile({ path: 'main.yml', mime: 'text/plain' })
-    collector.print(yaml.dump(irModule))
-    return collector.finalize()
+    return { version: ir_types.CUR_VERSION, modules: [irMain] }
   }
 
-  handleBlock(block: ast.Block): ir.Block {
+  handleBlock(block: ast.Block): ir_types.Block {
     if (block.$type === 'BlockBlock') {
       return {
         kind: 'b_block',
@@ -61,13 +57,13 @@ class IRGeneratorImpl {
     throw new Error(`unknown block type ${blk}`)
   }
 
-  handlePropList(props: ast.Property[]): ir.Property[] {
+  handlePropList(props: ast.Property[]): ir_types.Property[] {
     return props.map((p) => {
       return { key: p.name, value: this.handleExpr(p.value) }
     })
   }
 
-  handleExpr(expr: ast.Expr): ir.Value {
+  handleExpr(expr: ast.Expr): ir_types.Value {
     if (expr.$type === 'LiteralString') {
       return { kind: 'v_string', value: expr.value }
     }
@@ -106,15 +102,5 @@ class IRGeneratorImpl {
 
     const v: never = expr
     throw new Error(`unknown expr: ${v}`)
-  }
-}
-
-export function IRGenerator(): CodeGenerator {
-  return {
-    name: 'ir-gen',
-    async generate(ctx) {
-      const generator = new IRGeneratorImpl(ctx)
-      return generator.generate()
-    },
   }
 }

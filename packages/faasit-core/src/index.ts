@@ -1,4 +1,10 @@
-export * from './gen'
+export { ast } from './parser'
+export * as parser from './parser'
 export * as services from './services'
 export * as ir from './ir'
 export * as errors from './errors'
+export * as utils from './utils'
+export * as runtime from './runtime'
+export { URI, Utils as UriUtils } from 'vscode-uri'
+
+import {} from 'langium/node'

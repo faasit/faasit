@@ -1,5 +1,5 @@
 import { AbstractFormatter, AstNode, Formatting } from 'langium'
-import { ast } from '../gen'
+import { ast } from '../parser'
 
 export class FaasitFormatter extends AbstractFormatter {
   protected format(node: AstNode): void {

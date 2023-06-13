@@ -22,6 +22,8 @@ export type Value =
       id: string
     }
 
+export const CUR_VERSION = '0.1.0'
+
 export type Spec = {
   version: string
   modules: Module[]

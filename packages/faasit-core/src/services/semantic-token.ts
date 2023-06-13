@@ -3,7 +3,7 @@ import {
   AstNode,
   SemanticTokenAcceptor,
 } from 'langium'
-import { ast } from '../gen'
+import { ast } from '../parser'
 
 export class FaasitSemanticTokenProvider extends AbstractSemanticTokenProvider {
   protected highlightElement(

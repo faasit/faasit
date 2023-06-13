@@ -29,6 +29,10 @@ export function main() {
 
   console.debug(`working dir = ${process.cwd()}`)
 
+  const handleError = (e: unknown) => {
+    console.error(e)
+  }
+
   program
     .command('init')
     .option('-n, --name [string]', 'project name')
@@ -43,7 +47,7 @@ export function main() {
         config,
         workingDir: process.cwd(),
       })
-      .catch((e) => console.error(e))
+      .catch(handleError)
   })
 
   program
@@ -53,7 +57,19 @@ export function main() {
       const config = resolveConfigPath('')
       await engine
         .invoke({ config, workingDir: process.cwd(), func: p.func })
-        .catch((e) => console.error(e))
+        .catch(handleError)
+    })
+
+  program
+    .command('compile')
+    .argument('<file>', 'input file')
+    .action(async (p) => {
+      await engine
+        .compile({
+          workingDir: process.cwd(),
+          file: p,
+        })
+        .catch(handleError)
     })
 
   program.parse(process.argv)

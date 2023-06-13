@@ -12,7 +12,7 @@ import type {
   PartialLangiumServices,
 } from 'langium'
 import { createDefaultModule, createDefaultSharedModule, inject } from 'langium'
-import { module } from '../gen'
+import { FaasitGeneratedModule, FaasitGeneratedSharedModule } from '../parser'
 import { FaasitValidationRegistry, FaasitValidator } from './validator'
 import { FaasitFormatter } from './formatter'
 import { FaasitSemanticTokenProvider } from './semantic-token'
@@ -72,11 +72,11 @@ export function createFaasitServices(context: DefaultSharedModuleContext): {
 } {
   const shared = inject(
     createDefaultSharedModule(context),
-    module.FaasitGeneratedSharedModule
+    FaasitGeneratedSharedModule
   )
   const faasit = inject(
     createDefaultModule({ shared }),
-    module.FaasitGeneratedModule,
+    FaasitGeneratedModule,
     FaasitModule
   )
   shared.ServiceRegistry.register(faasit)

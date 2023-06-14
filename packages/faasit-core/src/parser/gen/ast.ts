@@ -7,7 +7,7 @@
 import type { AstNode, Reference, ReferenceInfo, TypeMetaData } from 'langium';
 import { AbstractAstReflection } from 'langium';
 
-export type Block = BlockBlock | CustomBlock | StructBlock;
+export type Block = BlockBlock | CustomBlock | StructBlock | UseBlock;
 
 export const Block = 'Block';
 
@@ -59,7 +59,7 @@ export function isBlockExpr(item: unknown): item is BlockExpr {
 export interface CustomBlock extends AstNode {
     readonly $container: Module;
     readonly $type: 'CustomBlock';
-    block_type: Reference<BlockBlock>
+    block_type: string
     for_target?: Reference<Block>
     name?: string
     props: Array<Property>
@@ -156,7 +156,7 @@ export function isModule(item: unknown): item is Module {
 }
 
 export interface Property extends AstNode {
-    readonly $container: BlockBlock | BlockExpr | CustomBlock | StructBlock;
+    readonly $container: BlockBlock | BlockExpr | CustomBlock | StructBlock | UseBlock;
     readonly $type: 'Property';
     name: string
     value: Expr
@@ -206,6 +206,18 @@ export function isTypeCallExpr(item: unknown): item is TypeCallExpr {
     return reflection.isInstance(item, TypeCallExpr);
 }
 
+export interface UseBlock extends AstNode {
+    readonly $container: Module;
+    readonly $type: 'UseBlock';
+    props: Array<Property>
+}
+
+export const UseBlock = 'UseBlock';
+
+export function isUseBlock(item: unknown): item is UseBlock {
+    return reflection.isInstance(item, UseBlock);
+}
+
 export type FaasitAstType = {
     Block: Block
     BlockBlock: BlockBlock
@@ -224,19 +236,21 @@ export type FaasitAstType = {
     QualifiedName: QualifiedName
     StructBlock: StructBlock
     TypeCallExpr: TypeCallExpr
+    UseBlock: UseBlock
 }
 
 export class FaasitAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Block', 'BlockBlock', 'BlockExpr', 'CustomBlock', 'Expr', 'Import', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Module', 'Property', 'QualifiedName', 'StructBlock', 'TypeCallExpr'];
+        return ['Block', 'BlockBlock', 'BlockExpr', 'CustomBlock', 'Expr', 'Import', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Module', 'Property', 'QualifiedName', 'StructBlock', 'TypeCallExpr', 'UseBlock'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
         switch (subtype) {
             case BlockBlock:
             case CustomBlock:
-            case StructBlock: {
+            case StructBlock:
+            case UseBlock: {
                 return this.isSubtype(Block, supertype);
             }
             case BlockExpr:
@@ -261,9 +275,6 @@ export class FaasitAstReflection extends AbstractAstReflection {
     getReferenceType(refInfo: ReferenceInfo): string {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
-            case 'CustomBlock:block_type': {
-                return BlockBlock;
-            }
             case 'CustomBlock:for_target': {
                 return Block;
             }
@@ -353,6 +364,14 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     name: 'TypeCallExpr',
                     mandatory: [
                         { name: 'elements', type: 'array' }
+                    ]
+                };
+            }
+            case 'UseBlock': {
+                return {
+                    name: 'UseBlock',
+                    mandatory: [
+                        { name: 'props', type: 'array' }
                     ]
                 };
             }

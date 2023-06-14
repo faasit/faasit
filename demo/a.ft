@@ -1,5 +1,4 @@
 import (
-  "core/sema"
   "std/faas"
 )
 
@@ -19,6 +18,9 @@ block function {
     inputs = type
     outputs = type
   }
+}
+
+block provider {
 }
 
 block output {
@@ -64,5 +66,5 @@ struct Page {
   functions = [GetEmail]
 }
 
-@application B {}
-
+@application B {
+}

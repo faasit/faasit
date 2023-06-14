@@ -32,12 +32,17 @@ export class FaasitFormatter extends AbstractFormatter {
     }
   }
 
-  private formatBlock(node: AstNode) {
+  private formatBlock(node: ast.Block | ast.BlockExpr) {
     const formatter = this.getNodeFormatter(node)
     const lbrace = formatter.keyword('{')
     const rbrace = formatter.keyword('}')
-    formatter.interior(lbrace, rbrace).prepend(Formatting.indent())
-    rbrace.prepend(Formatting.newLine())
+
+    if (node.props.length != 0) {
+      formatter.interior(lbrace, rbrace).prepend(Formatting.indent())
+      rbrace.prepend(Formatting.newLine())
+    } else {
+      rbrace.prepend(Formatting.noSpace())
+    }
     return
   }
 
@@ -49,15 +54,15 @@ export class FaasitFormatter extends AbstractFormatter {
       const comma = formatter.keywords(',')
 
       const shouldMultiLine =
-        node.elements.some((e) => ast.isBlockExpr(e)) ||
+        node.items.some((e) => ast.isBlockExpr(e)) ||
         (node.$cstNode?.length || 0) >= 80
       if (shouldMultiLine) {
-        formatter.nodes(...node.elements).prepend(Formatting.indent())
+        formatter.nodes(...node.items).prepend(Formatting.indent())
         rbracket.prepend(Formatting.newLine())
         comma.prepend(Formatting.noSpace())
       } else {
         // in one line
-        formatter.nodes(...node.elements).append(Formatting.noSpace())
+        formatter.nodes(...node.items).append(Formatting.noSpace())
         lbracket.append(Formatting.noSpace())
         rbracket.prepend(Formatting.noSpace())
         comma.prepend(Formatting.noSpace())

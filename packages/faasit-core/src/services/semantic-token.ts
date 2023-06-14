@@ -11,11 +11,13 @@ export class FaasitSemanticTokenProvider extends AbstractSemanticTokenProvider {
     acceptor: SemanticTokenAcceptor
   ): void | 'prune' | undefined {
     if (ast.isBlock(node)) {
-      acceptor({
-        node,
-        property: 'name',
-        type: 'class',
-      })
+      if ('name' in node) {
+        acceptor({
+          node,
+          property: 'name',
+          type: 'class',
+        })
+      }
 
       if (ast.isCustomBlock(node)) {
         acceptor({
@@ -52,7 +54,7 @@ export class FaasitSemanticTokenProvider extends AbstractSemanticTokenProvider {
     if (ast.isQualifiedName(node)) {
       acceptor({
         node,
-        property: 'name',
+        property: 'names',
         type: 'variable',
       })
       return

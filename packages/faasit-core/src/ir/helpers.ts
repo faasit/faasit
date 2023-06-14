@@ -20,13 +20,16 @@ class IrConverter {
     }
 
     for (const block of main.blocks) {
-      irMain.blocks.push(this.handleBlock(block))
+      const irBlock = this.handleBlock(block)
+      if (irBlock) {
+        irMain.blocks.push(irBlock)
+      }
     }
 
     return { version: ir_types.CUR_VERSION, modules: [irMain] }
   }
 
-  handleBlock(block: ast.Block): ir_types.Block {
+  handleBlock(block: ast.Block): ir_types.Block | undefined {
     if (block.$type === 'BlockBlock') {
       return {
         kind: 'b_block',
@@ -39,7 +42,7 @@ class IrConverter {
       return {
         kind: 'b_custom',
         // todo: use symbol
-        block_type: block.block_type.$refText,
+        block_type: block.block_type,
         name: block.name || '',
         props: this.handlePropList(block.props),
       }
@@ -53,8 +56,12 @@ class IrConverter {
       }
     }
 
+    if (block.$type === 'UseBlock') {
+      return undefined
+    }
+
     const blk: never = block
-    throw new Error(`unknown block type ${blk}`)
+    throw new Error(`unknown block type=${(blk as any).$type}`)
   }
 
   handlePropList(props: ast.Property[]): ir_types.Property[] {

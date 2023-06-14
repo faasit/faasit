@@ -8,7 +8,7 @@ Import:
   'import' '(' url+=STRING+  ')';
 
 Block:
-  CustomBlock | BlockBlock | StructBlock;
+  CustomBlock | BlockBlock | StructBlock | UseBlock;
 
 StructBlock:
   'struct' name=ID '{' props+=Property* '}';
@@ -16,8 +16,11 @@ StructBlock:
 BlockBlock:
   'block' name=ID '{' props+=Property* '}';
 
+UseBlock:
+  'use' '{' props+=Property* '}';
+
 CustomBlock:
-  '@' block_type=[BlockBlock:ID] (name=ID)? ('for' for_target=[Block:ID])? '{'
+  '@' block_type=ID (name=ID)? ('for' for_target=[Block:ID])? '{'
   props+=Property*
    '}';
 

@@ -1,7 +1,7 @@
 // Monarch syntax highlighting for the faasit language.
 export default {
     keywords: [
-        'block','for','import','struct'
+        'block','for','import','struct','use'
     ],
     operators: [
         ',','.','<','=','>','@'

@@ -1,0 +1,22 @@
+version: 0.1.0
+provider:
+  # provider settings
+  name: knative
+  kind: knative
+  auth: ...
+  kubeconfig: ...
+  namespace: ....
+plans:
+  - kind: create
+    function:
+      name: Hello
+      props:
+        ...
+  - kind: create
+    trigger:
+      name: http
+      kind: http
+      ....
+
+
+

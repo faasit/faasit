@@ -1,0 +1,20 @@
+version: 0.1.0
+modules:
+  - kind: m_inline
+    id: __main__
+    blocks:
+      - kind: b_custom
+        block_type: function
+        name: Hello
+        props:
+          - key: runtime
+            value:
+              kind: v_string
+              value: nodejs:16
+          - key: codeDir
+            value:
+              kind: v_string
+              value: ./code
+          ...
+
+

@@ -1,20 +1,16 @@
 import { createFaasitServices } from '../services'
 import type { URI } from 'vscode-uri'
 import { ast } from '.'
-import { Diagnostic } from 'vscode-languageserver-types'
 import { FileSystemProvider } from '../runtime'
-import { LangiumDocument } from 'langium'
+import { Result } from '../utils'
+import { DiagnosticError } from '../errors'
 
-export type ParseResult = {
-  errors: Diagnostic[]
-  parsedValue: ast.Module
-  textDocument: LangiumDocument['textDocument']
-}
+export type ParseResult<T> = Result<T, DiagnosticError>
 
 export async function parse(opts: {
   file: URI
   fileSystemProvider: () => FileSystemProvider
-}): Promise<ParseResult> {
+}): Promise<Result<ast.Module, DiagnosticError>> {
   const services = createFaasitServices({
     fileSystemProvider: opts.fileSystemProvider,
   })
@@ -26,9 +22,15 @@ export async function parse(opts: {
   })
   const errors = (document.diagnostics ?? []).filter((e) => e.severity === 1)
 
+  if (errors.length == 0) {
+    return {
+      ok: true,
+      value: document.parseResult.value as ast.Module,
+    }
+  }
+
   return {
-    errors,
-    parsedValue: document.parseResult.value as ast.Module,
-    textDocument: document.textDocument,
+    ok: false,
+    error: new DiagnosticError(errors, document.textDocument),
   }
 }

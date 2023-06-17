@@ -1,0 +1,20 @@
+version: 0.1.0
+provider:
+  name: openfaas
+  kind: openfaas
+  auth: ...
+  gateway: ...
+plans:
+  - kind: create
+    function:
+      name: Hello
+      props:
+        ...
+  - kind: create
+    trigger:
+      name: http
+      kind: http
+      ....
+
+
+

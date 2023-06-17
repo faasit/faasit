@@ -1,4 +1,4 @@
-import { ir_types } from '.'
+import { types } from '.'
 
 export interface OutFile {
   path: string
@@ -15,5 +15,5 @@ export interface GenerateOutput {
 export interface LangPlugin {
   name: string
 
-  generate?: (opts: { spec: ir_types.Spec }) => Promise<GenerateOutput>
+  generate?: (opts: { spec: types.Spec }) => Promise<GenerateOutput>
 }

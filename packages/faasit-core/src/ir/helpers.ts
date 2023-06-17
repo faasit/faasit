@@ -1,19 +1,20 @@
 import { ast } from '../parser'
-import { ir_types } from '.'
+import { types } from '.'
+import { AppError, InternalError } from '../errors'
 
 export async function convertFromAst(opts: {
   main: ast.Module
-}): Promise<ir_types.Spec> {
-  return new IrConverter(opts).convert()
+}): Promise<types.Spec> {
+  return new AstToIrConverter(opts).convert()
 }
 
-class IrConverter {
+class AstToIrConverter {
   constructor(private ctx: { main: ast.Module }) {}
 
-  convert(): ir_types.Spec {
+  convert(): types.Spec {
     const { main } = this.ctx
 
-    const irMain: ir_types.Module = {
+    const irMain: types.Module = {
       kind: 'm_inline',
       id: '__main__',
       blocks: [],
@@ -26,10 +27,10 @@ class IrConverter {
       }
     }
 
-    return { version: ir_types.CUR_VERSION, modules: [irMain] }
+    return { version: types.CUR_VERSION, modules: [irMain] }
   }
 
-  handleBlock(block: ast.Block): ir_types.Block | undefined {
+  handleBlock(block: ast.Block): types.Block | undefined {
     if (block.$type === 'BlockBlock') {
       return {
         kind: 'b_block',
@@ -64,13 +65,13 @@ class IrConverter {
     throw new Error(`unknown block type=${(blk as any).$type}`)
   }
 
-  handlePropList(props: ast.Property[]): ir_types.Property[] {
+  handlePropList(props: ast.Property[]): types.Property[] {
     return props.map((p) => {
       return { key: p.name, value: this.handleExpr(p.value) }
     })
   }
 
-  handleExpr(expr: ast.Expr): ir_types.Value {
+  handleExpr(expr: ast.Expr): types.Value {
     if (expr.$type === 'LiteralString') {
       return { kind: 'v_string', value: expr.value }
     }
@@ -109,5 +110,79 @@ class IrConverter {
 
     const v: never = expr
     throw new Error(`unknown expr: ${v}`)
+  }
+}
+
+export function makeIrService(spec: types.Spec) {
+  return new IrService({ spec })
+}
+
+export class IrService {
+  /**
+   * IrService maintains symtab resolves from Ir Spec
+   * and provides useful methods to handle with ir
+   */
+  private symtab: Map<string, types.BaseNode> = new Map()
+  private module: types.Module
+  constructor(private ctx: { spec: types.Spec }) {
+    // construct symtab
+    this.module = ctx.spec.modules[0]
+
+    for (const block of this.module.blocks) {
+      this.symtab.set(block.name, block)
+    }
+  }
+
+  getMainModule() {
+    return this.module
+  }
+
+  convertToValue(value: types.Value | types.CustomBlock): unknown {
+    // atomic value
+    if (types.isAtomicValue(value)) {
+      return value.value
+    }
+
+    if (value.kind === 'v_ref') {
+      const block = this.symtab.get(value.id)
+      if (!block) {
+        throw new AppError(`no such reference=${value.id}`)
+      }
+
+      if (!types.isCustomBlock(block)) {
+        throw new AppError(
+          `type mismatch, require b_custom got=${block.kind}, id=${value.id}`
+        )
+      }
+
+      return this.convertToValue(block)
+    }
+
+    if (value.kind === 'v_list') {
+      return value.items.map((i) => this.convertToValue(i))
+    }
+
+    if (value.kind === 'v_object') {
+      let obj: Record<string, unknown> = {}
+      for (const prop of value.props) {
+        obj[prop.key] = this.convertToValue(prop.value)
+      }
+      return obj
+    }
+
+    if (value.kind === 'b_custom') {
+      // TODO: use b_block to typecheck
+      let obj: Record<string, unknown> = {}
+      if (value.name) {
+        obj['name'] = value.name
+      }
+      for (const prop of value.props) {
+        obj[prop.key] = this.convertToValue(prop.value)
+      }
+      return obj
+    }
+
+    const chk: never = value
+    throw new InternalError(`unknown value kind=${JSON.stringify(chk)}`)
   }
 }

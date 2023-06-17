@@ -4,7 +4,7 @@ help:
 	echo help
 
 init-kind-k8s-cluster:
-	kind create cluster --config k8s/kind/node1-1.21.yaml --name faasit-e2e
+	kind create cluster --config k8s/kind/node1-1.24.yaml --name faasit-e2e
 
 deploy-infra:
 	kubectl apply -f manifests/global-cm.yaml
@@ -25,7 +25,7 @@ CONTAINER_ID=$(shell ./scripts/lib.sh get_container_id faasit-e2e)
 cp-kind-scripts:
 	@docker cp scripts/set-iptables.sh ${CONTAINER_ID}:/set-iptabls.sh
 
-APP=
+APP=infra-traefik
 APPS ?= ${APP}
 
 helm-update-deps:

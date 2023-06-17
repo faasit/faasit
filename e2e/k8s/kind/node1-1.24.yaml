@@ -22,7 +22,7 @@ kubeadmConfigPatchesJSON6902:
 nodes:
   # the control plane node config
   - role: control-plane
-    image: kindest/node:v1.21.14@sha256:220cfafdf6e3915fbce50e13d1655425558cb98872c53f802605aa2fb2d569cf
+    image: kindest/node:v1.24.7@sha256:577c630ce8e509131eab1aea12c022190978dd2f745aac5eb1fe65c0807eb315
     # port forward 30082 on the host to 30082 on this node
     extraPortMappings:
       - containerPort: 30082

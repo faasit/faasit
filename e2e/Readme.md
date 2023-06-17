@@ -38,3 +38,13 @@ It will deploy some serverless platform on kubernetes cluster.
    ```sh
    make deploy-openwhisk
    ```
+
+4. Deploy OpenFaas
+
+   see serverless-docs > openfaas
+
+   Use arkade
+
+5. Configure OpenFaas
+
+   Run `make openfaas-login` to set auth secret

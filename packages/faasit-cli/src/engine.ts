@@ -1,25 +1,22 @@
 import { faas } from './core'
-import { ir, parser, URI } from '@faasit/core'
+import { AppError, ir, parser, URI } from '@faasit/core'
 import { PluginContext } from './core/plugin'
 import { OpenFaasPlugin } from './plugins/openfaas'
-import { exec } from 'child_process'
-import { promisify } from 'node:util'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
 import yaml from 'js-yaml'
 import { NodeFileSystemProvider } from './runtime'
 import chalk from 'chalk'
-
-const execp = promisify(exec)
+import { spawn } from 'node:child_process'
+import { readableToStream } from './utils'
 
 export class Engine {
   constructor() {}
 
   async deploy(opts: { config: string; workingDir: string }) {
-    const app = await this.resolveApplication(opts.config)
-    console.log(`using app`, app)
+    const app = await this.resolveApplication(opts)
 
-    const plugin = this.getPlugin(app.provider.name)
+    const plugin = this.getPlugin(app.defaultProvider.name)
 
     if (plugin.deploy) {
       await plugin.deploy({ app }, this.getPluginRuntime())
@@ -27,9 +24,9 @@ export class Engine {
   }
 
   async invoke(opts: { config: string; workingDir: string; func?: string }) {
-    const app = await this.resolveApplication(opts.config)
+    const app = await this.resolveApplication(opts)
 
-    const plugin = this.getPlugin(app.provider.name)
+    const plugin = this.getPlugin(app.defaultProvider.name)
 
     if (plugin.invoke) {
       let funcName = opts.func
@@ -42,48 +39,69 @@ export class Engine {
   }
 
   async compile(opts: { workingDir: string; file: string }) {
-    const file = path.resolve(path.join(opts.workingDir, opts.file))
-    const fileUri = URI.file(file)
+    const irSpecRes = await this.handleCompile(opts)
 
-    const parseResult = await parser.parse({
-      file: fileUri,
-      fileSystemProvider: () => new NodeFileSystemProvider(),
-    })
-
-    if (parseResult.errors.length > 0) {
+    if (!irSpecRes.ok) {
+      const diagErr = irSpecRes.error
       console.error(`failed to compile ${opts.file}`)
-      for (const error of parseResult.errors) {
+      for (const error of diagErr.diags) {
         console.error(
           chalk.red(
             `line ${error.range.start.line}: ${
               error.message
-            } [${parseResult.textDocument.getText(error.range)}]`
+            } [${diagErr.textDocument.getText(error.range)}]`
           )
         )
       }
       return
     }
 
-    const module = parseResult.parsedValue
-
-    // just print as ir currently
-    const irSpec = await ir.convertFromAst({ main: module })
-    console.log(yaml.dump(irSpec))
+    // just print ir currently
+    console.log(yaml.dump(irSpecRes.value))
   }
 
-  private async resolveApplication(configPath: string) {
-    const extname = path.extname(configPath)
-    if (extname === '.ft') {
-      throw new Error(`not support faasit DSL currently`)
-    }
-
-    if (extname === '.yaml' || extname === '.yml') {
-      const content = await fsp.readFile(configPath)
-      const obj = yaml.load(content.toString())
+  private async resolveApplication(opts: {
+    workingDir: string
+    config: string
+  }) {
+    const extname = path.extname(opts.config)
+    // yaml file
+    if (['.yaml', '.yml'].includes(extname)) {
+      const content = await fsp.readFile(opts.config, 'utf-8')
+      const obj = yaml.load(content)
       return faas.parseApplication(obj)
     }
 
-    throw new Error(`unsupport file format: ${configPath}`)
+    // Faasit DSL file
+    if (!['.ft'].includes(extname)) {
+      throw new Error(`config should be ft, config=${opts.config}`)
+    }
+
+    const irSpecRes = await this.handleCompile({
+      workingDir: opts.workingDir,
+      file: opts.config,
+    })
+
+    if (!irSpecRes.ok) {
+      throw new AppError(`failed to compile ${opts.config}`, {
+        cause: irSpecRes.error,
+      })
+    }
+
+    const irSpec = irSpecRes.value
+    const irService = ir.makeIrService(irSpec)
+
+    const applicationBlock = irSpec.modules[0].blocks.find(
+      (b) => ir.types.isCustomBlock(b) && b.block_type === 'application'
+    ) as ir.types.CustomBlock
+
+    if (!applicationBlock) {
+      throw new Error(`no @application block`)
+    }
+
+    const value = irService.convertToValue(applicationBlock)
+    // console.debug(`[Debug] resolve application:`, value)
+    return faas.parseApplication(value)
   }
 
   private getPlugin(name: string) {
@@ -93,9 +111,29 @@ export class Engine {
   private getPluginRuntime(): PluginContext {
     return {
       rt: {
-        async runCommand(cmd) {
-          const data = await execp(cmd)
-          return data
+        runCommand(cmd) {
+          const p = spawn(cmd, {
+            shell: true,
+          })
+
+          const wait: () => Promise<{ exitcode: number }> = () =>
+            new Promise((resolve, reject) => {
+              p.once('error', (err) => {
+                reject(err)
+              })
+
+              p.once('exit', (code) => {
+                resolve({
+                  exitcode: code || 0,
+                })
+              })
+            })
+
+          return {
+            wait,
+            stdout: readableToStream(p.stdout),
+            stderr: readableToStream(p.stderr),
+          }
         },
 
         async writeFile(path, content) {
@@ -122,5 +160,28 @@ export class Engine {
         },
       },
     }
+  }
+
+  async handleCompile(opts: {
+    workingDir: string
+    file: string
+  }): Promise<parser.ParseResult<ir.types.Spec>> {
+    const file = path.resolve(opts.workingDir, opts.file)
+    const fileUri = URI.file(file)
+
+    const parseResult = await parser.parse({
+      file: fileUri,
+      fileSystemProvider: () => new NodeFileSystemProvider(),
+    })
+
+    if (!parseResult.ok) {
+      return parseResult
+    }
+
+    const module = parseResult.value
+
+    // just print as ir currently
+    const irSpec = await ir.convertFromAst({ main: module })
+    return { ok: true, value: irSpec }
   }
 }

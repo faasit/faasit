@@ -27,7 +27,7 @@ export function main() {
 
   const engine = new Engine()
 
-  console.debug(`working dir = ${process.cwd()}`)
+  // console.debug(`working dir = ${process.cwd()}`)
 
   const handleError = (e: unknown) => {
     console.error(e)
@@ -40,18 +40,22 @@ export function main() {
       await handleInit(p).catch((e) => console.error(e))
     })
 
-  program.command('deploy').action(async (p) => {
-    const config = resolveConfigPath('')
-    await engine
-      .deploy({
-        config,
-        workingDir: process.cwd(),
-      })
-      .catch(handleError)
-  })
+  program
+    .command('deploy')
+    .description('deploy serverless application')
+    .action(async (p) => {
+      const config = resolveConfigPath('')
+      await engine
+        .deploy({
+          config,
+          workingDir: process.cwd(),
+        })
+        .catch(handleError)
+    })
 
   program
     .command('invoke')
+    .description('invoke serverless function')
     .option('-f, --func [string]', 'function name')
     .action(async (p) => {
       const config = resolveConfigPath('')
@@ -63,6 +67,7 @@ export function main() {
   program
     .command('compile')
     .argument('<file>', 'input file')
+    .description('compile faast DSL')
     .action(async (p) => {
       await engine
         .compile({

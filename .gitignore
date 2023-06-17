@@ -231,3 +231,5 @@ build/
 !gradle-wrapper.jar
 
 .DS_Store
+
+template/

@@ -1,6 +1,8 @@
 import { z } from 'zod'
 
-export type Value =
+export type BaseNode = { kind: string }
+
+export type AtomicValue =
   | {
       kind: 'v_string'
       value: string
@@ -9,6 +11,9 @@ export type Value =
   | { kind: 'v_bool'; value: boolean }
   | { kind: 'v_float'; value: number }
   | { kind: 'v_any'; value: unknown }
+
+export type Value =
+  | AtomicValue
   | { kind: 'v_list'; items: Value[] }
   | {
       kind: 'v_object'
@@ -21,6 +26,13 @@ export type Value =
       kind: 'v_ref'
       id: string
     }
+
+export function isAtomicValue(v: { kind: string }): v is AtomicValue {
+  if (v.kind.startsWith('v_') && 'value' in v) {
+    return true
+  }
+  return false
+}
 
 export const CUR_VERSION = '0.1.0'
 
@@ -36,13 +48,19 @@ export type Module = {
 
 export type Property = { key: string; value: Value }
 
+export type CustomBlock = {
+  kind: 'b_custom'
+  block_type: string
+  name: string
+  props: Property[]
+}
+
+export function isCustomBlock(v: BaseNode): v is CustomBlock {
+  return v.kind === 'b_custom'
+}
+
 export type Block =
-  | {
-      kind: 'b_custom'
-      block_type: string
-      name: string
-      props: Property[]
-    }
+  | CustomBlock
   | { kind: 'b_struct'; name: string; props: Property[] }
   | { kind: 'b_block'; name: string; props: Property[] }
 

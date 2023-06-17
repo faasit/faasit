@@ -2,8 +2,7 @@ import { z } from 'zod'
 
 const FunctionTriggerSchema = z.object({
   name: z.string(),
-  type: z.string(),
-  props: z.any(),
+  kind: z.string(),
 })
 
 const FunctionSchema = z.object({
@@ -19,7 +18,7 @@ const FunctionSchema = z.object({
 })
 
 const ApplicationSchema = z.object({
-  provider: z.object({
+  defaultProvider: z.object({
     name: z.string(),
   }),
   functions: z.array(FunctionSchema),

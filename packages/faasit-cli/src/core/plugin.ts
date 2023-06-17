@@ -1,7 +1,16 @@
 import { Application } from './faas'
 
+export interface StreamReader {
+  next(): Promise<IteratorResult<string>>
+  [Symbol.asyncIterator](): AsyncIterableIterator<string>
+}
+
 export interface PluginRuntime {
-  runCommand(cmd: string): Promise<{ stdout: string; stderr: string }>
+  runCommand(cmd: string): {
+    stdout: StreamReader
+    stderr: StreamReader
+    wait: () => Promise<{ exitcode: number }>
+  }
 
   joinPath(...path: string[]): string
   writeFile(path: string, content: string): Promise<void>

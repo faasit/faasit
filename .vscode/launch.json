@@ -12,6 +12,17 @@
       ]
     },
     {
+      "name": "Run Extension Demo 1",
+      "type": "extensionHost",
+      "request": "launch",
+      "runtimeExecutable": "${execPath}",
+      "args": [
+        "${workspaceFolder}/packages/faasit-examples/examples/nodejs-hello",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-faasit",
+        "--disable-extensions"
+      ]
+    },
+    {
       "name": "Run Extension & Build",
       "type": "extensionHost",
       "request": "launch",

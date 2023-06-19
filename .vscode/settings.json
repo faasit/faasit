@@ -9,7 +9,7 @@
     "**/Thumbs.db": true,
     "**/build": true,
     "**/src-gen": true,
-    "**/node_modules": true,
+    "**/node_modules": false,
     "**/.gradle": true
   }
 }

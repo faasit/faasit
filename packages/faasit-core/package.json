@@ -8,6 +8,7 @@
   },
   "exports": {
     ".": {
+      "faasit:bundler": "./src/index.ts",
       "require": "./dist/index.cjs",
       "import": "./dist/index.mjs"
     }

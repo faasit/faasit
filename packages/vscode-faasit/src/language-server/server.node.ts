@@ -9,8 +9,6 @@ import { NodeFileSystem } from 'langium/node'
 import { createConnection, ProposedFeatures } from 'vscode-languageserver/node'
 import { services } from '@faasit/core'
 
-import { SemanticTokenTypes } from 'vscode-languageserver/node'
-
 // Create a connection to the client
 const connection = createConnection(ProposedFeatures.all)
 

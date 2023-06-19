@@ -1,0 +1,60 @@
+{
+    "name": "vscode-faasit-cloud",
+    "private": true,
+    "displayName": "Faasit Cloud Extension",
+    "description": "Faasit Cloud Extension, contains FileSystemProvider impl & code samples",
+    "version": "0.0.1",
+    "publisher": "brody715",
+    "license": "MIT",
+    "icon": "./images/logo.png",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/brody715/faasit.git"
+    },
+    "bugs": {
+        "url": "https://github.com/brody715/faasit/issues"
+    },
+    "engines": {
+        "vscode": "^1.75.0"
+    },
+    "enabledApiProposals": [
+        "fileSearchProvider",
+        "textSearchProvider"
+    ],
+    "activationEvents": [
+        "onFileSystem:memfs",
+        "onDebug"
+    ],
+    "categories": [
+        "Other"
+    ],
+    "contributes": {
+        "viewsWelcome": [
+            {
+                "view": "debug",
+                "contents": "In order to run and debug you'll need to create a local workspace."
+            },
+            {
+                "view": "terminal",
+                "contents": "In order to run and debug you'll need to create a local workspace."
+            }
+        ]
+    },
+    "browser": "out/extension",
+    "devDependencies": {
+        "@types/node": "^17.0.34",
+        "@types/vscode": "^1.67.0",
+        "esbuild": "^0.18.4",
+        "typescript": "^4.6.4"
+    },
+    "dependencies": {},
+    "scripts": {
+        "package": "vsce package --no-dependencies",
+        "publish": "vsce publish --no-dependencies",
+        "vscode:prepublish": "npm run build",
+        "build-base": "esbuild ./src/extension.ts --bundle --target=es6 --outfile=out/extension.js --external:vscode --format=cjs --platform=browser",
+        "build:prod": "npm run build-base -- --minify",
+        "build": "npm run build-base -- --sourcemap",
+        "watch": "npm run build-base -- --sourcemap --watch"
+    }
+}

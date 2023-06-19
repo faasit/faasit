@@ -30,27 +30,3 @@ const { shared, faasit } = services.createFaasitServices({
 
 // Start the language server with the shared services
 startLanguageServer(shared)
-
-// Send a notification with the serialized AST after every document change
-type DocumentChange = {
-  uri: string
-  content: string
-  diagnostics: Diagnostic[]
-}
-const documentChangeNotification = new NotificationType<DocumentChange>(
-  'browser/DocumentChange'
-)
-const jsonSerializer = faasit.serializer.JsonSerializer
-shared.workspace.DocumentBuilder.onBuildPhase(
-  DocumentState.Validated,
-  (documents) => {
-    for (const document of documents) {
-      const json = jsonSerializer.serialize(document.parseResult.value)
-      connection.sendNotification(documentChangeNotification, {
-        uri: document.uri.toString(),
-        content: json,
-        diagnostics: document.diagnostics ?? [],
-      })
-    }
-  }
-)

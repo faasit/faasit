@@ -24,7 +24,7 @@
 
 - NodeJs
 
-### @faasit/vscode-extension
+### vscode-faasit
 
 **用途**
 
@@ -44,4 +44,4 @@
 **用途**
 
 - 提供云端编辑器，集成 Monaco Editor
-- 提供云端的语言服务，基于 `@faasit/core` 和 `@faasit/vscode-extension` 实现
+- 提供云端的语言服务，基于 `@faasit/core` 和 `vscode-faasit` 实现

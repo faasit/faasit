@@ -15,11 +15,38 @@
     {
       "type": "npm",
       "script": "build",
+      "problemMatcher": [],
       "path": "packages/vscode-faasit",
       "group": "build",
+      "label": "vscode-faasit:build",
+    },
+    {
+      "type": "npm",
+      "script": "build",
       "problemMatcher": [],
-      "label": "build-vscode-faasit",
-      "detail": "unbuild"
+      "path": "packages/vscode-faasit-cloud",
+      "group": "build",
+      "label": "vscode-faasit-cloud:build",
+    },
+    {
+      "type": "npm",
+      "script": "watch:browser",
+      "path": "packages/vscode-faasit",
+      "group": "build",
+      "label": "vscode-faasit:watch:browser",
+      "isBackground": true,
+      "problemMatcher": [],
+    },
+    {
+      "type": "npm",
+      "script": "watch:node",
+      "path": "packages/vscode-faasit",
+      "group": "build",
+      "label": "vscode-faasit:watch:node",
+      "isBackground": true,
+      "problemMatcher": [
+        "$tsc-watch"
+      ]
     }
   ]
 }

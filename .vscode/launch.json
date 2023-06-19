@@ -1,4 +1,5 @@
 {
+  "version": "0.2.0",
   "configurations": [
     {
       "name": "Run Extension",
@@ -9,7 +10,11 @@
         "${workspaceFolder}/demo",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-faasit",
         "--disable-extensions"
-      ]
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "vscode-faasit:build"
     },
     {
       "name": "Run Extension Demo 1",
@@ -19,20 +24,33 @@
       "args": [
         "${workspaceFolder}/packages/faasit-examples/examples/nodejs-hello",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-faasit",
-        "--disable-extensions"
-      ]
+        "--disable-extensions",
+      ],
+      "outFiles": [
+        "${workspaceFolder}/out/**/*.js"
+      ],
+      "preLaunchTask": "vscode-faasit:build"
     },
     {
-      "name": "Run Extension & Build",
+      "name": "Run Web Extension in VS Code",
       "type": "extensionHost",
+      "debugWebWorkerHost": true,
       "request": "launch",
-      "runtimeExecutable": "${execPath}",
       "args": [
-        "${workspaceFolder}/demo",
+        "${workspaceFolder}/packages/faasit-examples/examples/nodejs-hello",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-faasit",
-        "--disable-extensions"
+        "--extensionDevelopmentKind=web",
+        "--disable-extensions",
+        "--enable-proposed-api brody715.vscode-faasit-cloud"
       ],
-      "preLaunchTask": "build-vscode-faasit"
-    },
+      "outFiles": [
+        "${workspaceFolder}/packages/vscode-faasit/out/**/*.js"
+      ],
+      "resolveSourceMapLocations": [
+        "${workspaceFolder}/**",
+        "!**/node_modules/**"
+      ],
+      "preLaunchTask": "vscode-faasit:build",
+    }
   ]
 }

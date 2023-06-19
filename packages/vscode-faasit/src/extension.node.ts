@@ -6,24 +6,16 @@ import * as vscode from 'vscode'
 import * as path from 'path'
 import { LanguageClient, TransportKind } from 'vscode-languageclient/node'
 
-let client: LanguageClient
-
 // This function is called when the extension is activated.
 export function activate(context: vscode.ExtensionContext): void {
-  client = startLanguageClient(context)
-}
-
-// This function is called when the extension is deactivated.
-export function deactivate(): Thenable<void> | undefined {
-  if (client) {
-    return client.stop()
-  }
-  return undefined
+  console.log(`starting faasit nodejs extension`)
+  const client = startLanguageClient(context)
+  context.subscriptions.push(client)
 }
 
 function startLanguageClient(context: vscode.ExtensionContext): LanguageClient {
   const serverModule = context.asAbsolutePath(
-    path.join('out', 'server-node.cjs')
+    path.join('out', 'language-server/server.node.js')
   )
   // The debug options for the server
   // --inspect=6009: runs the server in Node's Inspector mode so VS Code can attach to the server for debugging

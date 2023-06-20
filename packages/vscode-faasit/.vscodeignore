@@ -2,3 +2,5 @@
 .gradle/**
 build/**
 *.gradle
+.vscode/**
+node_modules/**

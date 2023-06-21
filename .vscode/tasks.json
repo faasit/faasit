@@ -47,6 +47,13 @@
       "problemMatcher": [
         "$tsc-watch"
       ]
+    },
+    {
+      "label": "vscode-extension:build",
+      "dependsOn": [
+        "vscode-faasit-cloud:build",
+        "vscode-faasit:build"
+      ]
     }
   ]
 }

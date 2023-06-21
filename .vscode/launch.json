@@ -37,11 +37,12 @@
       "debugWebWorkerHost": true,
       "request": "launch",
       "args": [
-        "${workspaceFolder}/packages/faasit-examples/examples/nodejs-hello",
+        "--folder-uri=memfs:/sample-folder",
         "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-faasit",
+        "--extensionDevelopmentPath=${workspaceFolder}/packages/vscode-faasit-cloud",
         "--extensionDevelopmentKind=web",
+        "--enable-proposed-api=brody715.vscode-faasit-cloud",
         "--disable-extensions",
-        "--enable-proposed-api brody715.vscode-faasit-cloud"
       ],
       "outFiles": [
         "${workspaceFolder}/packages/vscode-faasit/out/**/*.js"
@@ -50,7 +51,7 @@
         "${workspaceFolder}/**",
         "!**/node_modules/**"
       ],
-      "preLaunchTask": "vscode-faasit:build",
+      "preLaunchTask": "vscode-extension:build"
     }
   ]
 }

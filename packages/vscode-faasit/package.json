@@ -2,7 +2,7 @@
     "name": "vscode-faasit",
     "displayName": "FaasIt Language Support",
     "description": "Language support for FaasIt",
-    "version": "0.0.1",
+    "version": "0.0.3",
     "publisher": "brody715",
     "license": "MIT",
     "icon": "./images/logo.png",
@@ -53,19 +53,16 @@
             "type": "object",
             "title": "FaasIt",
             "properties": {
-                "faasit.lspMode": {
+                "faasit.trace.server": {
+                    "scope": "window",
                     "type": "string",
                     "enum": [
-                        "remote",
-                        "local"
+                        "off",
+                        "messages",
+                        "verbose"
                     ],
-                    "default": "remote",
-                    "description": "Specify whether the remote or local language server should be used."
-                },
-                "faasit.lspPort": {
-                    "type": "number",
-                    "default": 25007,
-                    "description": "Specify the port to use for the language server."
+                    "default": "off",
+                    "description": "Traces the communication between VSCode and the language server."
                 }
             }
         }
@@ -88,7 +85,8 @@
     },
     "scripts": {
         "vsce:package": "vsce package --no-dependencies",
-        "vsce:publish": "vsce publish --no-dependencies",
+        "vsce:publish": "npm run vsce:ls && vsce publish --no-dependencies",
+        "vsce:ls": "vsce ls --no-dependencies",
         "vscode:prepublish": "npm run build:prod",
         "build:prod": "cross-env NODE_ENV=production tsx build.ts build",
         "build": "tsx build.ts build",

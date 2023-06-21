@@ -29,11 +29,13 @@ function startLanguageClient(context: vscode.ExtensionContext): LanguageClient {
 
   // Options to control the language client
   const clientOptions: LanguageClientOptions = {
-    documentSelector: [{ scheme: 'file', language: 'faasit' }],
+    // to support virtual fs scheme in browser
+    documentSelector: [{ scheme: '*', language: 'faasit' }],
     synchronize: {
       // Notify the server about file changes to files contained in the workspace
       fileEvents: fileSystemWatcher,
     },
+    outputChannelName: 'Faasit',
   }
 
   // Create the language client and start the client.

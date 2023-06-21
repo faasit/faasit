@@ -4,3 +4,7 @@ build/**
 *.gradle
 .vscode/**
 node_modules/**
+src/**
+out/**/*.map
+out/**/*.d.ts
+*.ts

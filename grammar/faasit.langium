@@ -39,6 +39,9 @@ ListExpr:
 TypeCallExpr:
   callee=QualifiedName '<' elements+=Expr (',' elements+=Expr)* '>';
 
+QualifiedName:
+  names+=ID ('.' names+=ID)*;
+
 Literal:
   LiteralString | LiteralInt | LiteralFloat | LiteralBool;
 
@@ -54,15 +57,12 @@ LiteralBool:
 LiteralFloat:
   value=FLOAT;
 
-QualifiedName:
-  names+=ID ('.' names+=ID)*;
-
 hidden terminal WS: /\s+/;
-terminal ID: /[_a-zA-Z][\w_]*/;
 terminal FLOAT returns number: /-?[0-9]+\.[0-9]*/;
 terminal INT returns number: /-?[0-9]+/;
 terminal BOOL returns boolean: 'true' | 'false';
 terminal STRING returns string: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/;
+terminal ID: /[_a-zA-Z][\w_]*/;
 
 hidden terminal ML_COMMENT: /\/\*[\s\S]*?\*\//;
 hidden terminal SL_COMMENT: /\/\/[^\n\r]*/;

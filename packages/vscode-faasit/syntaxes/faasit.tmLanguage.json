@@ -10,7 +10,7 @@
     },
     {
       "name": "keyword.control.faasit",
-      "match": "\\b([bB][lL][oO][cC][kK]|[fF][oO][rR]|[iI][mM][pP][oO][rR][tT]|[sS][tT][rR][uU][cC][tT]|[uU][sS][eE])\\b"
+      "match": "\\b([bB][lL][oO][cC][kK]|[fF][oO][rR]|[iI][mM][pP][oO][rR][tT]|[rR][pP][cC]|[sS][eE][rR][vV][iI][cC][eE]|[sS][tT][rR][eE][aA][mM]|[sS][tT][rR][uU][cC][tT]|[uU][sS][eE])\\b"
     },
     {
       "name": "string.quoted.double.faasit",

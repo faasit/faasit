@@ -1,0 +1,3 @@
+export FAASIT_SRC_HOME=/Users/wfuing/Documents/project/faasit/faasit
+
+node $FAASIT_SRC_HOME/packages/faasit/bin/faasit.cjs "$@"

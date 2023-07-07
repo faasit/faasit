@@ -21,11 +21,11 @@ UseBlock:
 
 ServiceBlock:
   'service' name=ID ('for' for_target=[Block:ID])? '{'
-  methods=RpcDecl*
+  methods+=RpcDecl*
   '}';
 
 RpcDecl:
-  'rpc' name=ID(arg_type=StreamedType?) '->' streamed=('stream')? return_type=(StreamedType)
+  'rpc' name=ID '(' (arg_type=StreamedType?) ')' '->' '(' (return_type=StreamedType?) ')'
 ;
 
 StreamedType:

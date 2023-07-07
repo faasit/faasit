@@ -1,17 +1,17 @@
-import { faas } from './core'
 import { AppError, ir, parser, URI } from '@faasit/core'
-import { PluginContext } from './core/plugin'
-import { OpenFaasPlugin } from './plugins/openfaas'
+import chalk from 'chalk'
+import yaml from 'js-yaml'
+import { spawn } from 'node:child_process'
 import fsp from 'node:fs/promises'
 import path from 'node:path'
-import yaml from 'js-yaml'
+import { faas } from './core'
+import { PluginContext } from './core/plugin'
+import { OpenFaasPlugin } from './plugins/openfaas'
 import { NodeFileSystemProvider } from './runtime'
-import chalk from 'chalk'
-import { spawn } from 'node:child_process'
 import { readableToStream } from './utils'
 
 export class Engine {
-  constructor() {}
+  constructor() { }
 
   async deploy(opts: { config: string; workingDir: string }) {
     const app = await this.resolveApplication(opts)
@@ -47,8 +47,7 @@ export class Engine {
       for (const error of diagErr.diags) {
         console.error(
           chalk.red(
-            `line ${error.range.start.line}: ${
-              error.message
+            `line ${error.range.start.line}: ${error.message
             } [${diagErr.textDocument.getText(error.range)}]`
           )
         )
@@ -100,7 +99,7 @@ export class Engine {
     }
 
     const value = irService.convertToValue(applicationBlock)
-    // console.debug(`[Debug] resolve application:`, value)
+    console.debug(`[Debug] resolve application:`, value)
     return faas.parseApplication(value)
   }
 

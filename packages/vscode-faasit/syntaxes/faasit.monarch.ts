@@ -1,12 +1,12 @@
 // Monarch syntax highlighting for the faasit language.
 export default {
     keywords: [
-        'block','for','import','struct','use'
+        'block','for','import','rpc','service','stream','struct','use'
     ],
     operators: [
-        ',','.','<','=','>','@'
+        ',','->','.','<','=','>','@'
     ],
-    symbols:  /\(|\)|,|\.|<|=|>|@|\[|\]|\{|\}/,
+    symbols:  /\(|\)|,|->|\.|<|=|>|@|\[|\]|\{|\}/,
 
     tokenizer: {
         initial: [

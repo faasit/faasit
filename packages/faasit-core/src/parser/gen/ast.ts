@@ -7,7 +7,7 @@
 import type { AstNode, Reference, ReferenceInfo, TypeMetaData } from 'langium';
 import { AbstractAstReflection } from 'langium';
 
-export type Block = BlockBlock | CustomBlock | StructBlock | UseBlock;
+export type Block = BlockBlock | CustomBlock | ServiceBlock | StructBlock | UseBlock;
 
 export const Block = 'Block';
 
@@ -180,6 +180,47 @@ export function isQualifiedName(item: unknown): item is QualifiedName {
     return reflection.isInstance(item, QualifiedName);
 }
 
+export interface RpcDecl extends AstNode {
+    readonly $container: ServiceBlock;
+    readonly $type: 'RpcDecl';
+    arg_type?: StreamedType
+    name: string
+    return_type?: StreamedType
+}
+
+export const RpcDecl = 'RpcDecl';
+
+export function isRpcDecl(item: unknown): item is RpcDecl {
+    return reflection.isInstance(item, RpcDecl);
+}
+
+export interface ServiceBlock extends AstNode {
+    readonly $container: Module;
+    readonly $type: 'ServiceBlock';
+    for_target?: Reference<Block>
+    methods: Array<RpcDecl>
+    name: string
+}
+
+export const ServiceBlock = 'ServiceBlock';
+
+export function isServiceBlock(item: unknown): item is ServiceBlock {
+    return reflection.isInstance(item, ServiceBlock);
+}
+
+export interface StreamedType extends AstNode {
+    readonly $container: RpcDecl;
+    readonly $type: 'StreamedType';
+    streamed?: 'stream'
+    type: string
+}
+
+export const StreamedType = 'StreamedType';
+
+export function isStreamedType(item: unknown): item is StreamedType {
+    return reflection.isInstance(item, StreamedType);
+}
+
 export interface StructBlock extends AstNode {
     readonly $container: Module;
     readonly $type: 'StructBlock';
@@ -234,6 +275,9 @@ export type FaasitAstType = {
     Module: Module
     Property: Property
     QualifiedName: QualifiedName
+    RpcDecl: RpcDecl
+    ServiceBlock: ServiceBlock
+    StreamedType: StreamedType
     StructBlock: StructBlock
     TypeCallExpr: TypeCallExpr
     UseBlock: UseBlock
@@ -242,13 +286,14 @@ export type FaasitAstType = {
 export class FaasitAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Block', 'BlockBlock', 'BlockExpr', 'CustomBlock', 'Expr', 'Import', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Module', 'Property', 'QualifiedName', 'StructBlock', 'TypeCallExpr', 'UseBlock'];
+        return ['Block', 'BlockBlock', 'BlockExpr', 'CustomBlock', 'Expr', 'Import', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Module', 'Property', 'QualifiedName', 'RpcDecl', 'ServiceBlock', 'StreamedType', 'StructBlock', 'TypeCallExpr', 'UseBlock'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
         switch (subtype) {
             case BlockBlock:
             case CustomBlock:
+            case ServiceBlock:
             case StructBlock:
             case UseBlock: {
                 return this.isSubtype(Block, supertype);
@@ -275,7 +320,8 @@ export class FaasitAstReflection extends AbstractAstReflection {
     getReferenceType(refInfo: ReferenceInfo): string {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
-            case 'CustomBlock:for_target': {
+            case 'CustomBlock:for_target':
+            case 'ServiceBlock:for_target': {
                 return Block;
             }
             default: {
@@ -348,6 +394,14 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     name: 'QualifiedName',
                     mandatory: [
                         { name: 'names', type: 'array' }
+                    ]
+                };
+            }
+            case 'ServiceBlock': {
+                return {
+                    name: 'ServiceBlock',
+                    mandatory: [
+                        { name: 'methods', type: 'array' }
                     ]
                 };
             }

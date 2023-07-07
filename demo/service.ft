@@ -1,0 +1,19 @@
+@function A {}
+
+service Users for A {
+  rpc get(GetUsersReq) -> (GetUsersResp)
+  rpc create(CreateUsersReq) -> (CreateUsersResp)
+
+  rpc setStatus(stream SetStatusMessage) -> ()
+  rpc onPoleGetStatus() -> (stream GetStatusMessage)
+}
+
+struct GetUsersReq {
+  id = string
+  name = string
+  age = int
+}
+
+struct GetUsersResp {
+  id = string
+}

@@ -1,6 +1,6 @@
-import { ast } from '../parser'
 import { types } from '.'
 import { AppError, InternalError } from '../errors'
+import { ast } from '../parser'
 
 export async function convertFromAst(opts: {
   main: ast.Module
@@ -9,7 +9,7 @@ export async function convertFromAst(opts: {
 }
 
 class AstToIrConverter {
-  constructor(private ctx: { main: ast.Module }) {}
+  constructor(private ctx: { main: ast.Module }) { }
 
   convert(): types.Spec {
     const { main } = this.ctx
@@ -61,6 +61,15 @@ class AstToIrConverter {
       return undefined
     }
 
+    if (block.$type === 'ServiceBlock') {
+      return {
+        kind: 'b_service',
+        name: block.name,
+        parent: block.for_target?.$refText,
+        methods: this.handleRpcList(block.methods)
+      }
+    }
+
     const blk: never = block
     throw new Error(`unknown block type=${(blk as any).$type}`)
   }
@@ -70,6 +79,30 @@ class AstToIrConverter {
       return { key: p.name, value: this.handleExpr(p.value) }
     })
   }
+
+  handleRpcList(rpcs: ast.RpcDecl[] | undefined): types.Method[] {
+    if (rpcs === undefined) {
+      return []
+    }
+    return rpcs.map((rpc) => {
+      return {
+        name: rpc.name,
+        arg: this.handlePara(rpc.arg_type),
+        ret: this.handlePara(rpc.return_type)
+      }
+    })
+  }
+
+  handlePara(para: ast.StreamedType | undefined): types.Parameter {
+    if (para === undefined) {
+      return { stream: false, type: { kind: 'v_empty' } }
+    }
+    return {
+      stream: para.streamed === undefined ? false : true,
+      type: { kind: 'v_ref', id: para.type }
+    }
+  }
+
 
   handleExpr(expr: ast.Expr): types.Value {
     if (expr.$type === 'LiteralString') {
@@ -180,6 +213,10 @@ export class IrService {
         obj[prop.key] = this.convertToValue(prop.value)
       }
       return obj
+    }
+
+    if (value.kind === 'v_empty') {
+      return null
     }
 
     const chk: never = value

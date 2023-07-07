@@ -4,9 +4,9 @@ export type BaseNode = { kind: string }
 
 export type AtomicValue =
   | {
-      kind: 'v_string'
-      value: string
-    }
+    kind: 'v_string'
+    value: string
+  }
   | { kind: 'v_int'; value: number }
   | { kind: 'v_bool'; value: boolean }
   | { kind: 'v_float'; value: number }
@@ -16,16 +16,19 @@ export type Value =
   | AtomicValue
   | { kind: 'v_list'; items: Value[] }
   | {
-      kind: 'v_object'
-      props: {
-        key: string
-        value: Value
-      }[]
-    }
+    kind: 'v_object'
+    props: {
+      key: string
+      value: Value
+    }[]
+  }
   | {
-      kind: 'v_ref'
-      id: string
-    }
+    kind: 'v_ref'
+    id: string
+  }
+  | {
+    kind: 'v_empty'
+  }
 
 export function isAtomicValue(v: { kind: string }): v is AtomicValue {
   if (v.kind.startsWith('v_') && 'value' in v) {
@@ -40,6 +43,7 @@ export type Spec = {
   version: string
   modules: Module[]
 }
+
 export type Module = {
   kind: 'm_inline'
   id: string
@@ -55,12 +59,32 @@ export type CustomBlock = {
   props: Property[]
 }
 
+// arg & ret
+export type Parameter = {
+  stream: boolean
+  type: Value
+}
+
+export type Method = {
+  name: string
+  arg: Parameter
+  ret: Parameter
+}
+
+export type ServiceBlock = {
+  kind: 'b_service'
+  name: string
+  parent?: string
+  methods: Method[]
+}
+
 export function isCustomBlock(v: BaseNode): v is CustomBlock {
   return v.kind === 'b_custom'
 }
 
 export type Block =
   | CustomBlock
+  | ServiceBlock
   | { kind: 'b_struct'; name: string; props: Property[] }
   | { kind: 'b_block'; name: string; props: Property[] }
 
@@ -138,6 +162,24 @@ const BlockSchema: z.ZodType<Block> = z.union([
       z.object({
         key: z.string(),
         value: ValueSchema,
+      })
+    ),
+  }),
+  z.object({
+    kind: z.literal('b_service'),
+    name: z.string(),
+    parent: z.string(),
+    methods: z.array(
+      z.object({
+        name: z.string(),
+        arg: z.object({
+          stream: z.boolean(),
+          type: ValueSchema,
+        }),
+        ret: z.object({
+          stream: z.boolean(),
+          type: ValueSchema,
+        })
       })
     ),
   }),

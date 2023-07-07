@@ -1,0 +1,44 @@
+version: 0.1.0
+modules:
+  - kind: m_inline
+    id: __main__
+    blocks:
+      - kind: b_custom
+        block_type: function
+        name: A
+        props: []
+      - kind: b_service
+        name: Users
+        parent: A
+        methods:
+          - name: get
+            arg:
+              stream: false
+              type:
+                kind: t_ref
+                id: GetUserReq
+            ret:
+              stream: false
+              type:
+                kind: t_ref
+                id: GetUserResp
+          - name: setStatus
+            arg:
+              stream: true
+              type:
+                kind: t_ref
+                id: GetStatusMessage
+            ret:
+              stream: false
+              type:
+                kind: t_empty
+          - name: onPoleGetStatus
+            arg:
+              stream: false
+              type:
+                kind: t_empty
+            ret:
+              stream: true
+              type:
+                kind: t_ref
+                id: GetStatusMessage

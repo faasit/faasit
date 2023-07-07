@@ -8,7 +8,7 @@ Import:
   'import' '(' url+=STRING+  ')';
 
 Block:
-  CustomBlock | BlockBlock | StructBlock | UseBlock;
+  CustomBlock | BlockBlock | StructBlock | UseBlock | ServiceBlock;
 
 StructBlock:
   'struct' name=ID '{' props+=Property* '}';
@@ -18,6 +18,18 @@ BlockBlock:
 
 UseBlock:
   'use' '{' props+=Property* '}';
+
+ServiceBlock:
+  'service' name=ID ('for' for_target=[Block:ID])? '{'
+  methods=RpcDecl*
+  '}';
+
+RpcDecl:
+  'rpc' name=ID(arg_type=StreamedType?) '->' streamed=('stream')? return_type=(StreamedType)
+;
+
+StreamedType:
+  streamed='stream'? type=ID;
 
 CustomBlock:
   '@' block_type=ID (name=ID)? ('for' for_target=[Block:ID])? '{'

@@ -1,0 +1,43 @@
+import (
+  faas "brody715.com/faasit-samples/module1/faas"
+
+  // standard library starts with prefix "std"
+  // `.` means wildcard import (similar to golang)
+  . "std/schema"
+)
+
+// use like `alias` or `export` in other languages
+// it can use to rename symbols in other packages
+pub use {
+  provider = faas.provider
+  application = faas.application
+}
+
+struct User {
+  #[description("name of user")]
+  #[validation(string = { minLength = 10 })]
+  name = string
+
+  #[validation(array = { minItems = 4 })]
+  tags = [string]
+}
+
+@function A {}
+
+service Users for A {
+  rpc get(GetUsersReq) -> GetUsersResp
+  rpc create(CreateUsersReq) -> CreateUsersResp
+
+  rpc setStatus(stream SetStatusMessage) -> ()
+  rpc onPoleGetStatus() -> stream GetStatusMessage
+}
+
+struct GetUsersReq {
+  id = string
+  name = string
+  age = int
+}
+
+struct GetUsersResp {
+  id = string
+}

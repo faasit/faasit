@@ -1,0 +1,18 @@
+{
+  "faasit": {
+    "library": {
+      "prefix": "brody715.com/faasit-samples/module1"
+    },
+    "platform": {
+      "browser": {},
+      "local": {}
+    },
+    "deps": {
+      "@faasit/std": {}
+    }
+  },
+  "devDependencies": {
+    "eslint": "*",
+    "@faasit/std": "*"
+  }
+}

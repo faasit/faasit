@@ -1,0 +1,5 @@
+// package metadata definition
+{
+  // useful for browser, which can't list all files in a dir
+  "files": []
+}

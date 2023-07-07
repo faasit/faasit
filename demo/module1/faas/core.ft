@@ -1,0 +1,5 @@
+pub block function {
+  props = {
+    runtime = string
+  }
+}

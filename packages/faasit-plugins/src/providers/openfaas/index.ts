@@ -1,8 +1,7 @@
-import { Plugin } from '../core/plugin'
-
+import { faas } from '@faasit/std'
 import yaml from 'js-yaml'
 
-export function OpenFaasPlugin(): Plugin {
+export default function OpenFaasPlugin(): faas.ProviderPlugin {
   const gateway = 'https://openfaas-ft.i2ec.top'
 
   return {

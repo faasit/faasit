@@ -41,6 +41,12 @@ importers:
       '@faasit/core':
         specifier: workspace:^
         version: link:../faasit-core
+      '@faasit/plugins':
+        specifier: workspace:^
+        version: link:../faasit-plugins
+      '@faasit/std':
+        specifier: workspace:^
+        version: link:../faasit-std
       chalk:
         specifier: ^5.2.0
         version: 5.2.0
@@ -94,6 +100,38 @@ importers:
       faasit:
         specifier: workspace:^
         version: link:../faasit
+
+  packages/faasit-plugins:
+    dependencies:
+      '@faasit/core':
+        specifier: workspace:^
+        version: link:../faasit-core
+      '@faasit/std':
+        specifier: workspace:^
+        version: link:../faasit-std
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.0
+    devDependencies:
+      '@types/js-yaml':
+        specifier: ^4.0.5
+        version: 4.0.5
+
+  packages/faasit-std:
+    dependencies:
+      '@faasit/core':
+        specifier: workspace:^
+        version: link:../faasit-core
+      js-yaml:
+        specifier: ^4.1.0
+        version: 4.1.0
+      zod:
+        specifier: ^3.21.4
+        version: 3.21.4
+    devDependencies:
+      '@types/js-yaml':
+        specifier: ^4.0.5
+        version: 4.0.5
 
   packages/vscode-faasit:
     dependencies:

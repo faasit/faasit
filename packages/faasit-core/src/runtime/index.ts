@@ -1,4 +1,5 @@
 import type { URI } from 'vscode-uri'
+import { types } from '../ir'
 
 export interface FileSystemNode {
   readonly isFile: boolean
@@ -26,4 +27,39 @@ export interface FileSystemProvider {
    * @returns The list of file system entries that are contained within the specified directory.
    */
   readDirectory(uri: URI): Promise<FileSystemNode[]>
+}
+
+export interface PluginRuntime {
+  runCommand(cmd: string): {
+    stdout: StreamReader
+    stderr: StreamReader
+    wait: () => Promise<{ exitcode: number }>
+  }
+
+  joinPath(...path: string[]): string
+  writeFile(path: string, content: string): Promise<void>
+  removeFile(path: string): Promise<void>
+}
+
+export interface StreamReader {
+  next(): Promise<IteratorResult<string>>
+  [Symbol.asyncIterator](): AsyncIterableIterator<string>
+}
+
+export interface PluginRuntime {
+  runCommand(cmd: string): {
+    stdout: StreamReader
+    stderr: StreamReader
+    wait: () => Promise<{ exitcode: number }>
+  }
+
+  joinPath(...path: string[]): string
+  writeFile(path: string, content: string): Promise<void>
+  removeFile(path: string): Promise<void>
+}
+
+export interface PluginLogger {
+  info(msg: string): void
+  warn(msg: string): void
+  error(msg: string, options?: { error?: Error | null }): void
 }

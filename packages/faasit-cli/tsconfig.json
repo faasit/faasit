@@ -1,6 +1,6 @@
 {
   "extends": "../../tsconfig.json",
   "include": [
-    "src",
+    "src", "../faasit-plugins/src/providers/common/faas.ts",
   ]
 }

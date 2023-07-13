@@ -1,0 +1,25 @@
+{
+  "name": "aliyun-fc-api-test",
+  "version": "1.0.0",
+  "description": "Aliyun OpenAPI example",
+  "main": "index.ts",
+  "scripts": {
+    "tsc": "tsc"
+  },
+  "author": "dydy",
+  "license": "ISC",
+  "dependencies": {
+    "@alicloud/fc-open20210406": "^2.0.9",
+    "@types/adm-zip": "^0.5.0",
+    "config": "^3.3.9",
+    "ts-node": "^10.9.1"
+  },
+  "devDependencies": {
+    "@alicloud/fc-open20210406": "^2.0.9",
+    "@types/node": "^20.4.2",
+    "adm-zip": "^0.5.10",
+    "config": "^3.3.9",
+    "tslint": "^6.1.3",
+    "typescript": "^5.1.6"
+  }
+}

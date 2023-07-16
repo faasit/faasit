@@ -1,0 +1,36 @@
+
+@function FuncA {
+  pubsub = {
+    channels = [UserRegistered, PaymentSucceeded]
+  }
+}
+
+struct User {
+  id = string
+  name = string
+}
+
+struct Payment {
+  id = string
+  status = string
+}
+
+@channel UserRegistered {
+  topic = "user-registered"
+  pub = {
+    message = User
+  }
+  sub = {
+    message = User
+  }
+}
+
+@channel PaymentSucceeded {
+  topic = "payment-succeeded"
+  pub = {
+    message = Payment
+  }
+  sub = {
+    message = Payment
+  }
+}

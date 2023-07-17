@@ -1,5 +1,5 @@
-import { z } from 'zod'
 import { ir } from '@faasit/core'
+import { z } from 'zod'
 
 import { runtime } from '@faasit/core'
 
@@ -71,3 +71,23 @@ export async function resolveApplicationFromIr(opts: { ir: ir.Spec }): Promise<A
   const value = irService.convertToValue(applicationBlock)
   return parseApplication(value)
 }
+
+export type Message = {
+  message: ir.types.Value
+}
+
+export type Channel = {
+  topic: string,
+  pub: Message
+  sub: Message
+}
+
+const ChannelSchema: z.ZodType<Channel> = z.object({
+  topic: z.string(),
+  pub: z.object({
+    message: ir.types.ValueSchema
+  }),
+  sub: z.object({
+    message: ir.types.ValueSchema
+  }),
+})

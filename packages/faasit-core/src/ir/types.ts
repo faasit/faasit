@@ -101,7 +101,7 @@ export function validateBlock(o: unknown): Block {
 }
 
 // we should declare type first to use recursive schema
-const ValueSchema: z.ZodType<Value> = z.union([
+export const ValueSchema: z.ZodType<Value> = z.union([
   z.object({
     kind: z.literal('v_int'),
     value: z.number(),

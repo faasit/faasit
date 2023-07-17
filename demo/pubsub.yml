@@ -1,0 +1,91 @@
+version: 0.1.0
+modules:
+  - kind: m_inline
+    id: __main__
+    blocks:
+      - kind: b_custom
+        block_type: function
+        name: FuncA
+        props:
+          - key: pubsub
+            value:
+              kind: v_object
+              props:
+                - key: channels
+                  value:
+                    kind: v_list
+                    items:
+                      - kind: v_ref
+                        id: UserRegistered
+                      - kind: v_ref
+                        id: PaymentSucceeded
+      - kind: b_struct
+        name: User
+        props:
+          - key: id
+            value:
+              kind: v_ref
+              id: string
+          - key: name
+            value:
+              kind: v_ref
+              id: string
+      - kind: b_struct
+        name: Payment
+        props:
+          - key: id
+            value:
+              kind: v_ref
+              id: string
+          - key: status
+            value:
+              kind: v_ref
+              id: string
+      - kind: b_custom
+        block_type: channel
+        name: UserRegistered
+        props:
+          - key: topic
+            value:
+              kind: v_string
+              value: user-registered
+          - key: pub
+            value:
+              kind: v_object
+              props:
+                - key: message
+                  value:
+                    kind: v_ref
+                    id: User
+          - key: sub
+            value:
+              kind: v_object
+              props:
+                - key: message
+                  value:
+                    kind: v_ref
+                    id: User
+      - kind: b_custom
+        block_type: channel
+        name: PaymentSucceeded
+        props:
+          - key: topic
+            value:
+              kind: v_string
+              value: payment-succeeded
+          - key: pub
+            value:
+              kind: v_object
+              props:
+                - key: message
+                  value:
+                    kind: v_ref
+                    id: Payment
+          - key: sub
+            value:
+              kind: v_object
+              props:
+                - key: message
+                  value:
+                    kind: v_ref
+                    id: Payment

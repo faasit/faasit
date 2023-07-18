@@ -38,7 +38,7 @@ export class Engine {
   async deploy(opts: { config: string; workingDir: string }) {
     const app = await this.resolveApplication(opts)
 
-    const plugin = await getProviderPlugin(app.defaultProvider.name)
+    const plugin = await getProviderPlugin(app.defaultProvider.kind)
 
     if (plugin.deploy) {
       await plugin.deploy({ app }, this.getPluginRuntime())

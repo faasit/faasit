@@ -49,7 +49,7 @@ export class Engine {
   async invoke(opts: { config: string; workingDir: string; func?: string }) {
     const app = await this.resolveApplication(opts)
 
-    const plugin = await getProviderPlugin(app.defaultProvider.name)
+    const plugin = await getProviderPlugin(app.defaultProvider.kind)
 
     if (plugin.invoke) {
       let funcName = opts.func

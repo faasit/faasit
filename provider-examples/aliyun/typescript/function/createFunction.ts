@@ -55,12 +55,44 @@ class Client {
 		}
 	}
 
+	static async mainCustom(): Promise<$FC_Open20210406.CreateFunctionResponse | undefined > {
+		const accessID = aliyunConfig.accessID;
+		const accessKey = aliyunConfig.accessKey;
+		let client = Client.createClient(accessID, accessKey);
+
+		let code = new $FC_Open20210406.Code({
+			zipFile: zipFolderAndEncode(path.resolve(`${__dirname}`, "./customCode")),
+		})
+
+		let createFunctionHeaders = new $FC_Open20210406.CreateFunctionHeaders({});
+		let customRuntimeConfig = new $FC_Open20210406.CustomRuntimeConfig({
+			command: [
+				'node',
+				'index.js'
+			],
+		})
+		let createFunctionRequests = new $FC_Open20210406.CreateFunctionRequest({
+			functionName       : "testFunc",
+			handler            : "index.handler",
+			runtime            : "custom",
+			code               : code,
+			customRuntimeConfig: customRuntimeConfig
+		});
+		let runtime = new $Util.RuntimeOptions({});
+		try {
+			const resp = await client.createFunctionWithOptions("testService", createFunctionRequests, createFunctionHeaders, runtime);
+			return resp;
+		} catch (error) {
+			console.log(error);
+		}
+	}
 }
 
-Client.main().then(value => {
-	if (value) {
-		console.log(value.statusCode);
-		console.log(value.headers);
-		console.log(value.body);
-	}
-});
+// Client.mainCustom().then(value => {
+// 	if (value) {
+// 		console.log(value.statusCode);
+// 		console.log(value.headers);
+// 		console.log(value.body);
+// 	}
+// });
+console.log(process.env.hello)

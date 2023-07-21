@@ -97,10 +97,32 @@ class Client {
 			console.log(error);
 		}
 	}
+
+	static async mainHttp(): Promise<$FC_Open20210406.CreateTriggerResponse|undefined> {
+		const accessID = aliyunConfig.accessID;
+		const accessKey = aliyunConfig.accessKey;
+		let client = Client.createClient(accessID, accessKey);
+		let createTriggerHeaders = new $FC_Open20210406.CreateTriggerHeaders({});
+		let createTriggerRequests = new $FC_Open20210406.CreateTriggerRequest({
+			triggerName: "testTrigger",
+			triggerType: "http",
+			triggerConfig: JSON.stringify({
+				'methods' :["POST","GET","PUT","DELETE"],
+				'disableURLInternet' : false
+			}),
+		});
+		let runtime = new $Util.RuntimeOptions({});
+		try {
+			const resp = client.createTriggerWithOptions("testService", "testFunc", createTriggerRequests, createTriggerHeaders, runtime);
+			return resp;
+		} catch (error) {
+			console.log(error);
+		}
+	}
 }
 
 // Client.main();
-Client.main2().then(value => {
+Client.mainHttp().then(value => {
 	if (value) {
 		console.log(value.statusCode);
 		console.log(value.headers);

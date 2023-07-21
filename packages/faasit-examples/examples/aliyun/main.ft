@@ -1,0 +1,26 @@
+@function hello {
+  runtime = "nodejs16"
+  codeDir = "./code"
+  triggers = [
+    {
+      name = "http"
+      kind = "http"
+      method = "get"
+      path = "/"
+    }
+  ]
+  resource = {
+    cpu = "1024m"
+    memory = "128Mi"
+  }
+}
+
+@application {
+  functions = [hello]
+  defaultProvider = OpenFaasCluster1
+}
+
+@provider OpenFaasCluster1 {
+  kind = "aliyun"
+  gateway = "https://openfaas-ft.i2ec.top"
+}

@@ -1,0 +1,6 @@
+{
+    "name" :"aliyun-fc-custom-test",
+    "scripts": {
+        "start" :"node ./index.js"
+    }
+}

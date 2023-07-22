@@ -20,6 +20,7 @@ async function getProviderPlugin(name: string): Promise<faas.ProviderPlugin> {
   const plugins = {
     openfaas: () => providers.openfaas.default(),
     aliyun: ()=> providers.aliyun.default(),
+    tencentyun: ()=> providers.tencentyun.default(),
   } as const
 
   const isPluginName = (name: string): name is keyof typeof plugins => {

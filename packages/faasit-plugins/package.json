@@ -30,6 +30,7 @@
     "@alicloud/fc-open20210406": "^2.0.9",
     "@alicloud/openapi-client": "^0.4.6",
     "@alicloud/tea-util": "^1.4.7",
+    "tencentcloud-sdk-nodejs-scf": "^4.0.611",
     "@types/adm-zip": "^0.5.0",
     "@types/dotenv": "^8.2.0",
     "@types/js-yaml": "^4.0.5",

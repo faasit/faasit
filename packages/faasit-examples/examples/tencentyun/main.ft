@@ -1,0 +1,26 @@
+@function helloTencentyun {
+  runtime = "Nodejs12.16"
+  codeDir = "./code"
+  triggers = [
+    {
+      name = "http"
+      kind = "http"
+      method = "get"
+      path = "/"
+    }
+  ]
+  resource = {
+    cpu = "1024m"
+    memory = "128Mi"
+  }
+}
+
+@application {
+  functions = [helloTencentyun]
+  defaultProvider = TencentyunCluster1
+}
+
+@provider TencentyunCluster1 {
+  kind = "tencentyun"
+  gateway = "https://openfaas-ft.i2ec.top"
+}

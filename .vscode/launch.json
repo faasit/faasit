@@ -2,6 +2,32 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Faasit deploy",
+      "program": "${workspaceFolder}/packages/faasit/bin/faasit.cjs",
+      "request": "launch",
+      "cwd" : "${workspaceFolder}/packages/faasit-examples/examples/aliyun",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node",
+      "args": [
+        "deploy"
+      ]
+    },
+    {
+      "name": "Faasit invoke",
+      "program": "${workspaceFolder}/packages/faasit/bin/faasit.cjs",
+      "request": "launch",
+      "cwd" : "${workspaceFolder}/packages/faasit-examples/examples/aliyun",
+      "skipFiles": [
+        "<node_internals>/**"
+      ],
+      "type": "node",
+      "args": [
+        "invoke"
+      ]
+    },
+    {
       "name": "Run Extension",
       "type": "extensionHost",
       "request": "launch",

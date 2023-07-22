@@ -55,7 +55,7 @@ async function createService():
 			runtime);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		throw error;
 	}
 }
 
@@ -73,7 +73,6 @@ async function getService():
 			runtime);
 		return resp;
 	} catch (error) {
-		// console.log(error);
 	}
 }
 
@@ -112,7 +111,7 @@ async function createFunction(fn: {
 			runtime);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		throw error;
 	}
 }
 
@@ -123,7 +122,6 @@ async function getFunction(functionName: string): Promise<{ [key: string]: any }
 		const resp = await client.getFunction("faasit", functionName, getFunctionRequests);
 		return resp;
 	} catch (error) {
-		// console.log(error);
 	}
 }
 
@@ -161,7 +159,7 @@ async function updateFunction(fn: {
 			runtime);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		throw error;
 	}
 }
 
@@ -173,7 +171,7 @@ async function invokeFunction(functionName: string)
 		const resp = await client.invokeFunction("faasit", functionName, invokeFunctionRequests);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		throw error;
 	}
 }
 
@@ -241,13 +239,18 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 
 				await getService().then(getServiceResp => {
 					if (getServiceResp) {
-						logger.info("aliyun service faasit exists")
+						logger.info("aliyun service faasit exists");
 						return;
 					} else {
-						logger.info("aliyun service faasits doesn't exist, it will be created...")
-						createService();
+						logger.info("aliyun service faasit doesn't exist, it will be created...")
+						createService().catch(err => {
+							logger.error(err);
+							return;
+						});
 					}
-				})
+				}).catch(err=>{
+					logger.error(err);
+				});
 
 
 				await getFunction(fn.name).then(getFunctionResp => {
@@ -258,8 +261,9 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 							codeDir: fn.codeDir,
 							runtime: fn.runtime,
 							handler: fn.handler ? fn.handler : "index.handler"
+						}).catch(err=>{
+							logger.error(err);
 						})
-						return;
 					} else {
 						logger.info(`create aliyun function ${fn.name}`);
 						createFunction({
@@ -267,8 +271,12 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 							codeDir: fn.codeDir,
 							runtime: fn.runtime,
 							handler: fn.handler ? fn.handler : "index.handler"
+						}).catch(err=>{
+							logger.error(err);
 						})
 					}
+				}).catch(err=>{
+					logger.error(err);
 				})
 				
 				for(let trigger of fn.triggers) {

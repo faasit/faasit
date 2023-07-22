@@ -4,7 +4,7 @@ import Util, * as $Util from '@alicloud/tea-util';
 import path from 'path';
 import dotenv from 'dotenv';
 
-dotenv.config({path:path.resolve(__dirname,"../.env")})
+// dotenv.config({path:path.resolve(__dirname,"../.env")})
 
 class Client {
 
@@ -21,7 +21,7 @@ class Client {
 		return new FC_Open20210406(config);
 	}
 
-	static async main(): Promise<$FC_Open20210406.CreateAliasResponse|undefined> {
+	static async main(): Promise<$FC_Open20210406.CreateServiceResponse|undefined> {
 		let client = Client.createClient();
 		let createServiceHeaders = new $FC_Open20210406.CreateServiceHeaders({});
 		let createServiceRequest = new $FC_Open20210406.CreateServiceRequest({
@@ -35,7 +35,6 @@ class Client {
 			console.log(error);
 		}
 	}
-
 }
 
 Client.main().then(value => {

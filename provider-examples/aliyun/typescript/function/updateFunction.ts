@@ -31,7 +31,7 @@ class Client {
 		return new FC_Open20210406(config);
 	}
 
-	static async main(): Promise<$FC_Open20210406.CreateFunctionResponse | undefined> {
+	static async main(): Promise<$FC_Open20210406.UpdateFunctionResponse | undefined> {
 		const accessID = aliyunConfig.accessID;
 		const accessKey = aliyunConfig.accessKey;
 		let client = Client.createClient(accessID, accessKey);
@@ -39,8 +39,8 @@ class Client {
 		let code = new $FC_Open20210406.Code({
 			zipFile: zipFolderAndEncode(path.resolve(`${__dirname}`, "./code")),
 		})
-		let createFunctionHeaders = new $FC_Open20210406.CreateFunctionHeaders({});
-		let createFunctionRequests = new $FC_Open20210406.CreateFunctionRequest({
+		let headers = new $FC_Open20210406.UpdateFunctionHeaders({});
+		let requests = new $FC_Open20210406.UpdateFunctionRequest({
 			functionName: "testFunc",
 			handler: "index.handler",
 			runtime: "nodejs14",
@@ -48,7 +48,7 @@ class Client {
 		});
 		let runtime = new $Util.RuntimeOptions({});
 		try {
-			const resp = await client.createFunctionWithOptions("testService", createFunctionRequests, createFunctionHeaders, runtime);
+			const resp = await client.updateFunctionWithOptions("testService", "testFunc",requests, headers, runtime);
 			return resp;
 		} catch (error) {
 			console.log(error);
@@ -88,7 +88,7 @@ class Client {
 	}
 }
 
-Client.mainCustom().then(value => {
+Client.main().then(value => {
 	if (value) {
 		console.log(value.statusCode);
 		console.log(value.headers);

@@ -27,6 +27,13 @@ export interface ProviderPlugin {
   ) => Promise<void>
 }
 
+export const EventSchema = z.object({
+  type: z.string(),
+  data: ir.types.ObjectValueSchema,
+})
+
+export type Event = z.infer<typeof EventSchema>;
+
 const FunctionTriggerSchema = z.object({
   name: z.string(),
   kind: z.string(),
@@ -42,6 +49,7 @@ const FunctionSchema = z.object({
     memory: z.string(),
   }),
   triggers: z.array(FunctionTriggerSchema),
+  events: z.array(EventSchema),
 })
 
 const ApplicationSchema = z.object({
@@ -58,7 +66,9 @@ export function parseApplication(o: unknown): Application {
   return ApplicationSchema.parse(o)
 }
 
-export async function resolveApplicationFromIr(opts: { ir: ir.Spec }): Promise<Application> {
+export async function resolveApplicationFromIr(opts: {
+  ir: ir.Spec
+}): Promise<Application> {
   const irService = ir.makeIrService(opts.ir)
 
   const applicationBlock = opts.ir.modules[0].blocks.find(
@@ -78,17 +88,17 @@ export type Message = {
 }
 
 export type Channel = {
-  topic: string,
+  topic: string
   pub: Message
   sub: Message
 }
 
-const ChannelSchema: z.ZodType<Channel> = z.object({
+export const ChannelSchema: z.ZodType<Channel> = z.object({
   topic: z.string(),
   pub: z.object({
-    message: ir.types.ValueSchema
+    message: ir.types.ValueSchema,
   }),
   sub: z.object({
-    message: ir.types.ValueSchema
+    message: ir.types.ValueSchema,
   }),
 })

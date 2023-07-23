@@ -1,0 +1,8 @@
+{
+  "name": "knative-codegen1",
+  "main": "index.js",
+  "dependencies": {
+    "cloudevents": "^7.0.2",
+    "express": "^4.18.2"
+  }
+}

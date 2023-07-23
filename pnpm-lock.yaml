@@ -137,6 +137,9 @@ importers:
       dotenv:
         specifier: ^16.3.1
         version: 16.3.1
+      zod:
+        specifier: ^3.21.4
+        version: 3.21.4
 
   packages/faasit-std:
     dependencies:
@@ -3729,4 +3732,3 @@ packages:
 
   /zod@3.21.4:
     resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
-    dev: false

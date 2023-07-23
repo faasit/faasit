@@ -5,6 +5,7 @@ import Util, * as $Util from '@alicloud/tea-util';
 import Admzip from 'adm-zip';
 import path from 'path';
 import dotenv from 'dotenv';
+import * as Trigger from "./utils/trigger";
 
 dotenv.config({path: path.resolve(__dirname,"./.env")});
 
@@ -73,6 +74,9 @@ async function getService():
 			runtime);
 		return resp;
 	} catch (error) {
+		if (error.code != 'ServiceNotFound') {
+			throw error;
+		}
 	}
 }
 
@@ -122,6 +126,9 @@ async function getFunction(functionName: string): Promise<{ [key: string]: any }
 		const resp = await client.getFunction("faasit", functionName, getFunctionRequests);
 		return resp;
 	} catch (error) {
+		if (error.code != 'FunctionNotFound') {
+			throw error;
+		} 
 	}
 }
 
@@ -201,7 +208,7 @@ async function createTrigger(
 		);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		throw error;
 	}
 }
 
@@ -220,7 +227,9 @@ async function getTrigger(functionName:string,triggerName:string)
 		);
 		return resp;
 	} catch (error) {
-		// console.log(error)
+		if (error.code != 'TriggerNotFound') {
+			throw error;
+		}
 	}
 }
 
@@ -265,7 +274,7 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 							logger.error(err);
 						})
 					} else {
-						logger.info(`create aliyun function ${fn.name}`);
+						logger.info(`create aliyun function ${fn.name}...`);
 						createFunction({
 							functionName: fn.name,
 							codeDir: fn.codeDir,
@@ -280,7 +289,27 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 				})
 				
 				for(let trigger of fn.triggers) {
-
+					const baseTrigger = await Trigger.getTrigger({
+						kind: trigger.kind,
+						name: trigger.name,
+						opts: {/**TODO */}
+					})
+					await getTrigger(fn.name,trigger.name).then(getTriggerResp=>{
+						if (getTriggerResp) {
+							logger.info(`aliyun trigger ${trigger.name} exists, it will be updated!`);
+						} else {
+							logger.info(`create trigger ${trigger.name}...`);
+							createTrigger(fn.name,{
+								triggerName: trigger.name,
+								triggerType: trigger.kind,
+								triggerConfig: baseTrigger.triggerConfig
+							}).catch(err=>{
+								logger.error(err);
+							})
+						}
+					}).catch(err=>{
+						logger.error(err);
+					})
 				}
 			}
 		},

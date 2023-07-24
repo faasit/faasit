@@ -61,6 +61,8 @@ const ApplicationSchema = z.object({
 })
 
 export type Application = z.infer<typeof ApplicationSchema>
+export type FunctionType = z.infer<typeof FunctionSchema>
+export type FunctionTrigger = z.infer<typeof FunctionTriggerSchema>
 
 export function parseApplication(o: unknown): Application {
   return ApplicationSchema.parse(o)

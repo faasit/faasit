@@ -5,22 +5,20 @@
     {
       name = "http"
       kind = "http"
-      method = "get"
-      path = "/"
     }
   ]
   resource = {
     cpu = "1024m"
     memory = "128Mi"
   }
+  events = []
 }
 
 @application {
   functions = [helloTencentyun]
-  defaultProvider = TencentyunCluster1
+  defaultProvider = TencentyunDefaultProvider
 }
 
-@provider TencentyunCluster1 {
+@provider TencentyunDefaultProvider {
   kind = "tencentyun"
-  gateway = "https://openfaas-ft.i2ec.top"
 }

@@ -6,6 +6,7 @@ import {
   transformCreateFunctionParams,
   transformCreateTriggerParams,
   transformInvokeParams,
+  transformUpdateFunctionParams,
 } from './transformer'
 
 dotenv.config({ path: path.resolve(__dirname, './.env') })
@@ -28,7 +29,7 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
 
       logger.info(`Tencentyun deploy`)
 
-      // get the set of function name
+      // get the set of function name to judge whether the function exists
       logger.info(`Trying to connect to Tencentyun SCF...`)
       const functionArray = (await client.ListFunctions({})).Functions
       const functionNameSet = new Set(
@@ -36,11 +37,7 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
       )
 
       for (const fn of app.functions) {
-        if (functionNameSet.has(fn.name)) {
-          // TODO: update code of the function
-          logger.info(`Update the code of function ${fn.name}`)
-          return
-        } else {
+        if (!functionNameSet.has(fn.name)) {
           // create function
           logger.info(`Create function ${fn.name}`)
           try {
@@ -49,6 +46,18 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
             logger.info(`Create function requestId: ${result.RequestId}`)
           } catch (err) {
             logger.error(`Error happens when creating function ${fn.name}`)
+            logger.error(err)
+            continue
+          }
+        } else {
+          // update the code of function
+          logger.info(`Update function ${fn.name}`)
+          try {
+            const params = transformUpdateFunctionParams(fn)
+            const result = await client.UpdateFunctionCode(params)
+            logger.info(`Update function requestId: ${result.RequestId}`)
+          } catch (err) {
+            logger.error(`Error happens when updating function ${fn.name}`)
             logger.error(err)
             continue
           }
@@ -62,7 +71,9 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
           status !== 'UpdatFailed'
         ) {
           status = (await client.GetFunction({ FunctionName: fn.name })).Status
-          logger.info(`Waiting, the status of function ${fn.name} is ${status}...`)
+          logger.info(
+            `Waiting, the status of function ${fn.name} is ${status}...`
+          )
         }
 
         if (status === 'CreatFailed' || status === 'UpdatFailed') {
@@ -70,14 +81,17 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
           continue
         }
 
+        // TODO: delete all triggers
+        // TODO: waiting the delete process done.
+
         // create trigger
         for (const trigger of fn.triggers) {
-          logger.info(`create trigger ${trigger.name} of function ${fn.name}`)
+          logger.info(`Create trigger ${trigger.name} of function ${fn.name}`)
           try {
             const params = transformCreateTriggerParams(trigger, fn.name)
             const result = await client.CreateTrigger(params)
             logger.info(`Create Trigger requestId: ${result.RequestId}`)
-            console.log(result.TriggerInfo);
+            console.log(result.TriggerInfo)
           } catch (err) {
             logger.error(
               `Error happens when creating trigger ${trigger.name} of function ${fn.name}`
@@ -92,7 +106,7 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
     async invoke(input, ctx) {
       const { logger } = ctx
 
-      logger.info(`invoke function ${input.funcName}`)
+      logger.info(`Invoke function ${input.funcName}`)
 
       // invoke funtion
       const params = transformInvokeParams(input.funcName)

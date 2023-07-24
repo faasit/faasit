@@ -21,6 +21,15 @@ export function transformCreateFunctionParams(fn: FunctionType) {
   }
 }
 
+export function transformUpdateFunctionParams(fn: FunctionType) {
+  return {
+    FunctionName: fn.name,
+    Code: {
+      ZipFile: zipFolderAndEncode(fn.codeDir),
+    },
+  }
+}
+
 export function transformInvokeParams(funcName: string) {
   return {
     FunctionName: funcName,

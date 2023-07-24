@@ -71,9 +71,7 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
           status !== 'UpdatFailed'
         ) {
           status = (await client.GetFunction({ FunctionName: fn.name })).Status
-          logger.info(
-            `Waiting, the status of function ${fn.name} is ${status}...`
-          )
+          logger.info(`The status of function ${fn.name} is ${status}...`)
         }
 
         if (status === 'CreatFailed' || status === 'UpdatFailed') {
@@ -81,8 +79,35 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
           continue
         }
 
-        // TODO: delete all triggers
-        // TODO: waiting the delete process done.
+        // get all triggers
+        const existTriggers = await client.ListTriggers({
+          FunctionName: fn.name,
+        })
+        let triggerAmount = existTriggers.TotalCount
+        if (triggerAmount) {
+          // delete all triggers
+          logger.info(`There are ${triggerAmount} triggers, deleting...`)
+          existTriggers.Triggers?.forEach((trigger) => {
+            logger.info(
+              `Delete trigger ${trigger.TriggerName} of function ${fn.name}`
+            )
+            client.DeleteTrigger({
+              FunctionName: fn.name,
+              Type: trigger.Type,
+              TriggerName: trigger.TriggerName,
+            })
+          })
+
+          // wait the delete process done
+          while (triggerAmount) {
+            logger.info(`Deleteing, there are still ${triggerAmount} triggers...`)
+            triggerAmount = (
+              await client.ListTriggers({
+                FunctionName: fn.name,
+              })
+            ).TotalCount
+          }
+        }
 
         // create trigger
         for (const trigger of fn.triggers) {

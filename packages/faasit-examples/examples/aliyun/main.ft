@@ -13,6 +13,9 @@
     cpu = "1024m"
     memory = "128Mi"
   }
+  pubsub = {
+    events = []
+  }
 }
 
 @application {
@@ -22,5 +25,4 @@
 
 @provider OpenFaasCluster1 {
   kind = "aliyun"
-  gateway = "https://openfaas-ft.i2ec.top"
 }

@@ -1,5 +1,4 @@
-// For tencentyun provider, transform data from standard IR
-// to params which tencentyun API can use.
+// For tencentyun provider, transform data from standard IR to params which tencentyun API can use.
 
 import { FunctionTrigger, FunctionType } from '@faasit/std/src/faas'
 import Admzip from 'adm-zip'

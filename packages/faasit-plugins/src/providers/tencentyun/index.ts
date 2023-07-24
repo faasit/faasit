@@ -36,7 +36,7 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
         functionArray.map((fn) => fn.FunctionName)
       )
 
-      for (const fn of app.functions) {
+      app.functions.forEach(async (fn) => {
         if (!functionNameSet.has(fn.name)) {
           // create function
           logger.info(`Create function ${fn.name}`)
@@ -47,7 +47,7 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
           } catch (err) {
             logger.error(`Error happens when creating function ${fn.name}`)
             logger.error(err)
-            continue
+            return
           }
         } else {
           // update the code of function
@@ -59,7 +59,7 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
           } catch (err) {
             logger.error(`Error happens when updating function ${fn.name}`)
             logger.error(err)
-            continue
+            return
           }
         }
 
@@ -76,7 +76,7 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
 
         if (status === 'CreatFailed' || status === 'UpdatFailed') {
           logger.error(`The status of function ${fn.name} is ${status}`)
-          continue
+          return
         }
 
         // get all triggers
@@ -100,7 +100,9 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
 
           // wait the delete process done
           while (triggerAmount) {
-            logger.info(`Deleteing, there are still ${triggerAmount} triggers...`)
+            logger.info(
+              `Deleteing, there are still ${triggerAmount} triggers...`
+            )
             triggerAmount = (
               await client.ListTriggers({
                 FunctionName: fn.name,
@@ -110,7 +112,7 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
         }
 
         // create trigger
-        for (const trigger of fn.triggers) {
+        fn.triggers.forEach(async (trigger) => {
           logger.info(`Create trigger ${trigger.name} of function ${fn.name}`)
           try {
             const params = transformCreateTriggerParams(trigger, fn.name)
@@ -122,10 +124,9 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
               `Error happens when creating trigger ${trigger.name} of function ${fn.name}`
             )
             logger.error(err)
-            continue
           }
-        }
-      }
+        })
+      })
     },
 
     async invoke(input, ctx) {

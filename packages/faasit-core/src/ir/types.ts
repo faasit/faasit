@@ -4,31 +4,33 @@ export type BaseNode = { kind: string }
 
 export type AtomicValue =
   | {
-    kind: 'v_string'
-    value: string
-  }
+      kind: 'v_string'
+      value: string
+    }
   | { kind: 'v_int'; value: number }
   | { kind: 'v_bool'; value: boolean }
   | { kind: 'v_float'; value: number }
   | { kind: 'v_any'; value: unknown }
 
+export type ObjectValue = {
+  kind: 'v_object'
+  props: {
+    key: string
+    value: Value
+  }[]
+}
+
 export type Value =
   | AtomicValue
   | { kind: 'v_list'; items: Value[] }
+  | ObjectValue
   | {
-    kind: 'v_object'
-    props: {
-      key: string
-      value: Value
-    }[]
-  }
+      kind: 'v_ref'
+      id: string
+    }
   | {
-    kind: 'v_ref'
-    id: string
-  }
-  | {
-    kind: 'v_empty'
-  }
+      kind: 'v_empty'
+    }
 
 export function isAtomicValue(v: { kind: string }): v is AtomicValue {
   if (v.kind.startsWith('v_') && 'value' in v) {
@@ -52,11 +54,22 @@ export type Module = {
 
 export type Property = { key: string; value: Value }
 
+// computed CustomBlockValue
+export type CustomBlockValue<In, Out = In> = {
+  input: In
+  output: Out
+}
+
 export type CustomBlock = {
   kind: 'b_custom'
   block_type: string
   name: string
   props: Property[]
+  computed?: CustomBlockValue<unknown>
+}
+
+export type ComputedCustomBlock = CustomBlock & {
+  computed: CustomBlock
 }
 
 // arg & ret
@@ -78,15 +91,23 @@ export type ServiceBlock = {
   methods: Method[]
 }
 
+export type StructBlock = {
+  kind: 'b_struct'
+  name: string
+  props: Property[]
+}
+
+export type BlockBlock = {
+  kind: 'b_block'
+  name: string
+  props: Property[]
+}
+
 export function isCustomBlock(v: BaseNode): v is CustomBlock {
   return v.kind === 'b_custom'
 }
 
-export type Block =
-  | CustomBlock
-  | ServiceBlock
-  | { kind: 'b_struct'; name: string; props: Property[] }
-  | { kind: 'b_block'; name: string; props: Property[] }
+export type Block = CustomBlock | ServiceBlock | BlockBlock | StructBlock
 
 export function validateSpec(o: unknown): Spec {
   return SpecSchema.parse(o)
@@ -99,6 +120,16 @@ export function validateModule(o: unknown): Module {
 export function validateBlock(o: unknown): Block {
   return BlockSchema.parse(o)
 }
+
+export const ObjectValueSchema: z.ZodType<ObjectValue> = z.object({
+  kind: z.literal('v_object'),
+  props: z.array(
+    z.object({
+      key: z.string(),
+      value: z.lazy(() => ValueSchema),
+    })
+  ),
+})
 
 // we should declare type first to use recursive schema
 export const ValueSchema: z.ZodType<Value> = z.union([
@@ -118,15 +149,7 @@ export const ValueSchema: z.ZodType<Value> = z.union([
     kind: z.literal('v_list'),
     items: z.array(z.lazy(() => ValueSchema)),
   }),
-  z.object({
-    kind: z.literal('v_object'),
-    props: z.array(
-      z.object({
-        key: z.string(),
-        value: z.lazy(() => ValueSchema),
-      })
-    ),
-  }),
+  ObjectValueSchema,
   z.object({
     kind: z.literal('v_ref'),
     id: z.string(),
@@ -179,7 +202,7 @@ const BlockSchema: z.ZodType<Block> = z.union([
         ret: z.object({
           stream: z.boolean(),
           type: ValueSchema,
-        })
+        }),
       })
     ),
   }),

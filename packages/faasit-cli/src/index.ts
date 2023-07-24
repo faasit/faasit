@@ -77,5 +77,18 @@ export function main() {
         .catch(handleError)
     })
 
+  program
+    .command('eval')
+    .argument('<file>', 'input file')
+    .description('eval values of faast DSL')
+    .action(async (p) => {
+      await engine
+        .eval({
+          workingDir: process.cwd(),
+          file: p,
+        })
+        .catch(handleError)
+    })
+
   program.parse(process.argv)
 }

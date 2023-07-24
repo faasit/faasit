@@ -54,11 +54,22 @@ export type Module = {
 
 export type Property = { key: string; value: Value }
 
+// computed CustomBlockValue
+export type CustomBlockValue<In, Out = In> = {
+  input: In
+  output: Out
+}
+
 export type CustomBlock = {
   kind: 'b_custom'
   block_type: string
   name: string
   props: Property[]
+  computed?: CustomBlockValue<unknown>
+}
+
+export type ComputedCustomBlock = CustomBlock & {
+  computed: CustomBlock
 }
 
 // arg & ret
@@ -80,15 +91,23 @@ export type ServiceBlock = {
   methods: Method[]
 }
 
+export type StructBlock = {
+  kind: 'b_struct'
+  name: string
+  props: Property[]
+}
+
+export type BlockBlock = {
+  kind: 'b_block'
+  name: string
+  props: Property[]
+}
+
 export function isCustomBlock(v: BaseNode): v is CustomBlock {
   return v.kind === 'b_custom'
 }
 
-export type Block =
-  | CustomBlock
-  | ServiceBlock
-  | { kind: 'b_struct'; name: string; props: Property[] }
-  | { kind: 'b_block'; name: string; props: Property[] }
+export type Block = CustomBlock | ServiceBlock | BlockBlock | StructBlock
 
 export function validateSpec(o: unknown): Spec {
   return SpecSchema.parse(o)

@@ -9,7 +9,7 @@ export async function convertFromAst(opts: {
 }
 
 class AstToIrConverter {
-  constructor(private ctx: { main: ast.Module }) { }
+  constructor(private ctx: { main: ast.Module }) {}
 
   convert(): types.Spec {
     const { main } = this.ctx
@@ -66,7 +66,7 @@ class AstToIrConverter {
         kind: 'b_service',
         name: block.name,
         parent: block.for_target?.$refText,
-        methods: this.handleRpcList(block.methods)
+        methods: this.handleRpcList(block.methods),
       }
     }
 
@@ -88,7 +88,7 @@ class AstToIrConverter {
       return {
         name: rpc.name,
         arg: this.handlePara(rpc.arg_type),
-        ret: this.handlePara(rpc.return_type)
+        ret: this.handlePara(rpc.return_type),
       }
     })
   }
@@ -99,10 +99,9 @@ class AstToIrConverter {
     }
     return {
       stream: para.streamed === undefined ? false : true,
-      type: { kind: 'v_ref', id: para.type }
+      type: { kind: 'v_ref', id: para.type },
     }
   }
-
 
   handleExpr(expr: ast.Expr): types.Value {
     if (expr.$type === 'LiteralString') {
@@ -179,16 +178,14 @@ export class IrService {
     if (value.kind === 'v_ref') {
       const block = this.symtab.get(value.id)
       if (!block) {
-        throw new AppError(`no such reference=${value.id}`)
+        return value
       }
 
-      if (!types.isCustomBlock(block)) {
-        throw new AppError(
-          `type mismatch, require b_custom got=${block.kind}, id=${value.id}`
-        )
+      if (types.isCustomBlock(block)) {
+        return this.convertToValue(block)
       }
 
-      return this.convertToValue(block)
+      return block
     }
 
     if (value.kind === 'v_list') {

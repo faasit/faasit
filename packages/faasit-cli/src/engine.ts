@@ -14,13 +14,12 @@ import path from 'node:path'
 import { NodeFileSystemProvider } from './runtime'
 import { faas } from '@faasit/std'
 
-import { providers } from '@faasit/plugins'
-
 async function getProviderPlugin(name: string): Promise<faas.ProviderPlugin> {
+  const { providers } = await import('@faasit/plugins')
   const plugins = {
     openfaas: () => providers.openfaas.default(),
-    aliyun: ()=> providers.aliyun.default(),
-    tencentyun: ()=> providers.tencentyun.default(),
+    aliyun: () => providers.aliyun.default(),
+    tencentyun: () => providers.tencentyun.default(),
   } as const
 
   const isPluginName = (name: string): name is keyof typeof plugins => {
@@ -67,21 +66,61 @@ export class Engine {
 
     if (!irSpecRes.ok) {
       const diagErr = irSpecRes.error
-      console.error(`failed to compile ${opts.file}`)
-      for (const error of diagErr.diags) {
-        console.error(
-          chalk.red(
-            `line ${error.range.start.line}: ${
-              error.message
-            } [${diagErr.textDocument.getText(error.range)}]`
-          )
-        )
-      }
+      this.printCompileError(diagErr)
       return
     }
 
     // just print ir currently
-    console.log(yaml.dump(irSpecRes.value))
+    console.log(
+      yaml.dump(irSpecRes.value, {
+        noRefs: true,
+      })
+    )
+  }
+
+  async eval(opts: { workingDir: string; file: string }) {
+    const irSpecRes = await this.handleCompile({ ...opts, config: opts.file })
+
+    if (!irSpecRes.ok) {
+      const diagErr = irSpecRes.error
+      this.printCompileError(diagErr)
+      return
+    }
+
+    const irSpec = irSpecRes.value
+    const irService = ir.makeIrService(irSpec)
+
+    const modules = irSpec.modules.map((module) => {
+      const blocks = module.blocks.flatMap((b) => {
+        if (ir.types.isCustomBlock(b)) {
+          const value = irService.convertToValue(b) as object
+          return [
+            {
+              $block_type: b.block_type,
+              ...value,
+            },
+          ]
+        }
+        return []
+      })
+
+      return {
+        kind: module.kind,
+        name: module.id,
+        blocks,
+      }
+    })
+
+    console.log(
+      yaml.dump(
+        {
+          modules,
+        },
+        {
+          noRefs: true,
+        }
+      )
+    )
   }
 
   private getPluginRuntime(): faas.ProviderPluginContext {
@@ -171,5 +210,19 @@ export class Engine {
     // just print as ir currently
     const irSpec = await ir.convertFromAst({ main: module })
     return { ok: true, value: irSpec }
+  }
+
+  async printCompileError(diagErr: DiagnosticError) {
+    console.error(`failed to compile`)
+    for (const error of diagErr.diags) {
+      console.error(
+        chalk.red(
+          `line ${error.range.start.line}: ${
+            error.message
+          } [${diagErr.textDocument.getText(error.range)}]`
+        )
+      )
+    }
+    return
   }
 }

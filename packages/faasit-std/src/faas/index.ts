@@ -29,10 +29,10 @@ export interface ProviderPlugin {
 
 export const EventSchema = z.object({
   type: z.string(),
-  data: ir.types.ObjectValueSchema,
+  data: z.object({}),
 })
 
-export type Event = z.infer<typeof EventSchema>;
+export type Event = z.infer<typeof EventSchema>
 
 const FunctionTriggerSchema = z.object({
   name: z.string(),
@@ -48,8 +48,10 @@ const FunctionSchema = z.object({
     cpu: z.string(),
     memory: z.string(),
   }),
-  triggers: z.array(FunctionTriggerSchema),
-  events: z.array(EventSchema),
+  triggers: z.array(FunctionTriggerSchema).default(() => []),
+  pubsub: z.object({
+    events: z.array(EventSchema),
+  }),
 })
 
 const ApplicationSchema = z.object({
@@ -84,23 +86,3 @@ export async function resolveApplicationFromIr(opts: {
   const value = irService.convertToValue(applicationBlock)
   return parseApplication(value)
 }
-
-export type Message = {
-  message: ir.types.Value
-}
-
-export type Channel = {
-  topic: string
-  pub: Message
-  sub: Message
-}
-
-export const ChannelSchema: z.ZodType<Channel> = z.object({
-  topic: z.string(),
-  pub: z.object({
-    message: ir.types.ValueSchema,
-  }),
-  sub: z.object({
-    message: ir.types.ValueSchema,
-  }),
-})

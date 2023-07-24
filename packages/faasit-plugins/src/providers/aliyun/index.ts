@@ -5,6 +5,7 @@ import Util, * as $Util from '@alicloud/tea-util';
 import Admzip from 'adm-zip';
 import path from 'path';
 import dotenv from 'dotenv';
+import * as Trigger from "./utils/trigger";
 
 dotenv.config({path: path.resolve(__dirname,"./.env")});
 
@@ -55,7 +56,7 @@ async function createService():
 			runtime);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		throw error;
 	}
 }
 
@@ -73,7 +74,9 @@ async function getService():
 			runtime);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		if (error.code != 'ServiceNotFound') {
+			throw error;
+		}
 	}
 }
 
@@ -112,7 +115,7 @@ async function createFunction(fn: {
 			runtime);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		throw error;
 	}
 }
 
@@ -123,7 +126,9 @@ async function getFunction(functionName: string): Promise<{ [key: string]: any }
 		const resp = await client.getFunction("faasit", functionName, getFunctionRequests);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		if (error.code != 'FunctionNotFound') {
+			throw error;
+		} 
 	}
 }
 
@@ -161,7 +166,7 @@ async function updateFunction(fn: {
 			runtime);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		throw error;
 	}
 }
 
@@ -173,7 +178,7 @@ async function invokeFunction(functionName: string)
 		const resp = await client.invokeFunction("faasit", functionName, invokeFunctionRequests);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		throw error;
 	}
 }
 
@@ -203,7 +208,7 @@ async function createTrigger(
 		);
 		return resp;
 	} catch (error) {
-		// console.log(error);
+		throw error;
 	}
 }
 
@@ -222,7 +227,9 @@ async function getTrigger(functionName:string,triggerName:string)
 		);
 		return resp;
 	} catch (error) {
-		// console.log(error)
+		if (error.code != 'TriggerNotFound') {
+			throw error;
+		}
 	}
 }
 
@@ -241,13 +248,18 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 
 				await getService().then(getServiceResp => {
 					if (getServiceResp) {
-						logger.info("aliyun service faasit exists")
+						logger.info("aliyun service faasit exists");
 						return;
 					} else {
-						logger.info("aliyun service faasits doesn't exist, it will be created...")
-						createService();
+						logger.info("aliyun service faasit doesn't exist, it will be created...")
+						createService().catch(err => {
+							logger.error(err);
+							return;
+						});
 					}
-				})
+				}).catch(err=>{
+					logger.error(err);
+				});
 
 
 				await getFunction(fn.name).then(getFunctionResp => {
@@ -258,21 +270,46 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 							codeDir: fn.codeDir,
 							runtime: fn.runtime,
 							handler: fn.handler ? fn.handler : "index.handler"
+						}).catch(err=>{
+							logger.error(err);
 						})
-						return;
 					} else {
-						logger.info(`create aliyun function ${fn.name}`);
+						logger.info(`create aliyun function ${fn.name}...`);
 						createFunction({
 							functionName: fn.name,
 							codeDir: fn.codeDir,
 							runtime: fn.runtime,
 							handler: fn.handler ? fn.handler : "index.handler"
+						}).catch(err=>{
+							logger.error(err);
 						})
 					}
+				}).catch(err=>{
+					logger.error(err);
 				})
 				
 				for(let trigger of fn.triggers) {
-
+					const baseTrigger = await Trigger.getTrigger({
+						kind: trigger.kind,
+						name: trigger.name,
+						opts: {/**TODO */}
+					})
+					await getTrigger(fn.name,trigger.name).then(getTriggerResp=>{
+						if (getTriggerResp) {
+							logger.info(`aliyun trigger ${trigger.name} exists, it will be updated!`);
+						} else {
+							logger.info(`create trigger ${trigger.name}...`);
+							createTrigger(fn.name,{
+								triggerName: trigger.name,
+								triggerType: trigger.kind,
+								triggerConfig: baseTrigger.triggerConfig
+							}).catch(err=>{
+								logger.error(err);
+							})
+						}
+					}).catch(err=>{
+						logger.error(err);
+					})
 				}
 			}
 		},

@@ -3,7 +3,7 @@ import z, { string } from 'zod';
 
 
 const HttpTriggerConfigSchema = z.object({
-  authType : z.enum(["anonymous","function"]).default("function"),
+  authType : z.enum(["anonymous","function"]).default("anonymous"),
   methods : z.array(z.enum(["HEAD","GET","POST","PUT","DELETE","PATCH","OPTIONS"])),
   disableURLInternet: z.boolean().default(false),
   authConfig: z.string().optional()

@@ -7,11 +7,6 @@
       kind = "http"
     }
   ]
-  resource = {
-    cpu = "1024m"
-    memory = "128Mi"
-  }
-  events = []
 }
 
 @application {

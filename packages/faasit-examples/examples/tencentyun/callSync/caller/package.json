@@ -1,0 +1,12 @@
+{
+  "name": "sendemailsync",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "tencentcloud-serverless-nodejs": "^1.0.3"
+  }
+}

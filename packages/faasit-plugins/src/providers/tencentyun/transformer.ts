@@ -17,7 +17,10 @@ export function transformCreateFunctionParams(fn: FunctionType) {
     Code: {
       ZipFile: zipFolderAndEncode(fn.codeDir),
     },
+    InstallDependency: 'TRUE',
+    Handler: fn.handler,
     Runtime: fn.runtime,
+    Role: fn.role,
   }
 }
 
@@ -27,6 +30,8 @@ export function transformUpdateFunctionParams(fn: FunctionType) {
     Code: {
       ZipFile: zipFolderAndEncode(fn.codeDir),
     },
+    InstallDependency: 'TRUE',
+    Handler: fn.handler,
   }
 }
 

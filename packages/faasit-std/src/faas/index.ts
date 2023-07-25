@@ -47,11 +47,12 @@ const FunctionSchema = z.object({
   resource: z.object({
     cpu: z.string(),
     memory: z.string(),
-  }),
+  }).optional(),
   triggers: z.array(FunctionTriggerSchema).default(() => []),
   pubsub: z.object({
     events: z.array(EventSchema),
-  }),
+  }).optional(),
+  role: z.string().optional(),
 })
 
 const ApplicationSchema = z.object({

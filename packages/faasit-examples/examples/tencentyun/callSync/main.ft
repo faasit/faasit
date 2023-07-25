@@ -1,0 +1,21 @@
+@function caller {
+  runtime = "Nodejs12.16"
+  codeDir = "./caller"
+  triggers = []
+  role = 'SCF_QcsRole'
+}
+
+@function callee {
+  runtime = "Nodejs12.16"
+  codeDir = "./callee"
+  triggers = []
+}
+
+@application {
+  functions = [caller, callee]
+  defaultProvider = TencentyunDefaultProvider
+}
+
+@provider TencentyunDefaultProvider {
+  kind = "tencentyun"
+}

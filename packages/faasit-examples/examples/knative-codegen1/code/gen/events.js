@@ -1,3 +1,3 @@
 export const CloudEventTypes = {
-  EchoEvent: 'sample.echo',
+  EchoEvent: 'sample.echo'
 }

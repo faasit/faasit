@@ -1,0 +1,1 @@
+export { JavascriptGeneratorPlugin } from './nodejs'

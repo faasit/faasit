@@ -90,5 +90,17 @@ export function main() {
         .catch(handleError)
     })
 
+  program
+    .command('codegen')
+    .option('--lang <lang>', 'language to generate', 'js')
+    .argument('<file>', '')
+    .action(async (file, opts) => {
+      await engine.codegen({
+        workingDir: process.cwd(),
+        file,
+        ...opts,
+      })
+    })
+
   program.parse(process.argv)
 }

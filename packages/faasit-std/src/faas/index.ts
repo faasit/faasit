@@ -3,6 +3,26 @@ import { z } from 'zod'
 
 import { runtime } from '@faasit/core'
 
+export interface GeneratorPluginContext {}
+
+export interface GenerationItem {
+  path: string
+  content: string
+  contentType: string
+}
+
+export interface GenerationResult {
+  items: GenerationItem[]
+}
+
+export interface GeneratorPlugin {
+  name: string
+  generate?: (
+    input: { app: Application; irSpec: ir.Spec },
+    ctx: GeneratorPluginContext
+  ) => Promise<GenerationResult>
+}
+
 export interface ProviderPluginContext {
   rt: runtime.PluginRuntime
   logger: runtime.PluginLogger

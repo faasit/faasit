@@ -73,3 +73,40 @@ export function readableToStream(r: {
     },
   }
 }
+
+export interface StringPrinterOptions {
+  indent?: string
+}
+export class StringPrinter {
+  private buffer: string = ''
+  private opts: Required<StringPrinterOptions>
+  private currentIndent: string = ''
+
+  constructor(opts?: StringPrinterOptions) {
+    const { indent = '  ' } = opts || {}
+    this.opts = { indent }
+  }
+
+  indent() {
+    this.currentIndent += this.opts.indent
+  }
+
+  dedent() {
+    this.currentIndent = this.currentIndent.slice(
+      0,
+      this.currentIndent.length - this.opts.indent.length
+    )
+  }
+
+  printRaw(str: string) {
+    this.buffer += str
+  }
+
+  println(str: string) {
+    this.buffer += `${this.currentIndent}${str}\n`
+  }
+
+  toString(): string {
+    return this.buffer
+  }
+}

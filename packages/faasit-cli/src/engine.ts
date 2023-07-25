@@ -33,6 +33,24 @@ async function getProviderPlugin(name: string): Promise<faas.ProviderPlugin> {
   throw new AppError(`no provider plugin found, name=${name}`)
 }
 
+async function getGeneratorPlugin(name: string): Promise<faas.GeneratorPlugin> {
+  const { generators } = await import('@faasit/plugins')
+
+  const plugins = {
+    js: () => generators.JavascriptGeneratorPlugin(),
+  } as const
+
+  const isPluginName = (name: string): name is keyof typeof plugins => {
+    return name in plugins
+  }
+
+  if (isPluginName(name)) {
+    return plugins[name]()
+  }
+
+  throw new AppError(`no generator plugin found, name=${name}`)
+}
+
 export class Engine {
   constructor() {}
 
@@ -65,8 +83,7 @@ export class Engine {
     const irSpecRes = await this.handleCompile({ ...opts, config: opts.file })
 
     if (!irSpecRes.ok) {
-      const diagErr = irSpecRes.error
-      this.printCompileError(diagErr)
+      this.printCompileError(irSpecRes.error)
       return
     }
 
@@ -121,6 +138,31 @@ export class Engine {
         }
       )
     )
+  }
+
+  async codegen(opts: { workingDir: string; file: string; lang: string }) {
+    const irSpecRes = await this.handleCompile({ ...opts, config: opts.file })
+
+    if (!irSpecRes.ok) {
+      this.printCompileError(irSpecRes.error)
+      return
+    }
+
+    const irSpec = irSpecRes.value
+    const app = await faas.resolveApplicationFromIr({ ir: irSpec })
+
+    const generator = await getGeneratorPlugin(opts.lang)
+    if (generator.generate) {
+      const result = await generator.generate(
+        { app, irSpec },
+        this.getPluginRuntime()
+      )
+
+      await this.handleWriteGeneration({
+        workingDir: opts.workingDir,
+        generation: result,
+      })
+    }
   }
 
   private getPluginRuntime(): faas.ProviderPluginContext {
@@ -224,5 +266,28 @@ export class Engine {
       )
     }
     return
+  }
+
+  async handleWriteGeneration(opts: {
+    workingDir: string
+    generation: faas.GenerationResult
+  }) {
+    // collect all dirs
+    const dirs = []
+
+    for (const item of opts.generation.items) {
+      dirs.push(path.resolve(opts.workingDir, path.dirname(item.path)))
+    }
+
+    // create dir
+    await Promise.all(dirs.map((dir) => fsp.mkdir(dir, { recursive: true })))
+
+    // write files
+    const tasks = opts.generation.items.map(async (item) => {
+      const targetPath = path.resolve(opts.workingDir, item.path)
+      await fsp.writeFile(targetPath, item.content)
+    })
+
+    await Promise.all(tasks)
   }
 }

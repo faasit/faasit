@@ -1,0 +1,45 @@
+@function demo3_1 {
+  runtime = "nodejs16"
+  codeDir = "./code1"
+  triggers = []
+  resource = {
+    cpu = "1024m"
+    memory = "128Mi"
+  }
+  pubsub = {
+    events = []
+  }
+}
+@function demo3_2 {
+  runtime = "nodejs16"
+  codeDir = "./code2"
+  triggers = []
+  resource = {
+    cpu = "1024m"
+    memory = "128Mi"
+  }
+  pubsub = {
+    events = []
+  }
+}
+@function demo3_3 {
+  runtime = "nodejs16"
+  codeDir = "./code3"
+  triggers = []
+  resource = {
+    cpu = "1024m"
+    memory = "128Mi"
+  }
+  pubsub = {
+    events = []
+  }
+}
+
+@application {
+  functions = [demo3_1,demo3_2,demo3_3]
+  defaultProvider = AliyunCluster
+}
+
+@provider AliyunCluster {
+  kind = "aliyun"
+}

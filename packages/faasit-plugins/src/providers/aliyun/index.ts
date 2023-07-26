@@ -297,7 +297,8 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 
 				await getFunction(fn.name).then(async getFunctionResp => {
 					if (getFunctionResp) {
-						await logger.info(`aliyun function ${fn.name} exists, it will be updated!`);
+						logger.info(`aliyun function ${fn.name} exists, it will be updated!`);
+						logger.info('update function results: ');
 						await updateFunction({
 							functionName: fn.name,
 							codeDir: fn.codeDir,
@@ -313,7 +314,8 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 								logger.error(err);
 							})
 					} else {
-						await logger.info(`create aliyun function ${fn.name}...`);
+						logger.info(`create aliyun function ${fn.name}...`);
+						logger.info('create function results: ');
 						await createFunction({
 							functionName: fn.name,
 							codeDir: fn.codeDir,
@@ -377,9 +379,10 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 
 		async invoke(input, ctx) {
 			const { rt, logger } = ctx;
-			logger.info(`invoke function ${input.funcName}`);
 			const { app } = input;
+			
 			for (const fn of app.functions) {
+				logger.info(`invoke function ${fn.name}`);
 				if (fn.triggers.length > 0 && fn.triggers[0].kind == 'http') {
 					await getTrigger(fn.name, fn.triggers[0].name)
 						.then(async triggerResp => {
@@ -388,14 +391,15 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 
 							await axios.get(urlInternet)
 								.then(resp => {
-									logger.info("function invoke result:");
+									logger.info("function invoke results:");
 									console.log(resp.data);
 								})
-						}).catch(err => {
+						})
+						.catch(err => {
 							logger.error(err);
 						})
 				} else {
-					await invokeFunction(input.funcName).then(resp => {
+					await invokeFunction(fn.name).then(resp => {
 						if (resp) {
 							logger.info(resp.body.toString());
 						}

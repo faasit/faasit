@@ -1,0 +1,22 @@
+@function hello2 {
+  runtime = "nodejs16"
+  codeDir = "./code"
+  triggers = [
+  ]
+  resource = {
+    cpu = "1024m"
+    memory = "128Mi"
+  }
+  pubsub = {
+    events = []
+  }
+}
+
+@application {
+  functions = [hello2]
+  defaultProvider = AliyunCluster
+}
+
+@provider AliyunCluster {
+  kind = "aliyun"
+}

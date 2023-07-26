@@ -5,7 +5,7 @@
       "name": "Faasit deploy",
       "program": "${workspaceFolder}/packages/faasit/bin/faasit.cjs",
       "request": "launch",
-      "cwd" : "${workspaceFolder}/packages/faasit-examples/examples/aliyun",
+      "cwd" : "${workspaceFolder}/packages/faasit-examples/examples/demo1/aliyun",
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -18,7 +18,7 @@
       "name": "Faasit invoke",
       "program": "${workspaceFolder}/packages/faasit/bin/faasit.cjs",
       "request": "launch",
-      "cwd" : "${workspaceFolder}/packages/faasit-examples/examples/aliyun",
+      "cwd" : "${workspaceFolder}/packages/faasit-examples/examples/demo1/aliyun",
       "skipFiles": [
         "<node_internals>/**"
       ],

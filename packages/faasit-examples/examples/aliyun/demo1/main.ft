@@ -20,9 +20,9 @@
 
 @application {
   functions = [hello]
-  defaultProvider = OpenFaasCluster1
+  defaultProvider = AliyunCluster
 }
 
-@provider OpenFaasCluster1 {
+@provider AliyunCluster {
   kind = "aliyun"
 }

@@ -6,8 +6,9 @@ import Admzip from 'adm-zip';
 import path from 'path';
 import dotenv from 'dotenv';
 import * as Trigger from "./utils/trigger";
+import axios, { Axios } from "axios";
 
-dotenv.config({path: path.resolve(__dirname,"./.env")});
+dotenv.config({ path: path.resolve(__dirname, "./.env") });
 
 
 function createClient(): FC_Open20210406 {
@@ -51,8 +52,8 @@ async function createService():
 	let runtime = new $Util.RuntimeOptions({});
 	try {
 		let resp = await client.createServiceWithOptions(
-			createServiceRequest, 
-			createServiceHeaders, 
+			createServiceRequest,
+			createServiceHeaders,
 			runtime);
 		return resp;
 	} catch (error) {
@@ -68,9 +69,9 @@ async function getService():
 	let runtime = new $Util.RuntimeOptions({});
 	try {
 		const resp = await client.getServiceWithOptions(
-			"faasit", 
-			getServiceRequest, 
-			getServiceHeaders, 
+			"faasit",
+			getServiceRequest,
+			getServiceHeaders,
 			runtime);
 		return resp;
 	} catch (error) {
@@ -109,9 +110,9 @@ async function createFunction(fn: {
 	let runtime = new $Util.RuntimeOptions({});
 	try {
 		const resp = await client.createFunctionWithOptions(
-			"faasit", 
-			createFunctionRequests, 
-			createFunctionHeaders, 
+			"faasit",
+			createFunctionRequests,
+			createFunctionHeaders,
 			runtime);
 		return resp;
 	} catch (error) {
@@ -128,7 +129,7 @@ async function getFunction(functionName: string): Promise<{ [key: string]: any }
 	} catch (error) {
 		if (error.code != 'FunctionNotFound') {
 			throw error;
-		} 
+		}
 	}
 }
 
@@ -137,7 +138,7 @@ async function updateFunction(fn: {
 	codeDir: string,
 	runtime: string,
 	handler: string,
-}): Promise<$FC_Open20210406.UpdateFunctionResponse|undefined> {
+}): Promise<$FC_Open20210406.UpdateFunctionResponse | undefined> {
 	let zipFolderAndEncode = (folderPath: string) => {
 		const zip = new Admzip();
 		zip.addLocalFolder(folderPath);
@@ -152,14 +153,14 @@ async function updateFunction(fn: {
 	let headers = new $FC_Open20210406.UpdateFunctionHeaders({});
 	let requests = new $FC_Open20210406.UpdateFunctionRequest({
 		functionName: fn.functionName,
-		handler: fn.handler, 
+		handler: fn.handler,
 		runtime: fn.runtime,
 		code: code
 	});
 	let runtime = new $Util.RuntimeOptions({});
 	try {
 		const resp = await client.updateFunctionWithOptions(
-			"faasit", 
+			"faasit",
 			fn.functionName,
 			requests,
 			headers,
@@ -182,14 +183,15 @@ async function invokeFunction(functionName: string)
 	}
 }
 
+
 async function createTrigger(
 	functionName: string,
 	triggerOpts: {
 		triggerName: string,
 		triggerType: string,
-		triggerConfig: {[key:string]:any},
+		triggerConfig: { [key: string]: any },
 	}
-):Promise<$FC_Open20210406.CreateTriggerResponse|undefined> {
+): Promise<$FC_Open20210406.CreateTriggerResponse | undefined> {
 	let client = createClient();
 	let headers = new $FC_Open20210406.CreateTriggerHeaders({});
 	let requests = new $FC_Open20210406.CreateTriggerRequest({
@@ -212,8 +214,39 @@ async function createTrigger(
 	}
 }
 
-async function getTrigger(functionName:string,triggerName:string)
-: Promise<$FC_Open20210406.GetTriggerResponse|undefined> {
+async function updateTrigger(
+	functionName: string,
+	triggerOpts: {
+		triggerName: string,
+		triggerType: string,
+		triggerConfig: { [key: string]: any },
+	}
+): Promise<$FC_Open20210406.UpdateTriggerResponse | undefined> {
+	let client = createClient();
+	let headers = new $FC_Open20210406.UpdateTriggerHeaders({});
+	let requests = new $FC_Open20210406.UpdateTriggerRequest({
+		triggerName: triggerOpts.triggerName,
+		triggerType: triggerOpts.triggerType,
+		triggerConfig: JSON.stringify(triggerOpts.triggerConfig)
+	});
+	let runtime = new $Util.RuntimeOptions({});
+	try {
+		const resp = await client.updateTriggerWithOptions(
+			'faasit',
+			functionName,
+			triggerOpts.triggerName,
+			requests,
+			headers,
+			runtime
+		);
+		return resp;
+	} catch (err) {
+		throw err;
+	}
+}
+
+async function getTrigger(functionName: string, triggerName: string)
+	: Promise<$FC_Open20210406.GetTriggerResponse | undefined> {
 	let client = createClient();
 	let headers = new $FC_Open20210406.GetTriggerHeaders({});
 	let runtime = new $Util.RuntimeOptions({});
@@ -257,72 +290,124 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 							return;
 						});
 					}
-				}).catch(err=>{
+				}).catch(err => {
 					logger.error(err);
 				});
 
 
-				await getFunction(fn.name).then(getFunctionResp => {
+				await getFunction(fn.name).then(async getFunctionResp => {
 					if (getFunctionResp) {
 						logger.info(`aliyun function ${fn.name} exists, it will be updated!`);
-						updateFunction({
+						logger.info('update function results: ');
+						await updateFunction({
 							functionName: fn.name,
 							codeDir: fn.codeDir,
 							runtime: fn.runtime,
 							handler: fn.handler ? fn.handler : "index.handler"
-						}).catch(err=>{
-							logger.error(err);
 						})
+							.then(updateFunctionResp => {
+								if (updateFunctionResp) {
+									console.log(updateFunctionResp.body.toMap());
+								}
+							})
+							.catch(err => {
+								logger.error(err);
+							})
 					} else {
 						logger.info(`create aliyun function ${fn.name}...`);
-						createFunction({
+						logger.info('create function results: ');
+						await createFunction({
 							functionName: fn.name,
 							codeDir: fn.codeDir,
 							runtime: fn.runtime,
 							handler: fn.handler ? fn.handler : "index.handler"
-						}).catch(err=>{
-							logger.error(err);
 						})
+							.then(createFunctionResp => {
+								console.log(createFunctionResp?.body.toMap());
+							})
+							.catch(err => {
+								logger.error(err);
+							})
 					}
-				}).catch(err=>{
+				}).catch(err => {
 					logger.error(err);
 				})
-				
-				for(let trigger of fn.triggers) {
+
+				for (let trigger of fn.triggers) {
 					const baseTrigger = await Trigger.getTrigger({
 						kind: trigger.kind,
 						name: trigger.name,
-						opts: {/**TODO */}
+						opts: {/**TODO */ }
 					})
-					await getTrigger(fn.name,trigger.name).then(getTriggerResp=>{
+					await getTrigger(fn.name, trigger.name).then(async getTriggerResp => {
 						if (getTriggerResp) {
 							logger.info(`aliyun trigger ${trigger.name} exists, it will be updated!`);
-						} else {
-							logger.info(`create trigger ${trigger.name}...`);
-							createTrigger(fn.name,{
+							await updateTrigger(fn.name, {
 								triggerName: trigger.name,
 								triggerType: trigger.kind,
 								triggerConfig: baseTrigger.triggerConfig
-							}).catch(err=>{
-								logger.error(err);
 							})
+								.then(updateTriggerResp => {
+									if (updateTriggerResp) {
+										logger.info("update trigger results: ");
+										console.log(updateTriggerResp.body.toMap());
+									}
+								})
+						} else {
+							logger.info(`create trigger ${trigger.name}...`);
+							await createTrigger(fn.name, {
+								triggerName: trigger.name,
+								triggerType: trigger.kind,
+								triggerConfig: baseTrigger.triggerConfig
+							})
+								.then(createTriggerResp => {
+									if (createTriggerResp) {
+										logger.info("create trigger results: ")
+										console.log(createTriggerResp.body.toMap());
+									}
+								})
+								.catch(err => {
+									logger.error(err);
+								});
 						}
-					}).catch(err=>{
+					}).catch(err => {
 						logger.error(err);
 					})
 				}
 			}
 		},
 
-		async invoke(input,ctx) {
-			const {rt,logger} = ctx;
-			logger.info(`invoke function ${input.funcName}`);
+		async invoke(input, ctx) {
+			const { rt, logger } = ctx;
+			const { app } = input;
+			
+			for (const fn of app.functions) {
+				logger.info(`invoke function ${fn.name}`);
+				if (fn.triggers.length > 0 && fn.triggers[0].kind == 'http') {
+					await getTrigger(fn.name, fn.triggers[0].name)
+						.then(async triggerResp => {
+							const urlInternet = triggerResp?.body.urlInternet || "";
+							const urlWithoutHttp = urlInternet.replace(/^(http|https):\/\//, "");
 
-			await invokeFunction(input.funcName).then(resp=>{
-				if (resp) {
-					logger.info(resp.body.toString());
+							await axios.get(urlInternet)
+								.then(resp => {
+									logger.info("function invoke results:");
+									console.log(resp.data);
+								})
+						})
+						.catch(err => {
+							logger.error(err);
+						})
+				} else {
+					await invokeFunction(fn.name).then(resp => {
+						if (resp) {
+							logger.info(resp.body.toString());
+						}
+					})
 				}
-			})
+
+			}
+
 		}
 	}
 }

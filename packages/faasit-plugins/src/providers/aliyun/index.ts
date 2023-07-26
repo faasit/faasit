@@ -6,6 +6,7 @@ import Admzip from 'adm-zip';
 import path from 'path';
 import dotenv from 'dotenv';
 import * as Trigger from "./utils/trigger";
+import axios, { Axios } from "axios";
 
 dotenv.config({path: path.resolve(__dirname,"./.env")});
 
@@ -182,6 +183,10 @@ async function invokeFunction(functionName: string)
 	}
 }
 
+async function invokeHttpFunction(url:string) {
+	
+}
+
 async function createTrigger(
 	functionName: string,
 	triggerOpts: {
@@ -262,25 +267,35 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 				});
 
 
-				await getFunction(fn.name).then(getFunctionResp => {
+				await getFunction(fn.name).then(async getFunctionResp => {
 					if (getFunctionResp) {
-						logger.info(`aliyun function ${fn.name} exists, it will be updated!`);
-						updateFunction({
+						await logger.info(`aliyun function ${fn.name} exists, it will be updated!`);
+						await updateFunction({
 							functionName: fn.name,
 							codeDir: fn.codeDir,
 							runtime: fn.runtime,
 							handler: fn.handler ? fn.handler : "index.handler"
-						}).catch(err=>{
+						})
+						.then(updateFunctionResp=>{
+							if (updateFunctionResp) {
+								console.log(updateFunctionResp.body.toMap());
+							}
+						})
+						.catch(err=>{
 							logger.error(err);
 						})
 					} else {
-						logger.info(`create aliyun function ${fn.name}...`);
-						createFunction({
+						await logger.info(`create aliyun function ${fn.name}...`);
+						await createFunction({
 							functionName: fn.name,
 							codeDir: fn.codeDir,
 							runtime: fn.runtime,
 							handler: fn.handler ? fn.handler : "index.handler"
-						}).catch(err=>{
+						})
+						.then(createFunctionResp=>{
+							console.log(createFunctionResp?.body.toMap());
+						})
+						.catch(err=>{
 							logger.error(err);
 						})
 					}
@@ -294,18 +309,26 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 						name: trigger.name,
 						opts: {/**TODO */}
 					})
-					await getTrigger(fn.name,trigger.name).then(getTriggerResp=>{
+					await getTrigger(fn.name,trigger.name).then(async getTriggerResp=>{
 						if (getTriggerResp) {
-							logger.info(`aliyun trigger ${trigger.name} exists, it will be updated!`);
+							await logger.info(`aliyun trigger ${trigger.name} exists, it will be updated!`);
+							await console.log(getTriggerResp.body.toMap());
 						} else {
 							logger.info(`create trigger ${trigger.name}...`);
-							createTrigger(fn.name,{
+							await createTrigger(fn.name,{
 								triggerName: trigger.name,
 								triggerType: trigger.kind,
 								triggerConfig: baseTrigger.triggerConfig
-							}).catch(err=>{
-								logger.error(err);
 							})
+							.then(createTriggerResp => {
+								if (createTriggerResp) {
+									console.log(createTriggerResp.body.toMap());
+								}
+							})
+							.catch(err=>{
+								logger.error(err);
+							});
+							
 						}
 					}).catch(err=>{
 						logger.error(err);
@@ -317,12 +340,30 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 		async invoke(input,ctx) {
 			const {rt,logger} = ctx;
 			logger.info(`invoke function ${input.funcName}`);
-
-			await invokeFunction(input.funcName).then(resp=>{
-				if (resp) {
-					logger.info(resp.body.toString());
+			const {app} = input;
+			for (const fn of app.functions) {
+				if ( fn.triggers[0].kind == 'http' ) {
+					await getTrigger(fn.name,fn.triggers[0].name)
+					.then(async triggerResp=>{
+						const urlInternet = triggerResp?.body.urlInternet || "";
+						await axios.get(urlInternet)
+							.then(resp=>{
+								logger.info("function invoke result:");
+								console.log(resp.data);
+							})
+					}).catch(err=>{
+						logger.error(err);
+					})
+				} else {
+					await invokeFunction(input.funcName).then(resp=>{
+						if (resp) {
+							logger.info(resp.body.toString());
+						}
+					})
 				}
-			})
+
+			}
+
 		}
 	}
 }

@@ -16,7 +16,7 @@ export function resolveConfigPath(config?: string) {
   return path.resolve(process.cwd(), 'main.yaml')
 }
 
-async function handleInit(opts: {}) {}
+async function handleInit(opts: {}) { }
 
 export function main() {
   const program = new Command('faasit')
@@ -35,9 +35,14 @@ export function main() {
 
   program
     .command('init')
-    .option('-n, --name [string]', 'project name')
+    .requiredOption('-n, --name [string]', 'project name')
+    .requiredOption('-t, --template [string]', 'template name')
+    .option('--lang [string]', 'language name', 'javascript')
     .action(async (p) => {
-      await handleInit(p).catch((e) => console.error(e))
+      await engine.init({
+        ...p,
+        workingDir: process.cwd(),
+      }).catch(handleError)
     })
 
   program
@@ -79,7 +84,7 @@ export function main() {
 
   program
     .command('eval')
-    .argument('<file>', 'input file')
+    .argument('[file]', 'input file')
     .description('eval values of faast DSL')
     .action(async (p) => {
       await engine
@@ -93,7 +98,7 @@ export function main() {
   program
     .command('codegen')
     .option('--lang <lang>', 'language to generate', 'js')
-    .argument('<file>', '')
+    .argument('[file]', '')
     .action(async (file, opts) => {
       await engine.codegen({
         workingDir: process.cwd(),

@@ -1,18 +1,22 @@
 import {
   AppError,
-  ir,
-  parser,
+  DiagnosticError,
   URI,
   ft_utils,
-  DiagnosticError,
+  ir,
+  parser,
 } from '@faasit/core'
+import { faas } from '@faasit/std'
 import chalk from 'chalk'
 import yaml from 'js-yaml'
+import fs from 'fs-extra';
 import { spawn } from 'node:child_process'
-import fsp from 'node:fs/promises'
 import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { NodeFileSystemProvider } from './runtime'
-import { faas } from '@faasit/std'
+
+const SCRIPT_DIR = path.normalize(path.dirname(fileURLToPath(import.meta.url)))
+const ASSETS_DIR = path.resolve(SCRIPT_DIR, '../assets')
 
 async function getProviderPlugin(name: string): Promise<faas.ProviderPlugin> {
   const { providers } = await import('@faasit/plugins')
@@ -52,8 +56,52 @@ async function getGeneratorPlugin(name: string): Promise<faas.GeneratorPlugin> {
   throw new AppError(`no generator plugin found, name=${name}`)
 }
 
+async function isDirectory(path: string): Promise<boolean> {
+  try {
+    const stat = await fs.lstat(path)
+    return stat.isDirectory()
+  } catch (e) {
+    return false;
+  }
+}
+
 export class Engine {
-  constructor() {}
+  private logger: ft_utils.Logger
+  constructor() {
+    this.logger = {
+      error(msg, options) {
+        console.error(`[Error] ${msg}`, options?.error)
+      },
+      info(msg) {
+        console.log(`[Info] ${msg}`)
+      },
+      warn(msg) {
+        console.log(`[Warn] ${msg}`)
+      },
+    }
+  }
+
+  async init(opts: { workingDir: string; name: string; lang: string, template: string }) {
+    const srcTemplateDir = path.join(ASSETS_DIR, 'templates', opts.template, opts.lang)
+
+    if (!(await isDirectory(srcTemplateDir))) {
+      throw new Error(`no such template=${opts.template}, lang=${opts.lang}`)
+    }
+
+    this.logger.info(`init project ${opts.name} defaultLanguage=${opts.lang} template=${opts.template}`)
+
+    const projectDir = path.resolve(opts.workingDir, opts.name)
+
+    if ((await isDirectory(projectDir))) {
+      throw new Error(`project ${opts.name} already exists`)
+    }
+
+    await fs.mkdir(projectDir, { recursive: false })
+
+    await fs.copy(srcTemplateDir, projectDir)
+
+    this.logger.info(`create project ${projectDir}`)
+  }
 
   async deploy(opts: { config: string; workingDir: string }) {
     const app = await this.resolveApplication(opts)
@@ -96,8 +144,8 @@ export class Engine {
     )
   }
 
-  async eval(opts: { workingDir: string; file: string }) {
-    const irSpecRes = await this.handleCompile({ ...opts, config: opts.file })
+  async eval(opts: { workingDir: string; file?: string }) {
+    const irSpecRes = await this.handleCompile({ ...opts, config: opts.file || 'main.ft' })
 
     if (!irSpecRes.ok) {
       const diagErr = irSpecRes.error
@@ -141,8 +189,8 @@ export class Engine {
     )
   }
 
-  async codegen(opts: { workingDir: string; file: string; lang: string }) {
-    const irSpecRes = await this.handleCompile({ ...opts, config: opts.file })
+  async codegen(opts: { workingDir: string; file?: string; lang: string }) {
+    const irSpecRes = await this.handleCompile({ ...opts, config: opts.file || 'main.ft' })
 
     if (!irSpecRes.ok) {
       this.printCompileError(irSpecRes.error)
@@ -158,6 +206,8 @@ export class Engine {
         { app, irSpec },
         this.getPluginRuntime()
       )
+
+      this.logger.info(`Write the code generation results to the code/gen/`)
 
       await this.handleWriteGeneration({
         workingDir: opts.workingDir,
@@ -195,7 +245,7 @@ export class Engine {
         },
 
         async writeFile(path, content) {
-          await fsp.writeFile(path, content)
+          await fs.writeFile(path, content)
         },
 
         joinPath(...path) {
@@ -203,20 +253,10 @@ export class Engine {
         },
 
         async removeFile(path) {
-          await fsp.unlink(path)
+          await fs.unlink(path)
         },
       },
-      logger: {
-        error(msg, options) {
-          console.error(`[Error] ${msg}`, options?.error)
-        },
-        info(msg) {
-          console.log(`[Info] ${msg}`)
-        },
-        warn(msg) {
-          console.log(`[Warn] ${msg}`)
-        },
-      },
+      logger: this.logger,
     }
   }
 
@@ -260,8 +300,7 @@ export class Engine {
     for (const error of diagErr.diags) {
       console.error(
         chalk.red(
-          `line ${error.range.start.line}: ${
-            error.message
+          `line ${error.range.start.line}: ${error.message
           } [${diagErr.textDocument.getText(error.range)}]`
         )
       )
@@ -281,12 +320,12 @@ export class Engine {
     }
 
     // create dir
-    await Promise.all(dirs.map((dir) => fsp.mkdir(dir, { recursive: true })))
+    await Promise.all(dirs.map((dir) => fs.mkdir(dir, { recursive: true })))
 
     // write files
     const tasks = opts.generation.items.map(async (item) => {
       const targetPath = path.resolve(opts.workingDir, item.path)
-      await fsp.writeFile(targetPath, item.content)
+      await fs.writeFile(targetPath, item.content)
     })
 
     await Promise.all(tasks)

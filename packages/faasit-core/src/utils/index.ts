@@ -4,12 +4,16 @@ export type Result<T, E = Error> =
   | { ok: true; value: T }
   | { ok: false; error: E }
 
-export {}
+export interface Logger {
+  info(msg: string): void
+  warn(msg: string): void
+  error(msg: string, options?: { error?: Error | null }): void
+}
 
 export function readableToStream(r: {
   on: (evt: string, fn: (v: any) => void) => void
 }): StreamReader {
-  r.on('data', () => {})
+  r.on('data', () => { })
 
   const state = {
     buffer: [] as { value: string; done: boolean }[],
@@ -98,12 +102,24 @@ export class StringPrinter {
     )
   }
 
+  printIndent() {
+    this.buffer += this.currentIndent
+    return this
+  }
+
   printRaw(str: string) {
     this.buffer += str
+    return this
+  }
+
+  printNewline() {
+    this.buffer += '\n'
+    return this
   }
 
   println(str: string) {
     this.buffer += `${this.currentIndent}${str}\n`
+    return this
   }
 
   toString(): string {

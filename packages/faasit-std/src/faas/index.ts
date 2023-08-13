@@ -76,7 +76,7 @@ const FunctionSchema = z.object({
 })
 
 const ApplicationSchema = z.object({
-  name: z.string(),
+  name: z.string().optional(),
   defaultProvider: z.object({
     kind: z.string(),
     name: z.string(),

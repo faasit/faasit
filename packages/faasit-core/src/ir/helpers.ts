@@ -9,7 +9,7 @@ export async function convertFromAst(opts: {
 }
 
 class AstToIrConverter {
-  constructor(private ctx: { main: ast.Module }) {}
+  constructor(private ctx: { main: ast.Module }) { }
 
   convert(): types.Spec {
     const { main } = this.ctx
@@ -178,11 +178,17 @@ export class IrService {
     if (value.kind === 'v_ref') {
       const block = this.symtab.get(value.id)
       if (!block) {
-        return value
+        return {
+          '$kind': value.kind,
+          '$id': value.id
+        }
       }
 
       if (types.isCustomBlock(block)) {
-        return this.convertToValue(block)
+        return {
+          '$id': value.id,
+          ...(this.convertToValue(block) as object)
+        }
       }
 
       return block

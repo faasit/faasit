@@ -1,0 +1,29 @@
+@event EchoEvent {
+  type = "example.echo"
+  data = {
+    status = string
+    payload = any
+  }
+}
+
+@function EchoFunction {
+  runtime = "nodejs:16"
+  codeDir = "./code"
+  resource = {
+    cpu = "1024m"
+    memory = "128Mi"
+  }
+  pubsub = {
+    events = [EchoEvent]
+  }
+}
+
+@application {
+  functions = [EchoFunction]
+  defaultProvider = KnativeCluster
+}
+
+@provider KnativeCluster {
+  kind = "knative"
+}
+

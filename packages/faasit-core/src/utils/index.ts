@@ -13,8 +13,6 @@ export interface Logger {
 export function readableToStream(r: {
   on: (evt: string, fn: (v: any) => void) => void
 }): StreamReader {
-  r.on('data', () => { })
-
   const state = {
     buffer: [] as { value: string; done: boolean }[],
     listeners: [] as ((chunk: { value: string; done: boolean }) => void)[],

@@ -10,6 +10,7 @@ import { faas } from '@faasit/std'
 import chalk from 'chalk'
 import yaml from 'js-yaml'
 import fs from 'fs-extra';
+import S2A from 'stream-to-async-iterator'
 import { spawn } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -219,10 +220,13 @@ export class Engine {
   private getPluginRuntime(): faas.ProviderPluginContext {
     return {
       rt: {
-        runCommand(cmd) {
-          const p = spawn(cmd, {
-            shell: true,
+        runCommand(cmd, options) {
+          const { args = [], ...rest } = options || {}
+          const p = spawn(cmd, args, {
+            ...(rest || {})
           })
+
+          const isStdioInherit = rest.stdio && rest.stdio == 'inherit'
 
           const wait: () => Promise<{ exitcode: number }> = () =>
             new Promise((resolve, reject) => {
@@ -239,8 +243,8 @@ export class Engine {
 
           return {
             wait,
-            stdout: ft_utils.readableToStream(p.stdout),
-            stderr: ft_utils.readableToStream(p.stderr),
+            stdout: p.stdout ? new S2A(p.stdout) : null,
+            stderr: p.stderr ? new S2A(p.stderr) : null,
           }
         },
 

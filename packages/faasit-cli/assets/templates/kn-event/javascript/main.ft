@@ -18,7 +18,7 @@
   }
 }
 
-@application {
+@application Hello1 {
   functions = [EchoFunction]
   defaultProvider = KnativeCluster
 }

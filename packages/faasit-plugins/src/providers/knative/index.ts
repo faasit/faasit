@@ -35,10 +35,18 @@ export default function KnativePlugin(): faas.ProviderPlugin {
 
         await rt.writeFile(funcFile, yaml.dump(funcObj))
 
-        const proc = rt.runCommand(`cd code && kn func deploy`)
+        const proc = rt.runCommand(`kn func deploy`, {
+          cwd: 'code',
+          shell: true,
+          stdio: 'inherit'
+        })
 
         await Promise.all(
           [proc.stdout, proc.stderr].map(async (v) => {
+            if (!v) {
+              return;
+            }
+
             for await (const chunk of v) {
               logger.info(chunk)
             }
@@ -63,7 +71,7 @@ export default function KnativePlugin(): faas.ProviderPlugin {
       const resp = await axios.get(url)
 
       console.log(resp.data)
-      
+
       logger.info(`invoked function ${input.funcName}`)
     },
   }

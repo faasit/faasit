@@ -29,27 +29,15 @@ export interface FileSystemProvider {
   readDirectory(uri: URI): Promise<FileSystemNode[]>
 }
 
-export interface PluginRuntime {
-  runCommand(cmd: string): {
-    stdout: StreamReader
-    stderr: StreamReader
-    wait: () => Promise<{ exitcode: number }>
-  }
-
-  joinPath(...path: string[]): string
-  writeFile(path: string, content: string): Promise<void>
-  removeFile(path: string): Promise<void>
-}
-
 export interface StreamReader {
   next(): Promise<IteratorResult<string>>
   [Symbol.asyncIterator](): AsyncIterableIterator<string>
 }
 
 export interface PluginRuntime {
-  runCommand(cmd: string): {
-    stdout: StreamReader
-    stderr: StreamReader
+  runCommand(cmd: string, options?: { args?: string[], shell?: boolean, cwd?: string, stdio?: 'inherit' | 'pipe' }): {
+    stdout: StreamReader | null
+    stderr: StreamReader | null
     wait: () => Promise<{ exitcode: number }>
   }
 

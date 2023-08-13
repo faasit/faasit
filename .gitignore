@@ -233,3 +233,6 @@ build/
 .DS_Store
 
 template/
+
+.func/
+func.yaml

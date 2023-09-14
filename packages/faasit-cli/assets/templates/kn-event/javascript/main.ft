@@ -1,9 +1,34 @@
+import (
+  "std/faas"
+)
+
+use {
+  application = faas.application
+}
+
 @event EchoEvent {
   type = "example.echo"
   data = {
     status = string
     payload = any
   }
+}
+
+block event {
+  input = {
+    type = string
+    data = type
+  }
+  output = {}
+}
+
+@event EchoEvent2 {
+  type = "example.echo"
+  data = string
+}
+
+@usecase A {
+  funcs = [EchoFunction]
 }
 
 @function EchoFunction {

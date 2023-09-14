@@ -43,7 +43,7 @@ class AstToIrConverter {
       return {
         kind: 'b_custom',
         // todo: use symbol
-        block_type: block.block_type,
+        block_type: block.block_type.names.join('.'),
         name: block.name || '',
         props: this.handlePropList(block.props),
       }
@@ -68,6 +68,10 @@ class AstToIrConverter {
         parent: block.for_target?.$refText,
         methods: this.handleRpcList(block.methods),
       }
+    }
+
+    if (block.$type == 'LibBlock') {
+      return undefined
     }
 
     const blk: never = block

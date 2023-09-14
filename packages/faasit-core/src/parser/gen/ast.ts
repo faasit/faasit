@@ -7,7 +7,7 @@
 import type { AstNode, Reference, ReferenceInfo, TypeMetaData } from 'langium';
 import { AbstractAstReflection } from 'langium';
 
-export type Block = BlockBlock | CustomBlock | ServiceBlock | StructBlock | UseBlock;
+export type Block = BlockBlock | CustomBlock | LibBlock | ServiceBlock | StructBlock | UseBlock;
 
 export const Block = 'Block';
 
@@ -45,7 +45,7 @@ export function isBlockBlock(item: unknown): item is BlockBlock {
 }
 
 export interface BlockExpr extends AstNode {
-    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
     readonly $type: 'BlockExpr';
     props: Array<Property>
 }
@@ -59,7 +59,7 @@ export function isBlockExpr(item: unknown): item is BlockExpr {
 export interface CustomBlock extends AstNode {
     readonly $container: Module;
     readonly $type: 'CustomBlock';
-    block_type: string
+    block_type: QualifiedName
     for_target?: Reference<Block>
     name?: string
     props: Array<Property>
@@ -83,8 +83,20 @@ export function isImport(item: unknown): item is Import {
     return reflection.isInstance(item, Import);
 }
 
+export interface LibBlock extends AstNode {
+    readonly $container: Module;
+    readonly $type: 'LibBlock';
+    props: Array<Property>
+}
+
+export const LibBlock = 'LibBlock';
+
+export function isLibBlock(item: unknown): item is LibBlock {
+    return reflection.isInstance(item, LibBlock);
+}
+
 export interface ListExpr extends AstNode {
-    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
     readonly $type: 'ListExpr';
     items: Array<Expr>
 }
@@ -96,7 +108,7 @@ export function isListExpr(item: unknown): item is ListExpr {
 }
 
 export interface LiteralBool extends AstNode {
-    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
     readonly $type: 'LiteralBool';
     value: boolean
 }
@@ -108,7 +120,7 @@ export function isLiteralBool(item: unknown): item is LiteralBool {
 }
 
 export interface LiteralFloat extends AstNode {
-    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
     readonly $type: 'LiteralFloat';
     value: number
 }
@@ -120,7 +132,7 @@ export function isLiteralFloat(item: unknown): item is LiteralFloat {
 }
 
 export interface LiteralInt extends AstNode {
-    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
     readonly $type: 'LiteralInt';
     value: number
 }
@@ -132,7 +144,7 @@ export function isLiteralInt(item: unknown): item is LiteralInt {
 }
 
 export interface LiteralString extends AstNode {
-    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
     readonly $type: 'LiteralString';
     value: string
 }
@@ -156,7 +168,7 @@ export function isModule(item: unknown): item is Module {
 }
 
 export interface Property extends AstNode {
-    readonly $container: BlockBlock | BlockExpr | CustomBlock | StructBlock | UseBlock;
+    readonly $container: BlockBlock | BlockExpr | CustomBlock | LibBlock | StructBlock | UseBlock;
     readonly $type: 'Property';
     name: string
     value: Expr
@@ -169,7 +181,7 @@ export function isProperty(item: unknown): item is Property {
 }
 
 export interface QualifiedName extends AstNode {
-    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
     readonly $type: 'QualifiedName';
     names: Array<string>
 }
@@ -235,7 +247,7 @@ export function isStructBlock(item: unknown): item is StructBlock {
 }
 
 export interface TypeCallExpr extends AstNode {
-    readonly $container: ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
     readonly $type: 'TypeCallExpr';
     callee: QualifiedName
     elements: Array<Expr>
@@ -266,6 +278,7 @@ export type FaasitAstType = {
     CustomBlock: CustomBlock
     Expr: Expr
     Import: Import
+    LibBlock: LibBlock
     ListExpr: ListExpr
     Literal: Literal
     LiteralBool: LiteralBool
@@ -286,13 +299,14 @@ export type FaasitAstType = {
 export class FaasitAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Block', 'BlockBlock', 'BlockExpr', 'CustomBlock', 'Expr', 'Import', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Module', 'Property', 'QualifiedName', 'RpcDecl', 'ServiceBlock', 'StreamedType', 'StructBlock', 'TypeCallExpr', 'UseBlock'];
+        return ['Block', 'BlockBlock', 'BlockExpr', 'CustomBlock', 'Expr', 'Import', 'LibBlock', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Module', 'Property', 'QualifiedName', 'RpcDecl', 'ServiceBlock', 'StreamedType', 'StructBlock', 'TypeCallExpr', 'UseBlock'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
         switch (subtype) {
             case BlockBlock:
             case CustomBlock:
+            case LibBlock:
             case ServiceBlock:
             case StructBlock:
             case UseBlock: {
@@ -361,6 +375,14 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     name: 'Import',
                     mandatory: [
                         { name: 'url', type: 'array' }
+                    ]
+                };
+            }
+            case 'LibBlock': {
+                return {
+                    name: 'LibBlock',
+                    mandatory: [
+                        { name: 'props', type: 'array' }
                     ]
                 };
             }

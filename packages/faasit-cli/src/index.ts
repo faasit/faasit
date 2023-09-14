@@ -18,7 +18,7 @@ export function resolveConfigPath(config?: string) {
 
 async function handleInit(opts: {}) { }
 
-export function main() {
+export async function main() {
   const program = new Command('faasit')
 
   program.showHelpAfterError().showSuggestionAfterError()
@@ -107,5 +107,5 @@ export function main() {
       })
     })
 
-  program.parse(process.argv)
+  await program.parseAsync(process.argv)
 }

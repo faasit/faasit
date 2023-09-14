@@ -1,9 +1,6 @@
-import { makeRuntime } from 'faasit-runtime'
+import { createFunction, createExports } from 'faasit-runtime'
 
-
-async function handle (context, body) {
-  const frt = makeRuntime({ context, body });
-
+const handle = createFunction(async (frt) => {
   const { text, batchSize } = frt.Input()
 
   /** @type {string[]} */
@@ -27,6 +24,6 @@ async function handle (context, body) {
     message: 'ok',
     result: result.output
   })
-}
+})
 
-module.exports = { handle };
+module.exports = createExports({ fn: handle })

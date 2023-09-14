@@ -1,9 +1,6 @@
-import { makeRuntime } from 'faasit-runtime'
+import { createFunction, createExports } from 'faasit-runtime'
 
-
-async function handle (context, body) {
-    const frt = makeRuntime({ context, body });
-
+const handle = createFunction(async (frt) => {
     const { text } = frt.Input()
 
     const words = text.split(/[\s,\.]/)
@@ -12,6 +9,6 @@ async function handle (context, body) {
         message: 'ok',
         words
     })
-}
+})
 
-module.exports = { handle };
+module.exports = createExports({ fn: handle })

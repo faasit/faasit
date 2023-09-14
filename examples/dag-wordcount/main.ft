@@ -1,0 +1,13 @@
+@function split {}
+@function sort {}
+@function count {}
+@function executor {}
+
+@application WordCount {
+  functions = [executor, split, count, sort]
+  defaultProvider = Knative
+}
+
+@provider Knative {
+  type = "knative"
+}

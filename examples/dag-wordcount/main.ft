@@ -1,11 +1,82 @@
-@function split {}
-@function sort {}
-@function count {}
-@function executor {}
+@function executor {
+  runtime = "nodejs"
+  codeDir = "./code/executor"
+  input = {
+    text = string
+  }
+  output = {
+    counter = [[string, int]]
+  }
+}
+
+@function split {
+  runtime = "nodejs"
+  codeDir = "./code/split"
+  input = {
+    text = string
+  }
+  output = {
+    words = [string]
+  }
+}
+
+@function sort {
+  runtime = "nodejs"
+  codeDir = "./code/sort"
+  input = {
+    counter = [[string, int]]
+  }
+  output = {
+    counter = [[string, int]]
+  }
+}
+
+@function count {
+  runtime = "nodejs"
+  codeDir = "./code/count"
+}
+
+@function executor {
+  runtime = "nodejs"
+  codeDir = "./code/count"
+  input = {
+    words = [string]
+  }
+  output = {
+    counter = [[string, int]]
+  }
+}
+
+@stage.op StageSplit {
+  function = split
+  next = StageCount
+}
+
+@stage.op StageCount {
+  function = count
+  next = StageSort
+}
+
+@stage.op StageSort {
+  function = sort
+  end = true
+}
+
+@workflow FlowWordCount {
+  stages = [StageSplit, StageCount, StageSort]
+  executor = {
+    generate = false
+    function = executor
+  }
+}
 
 @application WordCount {
-  functions = [executor, split, count, sort]
-  defaultProvider = Knative
+  workflow = [FlowWordCount]
+  defaultProvider = Local
+}
+
+@provider Local {
+  type = "local"
 }
 
 @provider Knative {

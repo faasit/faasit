@@ -1,4 +1,4 @@
-import { createFunction, createExports } from 'faasit-runtime'
+const { createFunction, createExports } = require('faasit-runtime');
 
 const handle = createFunction(async (frt) => {
     const { text } = frt.Input()

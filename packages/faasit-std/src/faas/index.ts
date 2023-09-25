@@ -3,7 +3,7 @@ import { z } from 'zod'
 
 import { runtime } from '@faasit/core'
 
-export interface GeneratorPluginContext {}
+export interface GeneratorPluginContext { }
 
 export interface GenerationItem {
   path: string
@@ -47,20 +47,23 @@ export interface ProviderPlugin {
   ) => Promise<void>
 }
 
-export const EventSchema = z.object({
+export const EventSchema = ir.types.CustomBlockSchemaT(z.object({
   type: z.string(),
-  data: z.object({}),
-})
+  data: ir.types.StructLikeTypeSchema,
+}))
 
 export type Event = z.infer<typeof EventSchema>
+
+const ProviderSchema = ir.types.CustomBlockSchemaT(z.object({
+  kind: z.string(),
+}))
 
 const FunctionTriggerSchema = z.object({
   name: z.string(),
   kind: z.string(),
 })
 
-const FunctionSchema = z.object({
-  name: z.string(),
+const FunctionSchema = ir.types.CustomBlockSchemaT(z.object({
   runtime: z.string(),
   codeDir: z.string(),
   handler: z.string().optional(),
@@ -70,19 +73,16 @@ const FunctionSchema = z.object({
   }).optional(),
   triggers: z.array(FunctionTriggerSchema).default(() => []),
   pubsub: z.object({
-    events: z.array(EventSchema),
+    events: z.array(ir.types.ReferenceSchemaT(EventSchema)),
   }).optional(),
   role: z.string().optional(),
-})
+}))
 
-const ApplicationSchema = z.object({
+const ApplicationSchema = ir.types.CustomBlockSchemaT(z.object({
   name: z.string().optional(),
-  defaultProvider: z.object({
-    kind: z.string(),
-    name: z.string(),
-  }),
-  functions: z.array(FunctionSchema),
-})
+  defaultProvider: ir.types.ReferenceSchemaT(ProviderSchema),
+  functions: z.array(ir.types.ReferenceSchemaT(FunctionSchema)),
+}))
 
 export type Application = z.infer<typeof ApplicationSchema>
 export type FunctionType = z.infer<typeof FunctionSchema>
@@ -95,16 +95,13 @@ export function parseApplication(o: unknown): Application {
 export async function resolveApplicationFromIr(opts: {
   ir: ir.Spec
 }): Promise<Application> {
-  const irService = ir.makeIrService(opts.ir)
-
-  const applicationBlock = opts.ir.modules[0].blocks.find(
-    (b) => ir.types.isCustomBlock(b) && b.block_type === 'application'
+  const applicationBlock = opts.ir.packages[0].blocks.find(
+    (b) => ir.types.isCustomBlock(b) && b.$ir.block_type === 'application'
   ) as ir.types.CustomBlock
 
   if (!applicationBlock) {
     throw new Error(`no @application block`)
   }
 
-  const value = irService.convertToValue(applicationBlock)
-  return parseApplication(value)
+  return parseApplication(applicationBlock)
 }

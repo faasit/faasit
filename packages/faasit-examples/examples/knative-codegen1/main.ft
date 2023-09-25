@@ -1,9 +1,36 @@
+import (
+  "std/faas"
+)
+
+use {
+  application = faas.application
+}
+
 @event EchoEvent {
-  type = "sample.echo"
+  type = "example.echo"
   data = {
     status = string
     payload = any
   }
+}
+
+block event {
+  input = {
+    type = string
+    data = type
+  }
+  output = {}
+}
+
+@event EchoEvent2 {
+  type = "example.echo"
+  data = {
+    status = string
+  }
+}
+
+@usecase A {
+  funcs = [EchoFunction]
 }
 
 @function EchoFunction {
@@ -18,11 +45,12 @@
   }
 }
 
-@application {
+@application Hello1 {
   functions = [EchoFunction]
-  defaultProvider = KnativeCluster1
+  defaultProvider = KnativeCluster
 }
 
-@provider KnativeCluster1 {
+@provider KnativeCluster {
   kind = "knative"
 }
+

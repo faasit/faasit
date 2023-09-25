@@ -70,27 +70,16 @@ export async function main() {
     })
 
   program
-    .command('compile')
-    .argument('<file>', 'input file')
-    .description('compile faast DSL')
-    .action(async (p) => {
-      await engine
-        .compile({
-          workingDir: process.cwd(),
-          file: p,
-        })
-        .catch(handleError)
-    })
-
-  program
     .command('eval')
     .argument('[file]', 'input file')
-    .description('eval values of faast DSL')
-    .action(async (p) => {
+    .option('--no-ir', 'not print $ir for semantic object')
+    .description('evaluate value and ir of faast DSL')
+    .action(async (file, opts) => {
       await engine
         .eval({
           workingDir: process.cwd(),
-          file: p,
+          file: file,
+          ...opts,
         })
         .catch(handleError)
     })

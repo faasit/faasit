@@ -7,7 +7,7 @@
 import type { AstNode, Reference, ReferenceInfo, TypeMetaData } from 'langium';
 import { AbstractAstReflection } from 'langium';
 
-export type Block = BlockBlock | CustomBlock | LibBlock | ServiceBlock | StructBlock | UseBlock;
+export type Block = BlockBlock | CustomBlock | LibBlock | ShapeBlock | StructBlock | UseBlock;
 
 export const Block = 'Block';
 
@@ -32,7 +32,7 @@ export function isLiteral(item: unknown): item is Literal {
 }
 
 export interface BlockBlock extends AstNode {
-    readonly $container: Module;
+    readonly $container: Instance;
     readonly $type: 'BlockBlock';
     name: string
     props: Array<Property>
@@ -57,7 +57,7 @@ export function isBlockExpr(item: unknown): item is BlockExpr {
 }
 
 export interface CustomBlock extends AstNode {
-    readonly $container: Module;
+    readonly $container: Instance;
     readonly $type: 'CustomBlock';
     block_type: QualifiedName
     for_target?: Reference<Block>
@@ -72,7 +72,7 @@ export function isCustomBlock(item: unknown): item is CustomBlock {
 }
 
 export interface Import extends AstNode {
-    readonly $container: Module;
+    readonly $container: Instance;
     readonly $type: 'Import';
     url: Array<string>
 }
@@ -83,8 +83,20 @@ export function isImport(item: unknown): item is Import {
     return reflection.isInstance(item, Import);
 }
 
+export interface Instance extends AstNode {
+    readonly $type: 'Instance';
+    blocks: Array<Block>
+    imports: Array<Import>
+}
+
+export const Instance = 'Instance';
+
+export function isInstance(item: unknown): item is Instance {
+    return reflection.isInstance(item, Instance);
+}
+
 export interface LibBlock extends AstNode {
-    readonly $container: Module;
+    readonly $container: Instance;
     readonly $type: 'LibBlock';
     props: Array<Property>
 }
@@ -155,20 +167,8 @@ export function isLiteralString(item: unknown): item is LiteralString {
     return reflection.isInstance(item, LiteralString);
 }
 
-export interface Module extends AstNode {
-    readonly $type: 'Module';
-    blocks: Array<Block>
-    imports: Array<Import>
-}
-
-export const Module = 'Module';
-
-export function isModule(item: unknown): item is Module {
-    return reflection.isInstance(item, Module);
-}
-
 export interface Property extends AstNode {
-    readonly $container: BlockBlock | BlockExpr | CustomBlock | LibBlock | StructBlock | UseBlock;
+    readonly $container: BlockBlock | BlockExpr | CustomBlock | LibBlock | ShapeBlock | StructBlock | UseBlock;
     readonly $type: 'Property';
     name: string
     value: Expr
@@ -192,49 +192,21 @@ export function isQualifiedName(item: unknown): item is QualifiedName {
     return reflection.isInstance(item, QualifiedName);
 }
 
-export interface RpcDecl extends AstNode {
-    readonly $container: ServiceBlock;
-    readonly $type: 'RpcDecl';
-    arg_type?: StreamedType
+export interface ShapeBlock extends AstNode {
+    readonly $container: Instance;
+    readonly $type: 'ShapeBlock';
     name: string
-    return_type?: StreamedType
+    props: Array<Property>
 }
 
-export const RpcDecl = 'RpcDecl';
+export const ShapeBlock = 'ShapeBlock';
 
-export function isRpcDecl(item: unknown): item is RpcDecl {
-    return reflection.isInstance(item, RpcDecl);
-}
-
-export interface ServiceBlock extends AstNode {
-    readonly $container: Module;
-    readonly $type: 'ServiceBlock';
-    for_target?: Reference<Block>
-    methods: Array<RpcDecl>
-    name: string
-}
-
-export const ServiceBlock = 'ServiceBlock';
-
-export function isServiceBlock(item: unknown): item is ServiceBlock {
-    return reflection.isInstance(item, ServiceBlock);
-}
-
-export interface StreamedType extends AstNode {
-    readonly $container: RpcDecl;
-    readonly $type: 'StreamedType';
-    streamed?: 'stream'
-    type: string
-}
-
-export const StreamedType = 'StreamedType';
-
-export function isStreamedType(item: unknown): item is StreamedType {
-    return reflection.isInstance(item, StreamedType);
+export function isShapeBlock(item: unknown): item is ShapeBlock {
+    return reflection.isInstance(item, ShapeBlock);
 }
 
 export interface StructBlock extends AstNode {
-    readonly $container: Module;
+    readonly $container: Instance;
     readonly $type: 'StructBlock';
     name: string
     props: Array<Property>
@@ -260,7 +232,7 @@ export function isTypeCallExpr(item: unknown): item is TypeCallExpr {
 }
 
 export interface UseBlock extends AstNode {
-    readonly $container: Module;
+    readonly $container: Instance;
     readonly $type: 'UseBlock';
     props: Array<Property>
 }
@@ -278,6 +250,7 @@ export type FaasitAstType = {
     CustomBlock: CustomBlock
     Expr: Expr
     Import: Import
+    Instance: Instance
     LibBlock: LibBlock
     ListExpr: ListExpr
     Literal: Literal
@@ -285,12 +258,9 @@ export type FaasitAstType = {
     LiteralFloat: LiteralFloat
     LiteralInt: LiteralInt
     LiteralString: LiteralString
-    Module: Module
     Property: Property
     QualifiedName: QualifiedName
-    RpcDecl: RpcDecl
-    ServiceBlock: ServiceBlock
-    StreamedType: StreamedType
+    ShapeBlock: ShapeBlock
     StructBlock: StructBlock
     TypeCallExpr: TypeCallExpr
     UseBlock: UseBlock
@@ -299,7 +269,7 @@ export type FaasitAstType = {
 export class FaasitAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Block', 'BlockBlock', 'BlockExpr', 'CustomBlock', 'Expr', 'Import', 'LibBlock', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Module', 'Property', 'QualifiedName', 'RpcDecl', 'ServiceBlock', 'StreamedType', 'StructBlock', 'TypeCallExpr', 'UseBlock'];
+        return ['Block', 'BlockBlock', 'BlockExpr', 'CustomBlock', 'Expr', 'Import', 'Instance', 'LibBlock', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Property', 'QualifiedName', 'ShapeBlock', 'StructBlock', 'TypeCallExpr', 'UseBlock'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
@@ -307,7 +277,7 @@ export class FaasitAstReflection extends AbstractAstReflection {
             case BlockBlock:
             case CustomBlock:
             case LibBlock:
-            case ServiceBlock:
+            case ShapeBlock:
             case StructBlock:
             case UseBlock: {
                 return this.isSubtype(Block, supertype);
@@ -334,8 +304,7 @@ export class FaasitAstReflection extends AbstractAstReflection {
     getReferenceType(refInfo: ReferenceInfo): string {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
-            case 'CustomBlock:for_target':
-            case 'ServiceBlock:for_target': {
+            case 'CustomBlock:for_target': {
                 return Block;
             }
             default: {
@@ -378,6 +347,15 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     ]
                 };
             }
+            case 'Instance': {
+                return {
+                    name: 'Instance',
+                    mandatory: [
+                        { name: 'blocks', type: 'array' },
+                        { name: 'imports', type: 'array' }
+                    ]
+                };
+            }
             case 'LibBlock': {
                 return {
                     name: 'LibBlock',
@@ -402,15 +380,6 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     ]
                 };
             }
-            case 'Module': {
-                return {
-                    name: 'Module',
-                    mandatory: [
-                        { name: 'blocks', type: 'array' },
-                        { name: 'imports', type: 'array' }
-                    ]
-                };
-            }
             case 'QualifiedName': {
                 return {
                     name: 'QualifiedName',
@@ -419,11 +388,11 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     ]
                 };
             }
-            case 'ServiceBlock': {
+            case 'ShapeBlock': {
                 return {
-                    name: 'ServiceBlock',
+                    name: 'ShapeBlock',
                     mandatory: [
-                        { name: 'methods', type: 'array' }
+                        { name: 'props', type: 'array' }
                     ]
                 };
             }

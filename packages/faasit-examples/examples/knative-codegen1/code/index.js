@@ -1,34 +1,26 @@
-const express = require('express')
 const { HTTP, CloudEvent } = require('cloudevents')
 
-import { CloudEventTypes } from './gen/events'
+const { CloudEventCreators, CloudEventTypes } = require('./gen/events')
 
-const PORT = process.env.PORT || 8080
+const handle = async (context, body) => {
+  context.log.info('query', context.query)
+  context.log.info('body', body)
 
-function main() {
-  const app = express()
+  if (context.method !== 'GET') {
+    return { statusCode: 405, statusMessage: 'Method not allowed' }
+  }
 
-  app.post('/', (req, res) => {
-    const receivedEvent = HTTP.toEvent({ headers: req.headers, body: req.body })
-    console.log(`received event`, receivedEvent)
-    const data = receivedEvent.data
-
-    const sendEvent = new CloudEvent({
-      type: CloudEventTypes.EchoEvent,
-      source:
-        'https://github.com/brody715/faasit/packages/faasit-examples/examples/knative-codegen1',
-      data: { status: 'ok', payload: data },
-    })
-
-    const message = HTTP.binary(sendEvent)
-    console.log(message.body)
-    res.set(message.headers)
-    res.status(200).send(message.body)
+  const echoEvent = new CloudEvent({
+    type: CloudEventTypes.EchoEvent,
+    source: 'https://faasit.run/examples/hello1',
+    data: CloudEventCreators.EchoEvent({ status: 'ok', payload: '' }),
   })
 
-  app.listen(PORT, function () {
-    console.log(`Server starts at :${PORT}`)
-  })
+  const message = HTTP.binary(echoEvent)
+  return {
+    headers: message.headers,
+    body: message.body,
+  }
 }
 
-main()
+module.exports = { handle }

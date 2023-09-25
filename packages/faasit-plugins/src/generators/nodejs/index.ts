@@ -1,53 +1,51 @@
 import { faas } from '@faasit/std'
 import { ir, ft_utils } from '@faasit/core'
-import { object } from 'zod'
 
 export { }
-
-interface EventOutput {
-  name: string
-  type: string
-  data: {
-    [key: string]: {
-      $id: string
-    }
-  }
-}
 
 export function JavascriptGeneratorPlugin(): faas.GeneratorPlugin {
   return {
     name: 'javascript',
     async generate(input, ctx) {
       const { irSpec } = input
-      const irService = ir.makeIrService(irSpec)
 
-      const events = irSpec.modules[0].blocks
-        .filter((b) => b.kind === 'b_custom' && b.block_type === 'event')
-        .map((b) =>
-          irService.convertToValue(b as ir.types.CustomBlock)
-        ) as EventOutput[]
-
+      const events = irSpec.packages[0].blocks
+        .filter((b) => b.$ir.kind === 'b_custom' && b.$ir.block_type === 'event') as faas.Event[]
 
       // generate `events.d.ts`
       const generateEventDts = (): faas.GenerationItem => {
         const printer = new ft_utils.StringPrinter()
 
-        const printType = (typ: object) => {
+        const printType = (typ: ir.types.Value) => {
+
+          if (typeof typ === 'string') {
+            throw new Error(`failed to print type, got string, typ=${typ}`)
+          }
+
           if (Array.isArray(typ)) {
             printType(typ[0])
             printer.printRaw('[]')
             return
           }
 
-          if ('$id' in typ) {
-            printer.printRaw(typ.$id as string)
+          if (ir.types.isReference(typ)) {
+            printer.printRaw(typ.$ir.id)
+            return
+          }
+
+          if (ir.types.isAtomicType(typ)) {
+            printer.printRaw(typ.$ir.type)
             return
           }
 
           printer.printRaw('{').printNewline()
           printer.indent()
           for (const [key, value] of Object.entries(typ)) {
+            if (key === '$ir') {
+              continue
+            }
             printer.printIndent().printRaw(`${key}: `)
+            console.log(`key=${key}, value=${value}, typ=${typ}, typeof=${typeof typ}`)
             printType(value)
             printer.printNewline()
           }
@@ -58,7 +56,7 @@ export function JavascriptGeneratorPlugin(): faas.GeneratorPlugin {
         printer.println(`export declare var CloudEventTypes: {`)
         printer.indent()
         for (const event of events) {
-          printer.println(`${event.name}: '${event.type}'`)
+          printer.println(`${event.$ir.name}: '${event.output.type}'`)
         }
         printer.dedent()
         printer.println('}').printNewline()
@@ -66,16 +64,16 @@ export function JavascriptGeneratorPlugin(): faas.GeneratorPlugin {
         printer.println(`export declare var CloudEventCreators: {`)
         printer.indent()
         for (const event of events) {
-          printer.println(`${event.name}: (d: ${event.name}) => ${event.name}`)
+          printer.println(`${event.$ir.name}: (d: ${event.$ir.name}) => ${event.$ir.name}`)
         }
         printer.dedent()
         printer.println('}').printNewline()
 
         // print event types
         for (const event of events) {
-          printer.println(`export interface ${event.name} {`)
+          printer.println(`export interface ${event.$ir.name} {`)
           printer.indent()
-          for (const [key, value] of Object.entries(event.data)) {
+          for (const [key, value] of Object.entries(event.output.data)) {
             printer.printIndent()
             printer.printRaw(`${key}: `)
             printType(value)
@@ -98,7 +96,7 @@ export function JavascriptGeneratorPlugin(): faas.GeneratorPlugin {
         printer.println(`const CloudEventTypes = {`)
         printer.indent()
         for (const event of events) {
-          printer.println(`${event.name}: '${event.type}',`)
+          printer.println(`${event.$ir.name}: '${event.output.type}',`)
         }
         printer.dedent()
         printer.println(`}`).printNewline();

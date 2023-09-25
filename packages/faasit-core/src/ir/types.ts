@@ -1,220 +1,309 @@
 import { z } from 'zod'
 
-export type BaseNode = { kind: string }
+export type BaseEirNode = {
+  $ir: { kind: string }
+}
 
 export type AtomicValue =
   | {
+    $ir: {
       kind: 'v_string'
       value: string
     }
-  | { kind: 'v_int'; value: number }
-  | { kind: 'v_bool'; value: boolean }
-  | { kind: 'v_float'; value: number }
-  | { kind: 'v_any'; value: unknown }
+  }
+  | { $ir: { kind: 'v_int'; value: number }; }
+  | { $ir: { kind: 'v_bool'; value: boolean }; }
+  | { $ir: { kind: 'v_float'; value: number }; }
+  | { $ir: { kind: 'v_any'; value: any } }
+
 
 export type ObjectValue = {
-  kind: 'v_object'
-  props: {
-    key: string
-    value: Value
-  }[]
+  $ir: {
+    kind: 'v_object'
+    props: {
+      key: string
+      value: Value
+    }[]
+  }
 }
+
+export type AtomicType = { $ir: { kind: 't_atomic', type: string } }
 
 export type Value =
   | AtomicValue
-  | { kind: 'v_list'; items: Value[] }
+  | AtomicType
+  | { $ir: { kind: 'v_list'; items: Value[] } }
   | ObjectValue
+  | Reference<unknown>
   | {
-      kind: 'v_ref'
-      id: string
-    }
-  | {
-      kind: 'v_empty'
-    }
+    $ir: { kind: 'v_empty' }
+  }
 
-export function isAtomicValue(v: { kind: string }): v is AtomicValue {
-  if (v.kind.startsWith('v_') && 'value' in v) {
+export type EvaluatedValue = number | boolean | string | Reference | EvaluatedValue[] | { [key: string]: EvaluatedValue }
+
+export const CUR_VERSION = '0.1.0'
+
+export type Reference<T = unknown> = {
+  $ir: {
+    kind: "r_ref"
+    id: string
+  }
+  value: T
+}
+
+export function CreateUnresolvedReference<T>(id: string): Reference<T> {
+  return {
+    $ir: {
+      kind: 'r_ref',
+      id,
+    },
+    get value(): never {
+      throw new Error(`Reference not resolved, id: ${id}`)
+    }
+  }
+}
+
+export type Spec = {
+  version: string
+  packages: Package[]
+  libs: Library[]
+  symbols: Symbol[]
+}
+
+export type Library = {
+  kind: 'p_lib'
+  id: string
+}
+
+export type Package = {
+  kind: 'p_entry'
+  id: string
+  lib: Reference<Library>
+  blocks: Block[]
+}
+
+export type Symbol = {
+  kind: 's_ref'
+  id: string
+} | {
+  kind: 's_inline'
+  id: string
+  value: BaseEirNode
+}
+
+export type Property = { key: string; value: Value }
+
+export type CustomBlock<O = unknown> = {
+  $ir: {
+    kind: 'b_custom'
+    block_type: string
+    name: string
+    props: Property[]
+  }
+
+  output: O
+}
+
+export type StructBlock = {
+  $ir: {
+    kind: 'b_struct'
+    name: string
+    props: Property[]
+  }
+}
+
+export type BlockBlock = {
+  $ir: {
+    kind: 'b_block'
+    name: string
+    props: Property[]
+  }
+}
+
+export type Block = CustomBlock | BlockBlock | StructBlock
+
+// types
+export function isAtomicValue(v: BaseEirNode): v is AtomicValue {
+  if (v.$ir.kind.startsWith('v_') && 'value' in v.$ir) {
     return true
   }
   return false
 }
 
-export const CUR_VERSION = '0.1.0'
-
-export type Spec = {
-  version: string
-  modules: Module[]
+export function isCustomBlock(v: BaseEirNode): v is CustomBlock {
+  return v.$ir.kind === 'b_custom'
 }
 
-export type Module = {
-  kind: 'm_inline'
-  id: string
-  blocks: Block[]
+export function isBaseEirNode(v: unknown): v is BaseEirNode {
+  if (typeof v !== 'object' || v == null) {
+    return false
+  }
+
+  return '$ir' in v
 }
 
-export type Property = { key: string; value: Value }
+export function isReference(v: unknown): v is Reference {
+  if (isBaseEirNode(v)) {
+    return v.$ir.kind === 'r_ref'
+  }
 
-// computed CustomBlockValue
-export type CustomBlockValue<In, Out = In> = {
-  input: In
-  output: Out
+  return false
 }
 
-export type CustomBlock = {
-  kind: 'b_custom'
-  block_type: string
-  name: string
-  props: Property[]
-  computed?: CustomBlockValue<unknown>
-}
+export function isAtomicType(v: unknown): v is AtomicType {
+  if (isBaseEirNode(v)) {
+    return v.$ir.kind === 't_atomic'
+  }
 
-export type ComputedCustomBlock = CustomBlock & {
-  computed: CustomBlock
+  return false
 }
-
-// arg & ret
-export type Parameter = {
-  stream: boolean
-  type: Value
-}
-
-export type Method = {
-  name: string
-  arg: Parameter
-  ret: Parameter
-}
-
-export type ServiceBlock = {
-  kind: 'b_service'
-  name: string
-  parent?: string
-  methods: Method[]
-}
-
-export type StructBlock = {
-  kind: 'b_struct'
-  name: string
-  props: Property[]
-}
-
-export type BlockBlock = {
-  kind: 'b_block'
-  name: string
-  props: Property[]
-}
-
-export function isCustomBlock(v: BaseNode): v is CustomBlock {
-  return v.kind === 'b_custom'
-}
-
-export type Block = CustomBlock | ServiceBlock | BlockBlock | StructBlock
 
 export function validateSpec(o: unknown): Spec {
   return SpecSchema.parse(o)
 }
 
-export function validateModule(o: unknown): Module {
-  return ModuleSchema.parse(o)
+export function validatePackage(o: unknown): Package {
+  return PackageSchema.parse(o)
 }
 
 export function validateBlock(o: unknown): Block {
   return BlockSchema.parse(o)
 }
 
+export function ReferenceSchemaT<T>(schema: z.ZodType<T>): z.ZodType<Reference<T>> {
+  return z.object({
+    $ir: z.object({
+      kind: z.literal('r_ref'),
+      id: z.string()
+    }),
+    value: schema
+  }) as z.ZodType<Reference<T>>
+}
+
+export function CustomBlockSchemaT<T>(schema: z.ZodType<T>): z.ZodType<CustomBlock<T>> {
+  return z.object({
+    $ir: z.object({
+      kind: z.literal('b_custom'),
+      block_type: z.string(),
+      name: z.string(),
+      props: z.array(
+        z.object({
+          key: z.string(),
+          value: ValueSchema,
+        })
+      ),
+    }),
+    output: schema
+  }) as z.ZodType<CustomBlock<T>>
+}
+
 export const ObjectValueSchema: z.ZodType<ObjectValue> = z.object({
-  kind: z.literal('v_object'),
-  props: z.array(
-    z.object({
-      key: z.string(),
-      value: z.lazy(() => ValueSchema),
-    })
-  ),
+  $ir: z.object({
+    kind: z.literal('v_object'),
+    props: z.array(
+      z.object({
+        key: z.string(),
+        value: z.lazy(() => ValueSchema),
+      })
+    ),
+  })
 })
+
 
 // we should declare type first to use recursive schema
 export const ValueSchema: z.ZodType<Value> = z.union([
   z.object({
-    kind: z.literal('v_int'),
-    value: z.number(),
+    $ir: z.object({
+      kind: z.literal('v_int'),
+      value: z.number(),
+    })
   }),
   z.object({
-    kind: z.literal('v_bool'),
-    value: z.boolean(),
+    $ir: z.object({
+      kind: z.literal('v_bool'),
+      value: z.boolean(),
+    })
   }),
   z.object({
-    kind: z.literal('v_string'),
-    value: z.string(),
+    $ir: z.object({
+      kind: z.literal('v_string'),
+      value: z.string(),
+    })
   }),
   z.object({
-    kind: z.literal('v_list'),
-    items: z.array(z.lazy(() => ValueSchema)),
+    $ir: z.object({
+      kind: z.literal('v_list'),
+      items: z.array(z.lazy(() => ValueSchema)),
+    })
   }),
   ObjectValueSchema,
   z.object({
-    kind: z.literal('v_ref'),
-    id: z.string(),
+    $ir: z.object({
+      kind: z.literal('t_atomic'),
+      type: z.string()
+    })
   }),
+  ReferenceSchemaT(z.unknown())
 ])
+
+export const StructLikeTypeSchema: z.ZodType<{ [key: string]: Value }> = z.record(z.string(), ValueSchema);
 
 const BlockSchema: z.ZodType<Block> = z.union([
+  CustomBlockSchemaT(z.unknown()),
   z.object({
-    kind: z.literal('b_custom'),
-    block_type: z.string(),
-    name: z.string(),
-    props: z.array(
-      z.object({
-        key: z.string(),
-        value: ValueSchema,
-      })
-    ),
+    $ir: z.object({
+      kind: z.literal('b_struct'),
+      name: z.string(),
+      props: z.array(
+        z.object({
+          key: z.string(),
+          value: ValueSchema,
+        })
+      ),
+    }),
   }),
   z.object({
-    kind: z.literal('b_struct'),
-    name: z.string(),
-    props: z.array(
-      z.object({
-        key: z.string(),
-        value: ValueSchema,
-      })
-    ),
-  }),
-  z.object({
-    kind: z.literal('b_block'),
-    name: z.string(),
-    props: z.array(
-      z.object({
-        key: z.string(),
-        value: ValueSchema,
-      })
-    ),
-  }),
-  z.object({
-    kind: z.literal('b_service'),
-    name: z.string(),
-    parent: z.string(),
-    methods: z.array(
-      z.object({
-        name: z.string(),
-        arg: z.object({
-          stream: z.boolean(),
-          type: ValueSchema,
-        }),
-        ret: z.object({
-          stream: z.boolean(),
-          type: ValueSchema,
-        }),
-      })
-    ),
+    $ir: z.object({
+      kind: z.literal('b_block'),
+      name: z.string(),
+      props: z.array(
+        z.object({
+          key: z.string(),
+          value: ValueSchema,
+        })
+      ),
+    }),
   }),
 ])
 
-const ModuleSchema: z.ZodType<Module> = z.object({
-  kind: z.literal('m_inline'),
+const LibrarySchema: z.ZodType<Library> = z.object({
+  kind: z.literal('p_lib'),
+  id: z.string()
+})
+
+const SymbolSchema: z.ZodType<Symbol> = z.union([z.object({
+  kind: z.literal('s_ref'),
   id: z.string(),
+}), z.object({
+  kind: z.literal('s_inline'),
+  id: z.string(),
+  value: z.object({
+    '$ir': z.object({
+      kind: z.string()
+    })
+  })
+})])
+
+const PackageSchema: z.ZodType<Package> = z.object({
+  kind: z.literal('p_entry'),
+  id: z.string(),
+  lib: ReferenceSchemaT(LibrarySchema),
   blocks: z.array(BlockSchema),
 })
 
 const SpecSchema: z.ZodType<Spec> = z.object({
   version: z.string(),
-  modules: z.array(ModuleSchema),
+  packages: z.array(PackageSchema),
+  libs: z.array(LibrarySchema),
+  symbols: z.array(SymbolSchema)
 })

@@ -1,6 +1,6 @@
 grammar Faasit
 
-entry Module:
+entry Instance:
   imports+=Import*
   blocks+=Block*;
 
@@ -8,7 +8,7 @@ Import:
   'import' '(' url+=STRING+  ')';
 
 Block:
-  CustomBlock | BlockBlock | StructBlock | UseBlock | LibBlock | ServiceBlock;
+  CustomBlock | BlockBlock | ShapeBlock | StructBlock | UseBlock | LibBlock;
 
 StructBlock:
   'struct' name=ID '{' props+=Property* '}';
@@ -16,23 +16,14 @@ StructBlock:
 BlockBlock:
   'block' name=ID '{' props+=Property* '}';
 
+ShapeBlock:
+  'shape' name=ID '{' props+=Property* '}';
+
 UseBlock:
   'use' '{' props+=Property* '}';
 
 LibBlock:
   'lib' '{' props+=Property* '}';
-
-ServiceBlock:
-  'service' name=ID ('for' for_target=[Block:ID])? '{'
-  methods+=RpcDecl*
-  '}';
-
-RpcDecl:
-  'rpc' name=ID '(' (arg_type=StreamedType?) ')' '->' '(' (return_type=StreamedType?) ')'
-;
-
-StreamedType:
-  streamed='stream'? type=ID;
 
 CustomBlock:
   '@' block_type=QualifiedName (name=ID)? ('for' for_target=[Block:ID])? '{'

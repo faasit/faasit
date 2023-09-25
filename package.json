@@ -6,7 +6,7 @@
     "preinstall": "npx only-allow pnpm",
     "langium:generate": "langium generate",
     "langium:watch": "langium generate --watch",
-    "dev-vscode-ext": "langium generate && pnpm --filter vscode-faasit dev"
+    "dev-vscode-ext": "langium generate && pnpm --filter vscode-faasit build"
   },
   "keywords": [],
   "author": "",

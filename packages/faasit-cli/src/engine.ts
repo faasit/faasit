@@ -107,7 +107,7 @@ export class Engine {
   async deploy(opts: { config: string; workingDir: string }) {
     const app = await this.resolveApplication(opts)
 
-    const plugin = await getProviderPlugin(app.defaultProvider.kind)
+    const plugin = await getProviderPlugin(app.output.defaultProvider.value.output.kind)
 
     if (plugin.deploy) {
       await plugin.deploy({ app }, this.getPluginRuntime())
@@ -117,35 +117,19 @@ export class Engine {
   async invoke(opts: { config: string; workingDir: string; func?: string }) {
     const app = await this.resolveApplication(opts)
 
-    const plugin = await getProviderPlugin(app.defaultProvider.kind)
+    const plugin = await getProviderPlugin(app.output.defaultProvider.value.output.kind)
 
     if (plugin.invoke) {
       let funcName = opts.func
       if (!funcName) {
         // get first function
-        funcName = app.functions[0].name
+        funcName = app.output.functions[0].value.$ir.name
       }
       await plugin.invoke({ app, funcName }, this.getPluginRuntime())
     }
   }
 
-  async compile(opts: { workingDir: string; file: string }) {
-    const irSpecRes = await this.handleCompile({ ...opts, config: opts.file })
-
-    if (!irSpecRes.ok) {
-      this.printCompileError(irSpecRes.error)
-      return
-    }
-
-    // just print ir currently
-    console.log(
-      yaml.dump(irSpecRes.value, {
-        noRefs: true,
-      })
-    )
-  }
-
-  async eval(opts: { workingDir: string; file?: string }) {
+  async eval(opts: { workingDir: string; file?: string; ir: boolean }) {
     const irSpecRes = await this.handleCompile({ ...opts, config: opts.file || 'main.ft' })
 
     if (!irSpecRes.ok) {
@@ -155,36 +139,29 @@ export class Engine {
     }
 
     const irSpec = irSpecRes.value
-    const irService = ir.makeIrService(irSpec)
-
-    const modules = irSpec.modules.map((module) => {
-      const blocks = module.blocks.flatMap((b) => {
-        if (ir.types.isCustomBlock(b)) {
-          const value = irService.convertToValue(b) as object
-          return [
-            {
-              $block_type: b.block_type,
-              ...value,
-            },
-          ]
-        }
-        return []
-      })
-
-      return {
-        kind: module.kind,
-        name: module.id,
-        blocks,
-      }
-    })
 
     console.log(
       yaml.dump(
-        {
-          modules,
-        },
+        irSpec,
         {
           noRefs: true,
+          replacer(key, value) {
+            // not print ir
+            if (!opts.ir && key == '$ir') {
+              return undefined
+            }
+
+            // may contains loop reference to cause infinite loop
+            // so just print as <lazy_evaluation>
+            if (ir.types.isReference(value)) {
+              return {
+                ...value,
+                value: '<lazy_evaluation>'
+              }
+            }
+
+            return value
+          },
         }
       )
     )
@@ -292,10 +269,12 @@ export class Engine {
       return parseResult
     }
 
-    const module = parseResult.value
+    const inst = parseResult.value
 
     // just print as ir currently
-    const irSpec = await ir.convertFromAst({ main: module })
+    const irSpec = await ir.convertFromAst({ mainInst: inst })
+    ir.evaluateIR({ spec: irSpec })
+
     return { ok: true, value: irSpec }
   }
 

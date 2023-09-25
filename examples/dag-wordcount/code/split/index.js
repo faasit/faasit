@@ -1,14 +1,18 @@
 const { createFunction, createExports } = require('faasit-runtime');
 
+// process.env.FASSIT_PROVIDER = 'local'
+
 const handle = createFunction(async (frt) => {
-    const { text } = frt.Input()
+    const { text } = frt.input()
 
     const words = text.split(/[\s,\.]/)
 
-    return frt.Output({
+    return frt.output({
         message: 'ok',
         words
     })
 })
 
-module.exports = createExports({ fn: handle })
+module.exports = createExports(handle)
+
+// console.log(module.exports.handler({ text: "The quick brown fox jumps over a lazy dog." }));

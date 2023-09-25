@@ -1,7 +1,7 @@
 const { createFunction, createExports } = require('faasit-runtime');
 
 const handle = createFunction(async (frt) => {
-  const { words } = frt.Input()
+  const { words } = frt.input()
 
   const counter = new Map()
 
@@ -10,9 +10,9 @@ const handle = createFunction(async (frt) => {
     counter.set(word, cnt + 1)
   }
 
-  return frt.Output({
+  return frt.output({
     counter: Array.from(counter.entries())
   })
 })
 
-module.exports = createExports({ fn: handle })
+module.exports = createExports(handle)

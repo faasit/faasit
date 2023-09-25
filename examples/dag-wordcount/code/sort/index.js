@@ -1,7 +1,7 @@
 const { createFunction, createExports } = require('faasit-runtime');
 
 const handle = createFunction(async (frt) => {
-    const counterArray = frt.Input().counter
+    const counterArray = frt.input().counter
 
     const counter = new Map()
 
@@ -18,9 +18,9 @@ const handle = createFunction(async (frt) => {
         return v1[0].localeCompare(v2[0])
     })
 
-    return frt.Output({
+    return frt.output({
         counter: reducedCounter
     })
 })
 
-module.exports = createExports({ fn: handle })
+module.exports = createExports(handle)

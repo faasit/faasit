@@ -1,7 +1,7 @@
 const { createFunction, createExports } = require('faasit-runtime');
 
 const handle = createFunction(async (frt) => {
-  const { text, batchSize } = frt.Input()
+  const { text, batchSize } = frt.input()
 
   /** @type {string[]} */
   const words = (await frt.call('split', { input: { text } })).output.words
@@ -20,10 +20,10 @@ const handle = createFunction(async (frt) => {
   let counter = (await Promise.all(tasks)).flatMap(o => o.output.counter)
   const result = await frt.call('sort', { input: { counter } })
 
-  return frt.Output({
+  return frt.output({
     message: 'ok',
     result: result.output
   })
 })
 
-module.exports = createExports({ fn: handle })
+module.exports = createExports(handle)

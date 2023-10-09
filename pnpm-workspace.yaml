@@ -1,3 +1,4 @@
 packages:
   - "packages/*"
   - "!packages/theia-vscode"
+  - "packages/faasit-runtime/*"

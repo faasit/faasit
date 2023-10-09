@@ -29,6 +29,9 @@ export function createFunction(fn: fnType) {
 export function createExports(fn: fnType) {
   switch (process.env.FASSIT_PROVIDER) {
     case 'local':
+      return {
+        handler: fn
+      }
     case 'aliyun':
       return {
         handler: fn

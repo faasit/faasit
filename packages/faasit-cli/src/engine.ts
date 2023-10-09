@@ -129,7 +129,7 @@ export class Engine {
     }
   }
 
-  async eval(opts: { workingDir: string; file?: string; ir: boolean }) {
+  async eval(opts: { workingDir: string; file?: string; ir: boolean; check: boolean }) {
     const irSpecRes = await this.handleCompile({ ...opts, config: opts.file || 'main.ft' })
 
     if (!irSpecRes.ok) {
@@ -155,7 +155,7 @@ export class Engine {
             // so just print as <lazy_evaluation>
             if (ir.types.isReference(value)) {
               return {
-                ...value,
+                $ir: value.$ir,
                 value: '<lazy_evaluation>'
               }
             }
@@ -256,6 +256,7 @@ export class Engine {
   async handleCompile(opts: {
     workingDir: string
     config: string
+    check?: boolean
   }): Promise<ft_utils.Result<ir.Spec, DiagnosticError>> {
     const file = path.resolve(opts.workingDir, opts.config)
     const fileUri = URI.file(file)
@@ -263,6 +264,7 @@ export class Engine {
     const parseResult = await parser.parse({
       file: fileUri,
       fileSystemProvider: () => new NodeFileSystemProvider(),
+      check: opts.check
     })
 
     if (!parseResult.ok) {

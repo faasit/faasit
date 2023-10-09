@@ -74,7 +74,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@24"
+                "$ref": "#/rules@25"
               },
               "arguments": []
             },
@@ -102,14 +102,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@8"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
-              "$ref": "#/rules@4"
+              "$ref": "#/rules@9"
             },
             "arguments": []
           },
@@ -123,14 +116,21 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@3"
+              "$ref": "#/rules@6"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@6"
+              "$ref": "#/rules@4"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@3"
             },
             "arguments": []
           },
@@ -140,6 +140,52 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
               "$ref": "#/rules@7"
             },
             "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@8"
+            },
+            "arguments": []
+          }
+        ]
+      },
+      "definesHiddenTokens": false,
+      "entry": false,
+      "fragment": false,
+      "hiddenTokens": [],
+      "parameters": [],
+      "wildcard": false
+    },
+    {
+      "$type": "ParserRule",
+      "name": "ScalarBlock",
+      "definition": {
+        "$type": "Group",
+        "elements": [
+          {
+            "$type": "Keyword",
+            "value": "scalar"
+          },
+          {
+            "$type": "Assignment",
+            "feature": "name",
+            "operator": "=",
+            "terminal": {
+              "$type": "RuleCall",
+              "rule": {
+                "$ref": "#/rules@26"
+              },
+              "arguments": []
+            }
+          },
+          {
+            "$type": "Keyword",
+            "value": "{"
+          },
+          {
+            "$type": "Keyword",
+            "value": "}"
           }
         ]
       },
@@ -167,7 +213,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@25"
+                "$ref": "#/rules@26"
               },
               "arguments": []
             }
@@ -183,7 +229,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@9"
+                "$ref": "#/rules@10"
               },
               "arguments": []
             },
@@ -219,7 +265,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@25"
+                "$ref": "#/rules@26"
               },
               "arguments": []
             }
@@ -235,7 +281,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@9"
+                "$ref": "#/rules@10"
               },
               "arguments": []
             },
@@ -271,7 +317,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@25"
+                "$ref": "#/rules@26"
               },
               "arguments": []
             }
@@ -287,7 +333,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@9"
+                "$ref": "#/rules@10"
               },
               "arguments": []
             },
@@ -327,7 +373,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@9"
+                "$ref": "#/rules@10"
               },
               "arguments": []
             },
@@ -367,7 +413,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@9"
+                "$ref": "#/rules@10"
               },
               "arguments": []
             },
@@ -403,7 +449,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@14"
+                "$ref": "#/rules@15"
               },
               "arguments": []
             }
@@ -415,7 +461,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@25"
+                "$ref": "#/rules@26"
               },
               "arguments": []
             },
@@ -435,12 +481,12 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
                 "terminal": {
                   "$type": "CrossReference",
                   "type": {
-                    "$ref": "#/rules@2"
+                    "$ref": "#/rules@9"
                   },
                   "terminal": {
                     "$type": "RuleCall",
                     "rule": {
-                      "$ref": "#/rules@25"
+                      "$ref": "#/rules@26"
                     },
                     "arguments": []
                   },
@@ -461,7 +507,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@9"
+                "$ref": "#/rules@10"
               },
               "arguments": []
             },
@@ -493,7 +539,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@25"
+                "$ref": "#/rules@26"
               },
               "arguments": []
             }
@@ -509,7 +555,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@10"
+                "$ref": "#/rules@11"
               },
               "arguments": []
             }
@@ -532,13 +578,6 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@14"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
               "$ref": "#/rules@15"
             },
             "arguments": []
@@ -546,7 +585,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@12"
+              "$ref": "#/rules@16"
             },
             "arguments": []
           },
@@ -560,7 +599,14 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@11"
+              "$ref": "#/rules@14"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@12"
             },
             "arguments": []
           }
@@ -590,7 +636,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@9"
+                "$ref": "#/rules@10"
               },
               "arguments": []
             },
@@ -629,7 +675,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@10"
+                    "$ref": "#/rules@11"
                   },
                   "arguments": []
                 }
@@ -648,7 +694,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
                     "terminal": {
                       "$type": "RuleCall",
                       "rule": {
-                        "$ref": "#/rules@10"
+                        "$ref": "#/rules@11"
                       },
                       "arguments": []
                     }
@@ -690,7 +736,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@14"
+                "$ref": "#/rules@15"
               },
               "arguments": []
             }
@@ -706,7 +752,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
             "terminal": {
               "$type": "RuleCall",
               "rule": {
-                "$ref": "#/rules@10"
+                "$ref": "#/rules@11"
               },
               "arguments": []
             }
@@ -725,7 +771,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
                 "terminal": {
                   "$type": "RuleCall",
                   "rule": {
-                    "$ref": "#/rules@10"
+                    "$ref": "#/rules@11"
                   },
                   "arguments": []
                 }
@@ -754,34 +800,62 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
         "elements": [
           {
             "$type": "Assignment",
-            "feature": "names",
-            "operator": "+=",
+            "feature": "element",
+            "operator": "=",
             "terminal": {
-              "$type": "RuleCall",
-              "rule": {
-                "$ref": "#/rules@25"
+              "$type": "CrossReference",
+              "type": {
+                "$ref": "#/types@0"
               },
-              "arguments": []
+              "terminal": {
+                "$type": "RuleCall",
+                "rule": {
+                  "$ref": "#/rules@26"
+                },
+                "arguments": []
+              },
+              "deprecatedSyntax": false
             }
           },
           {
             "$type": "Group",
             "elements": [
               {
-                "$type": "Keyword",
-                "value": "."
+                "$type": "Action",
+                "inferredType": {
+                  "$type": "InferredType",
+                  "name": "QualifiedName"
+                },
+                "feature": "previous",
+                "operator": "="
               },
               {
-                "$type": "Assignment",
-                "feature": "names",
-                "operator": "+=",
-                "terminal": {
-                  "$type": "RuleCall",
-                  "rule": {
-                    "$ref": "#/rules@25"
+                "$type": "Group",
+                "elements": [
+                  {
+                    "$type": "Keyword",
+                    "value": "."
                   },
-                  "arguments": []
-                }
+                  {
+                    "$type": "Assignment",
+                    "feature": "element",
+                    "operator": "=",
+                    "terminal": {
+                      "$type": "CrossReference",
+                      "type": {
+                        "$ref": "#/types@0"
+                      },
+                      "terminal": {
+                        "$type": "RuleCall",
+                        "rule": {
+                          "$ref": "#/rules@26"
+                        },
+                        "arguments": []
+                      },
+                      "deprecatedSyntax": false
+                    }
+                  }
+                ]
               }
             ],
             "cardinality": "*"
@@ -804,13 +878,6 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@16"
-            },
-            "arguments": []
-          },
-          {
-            "$type": "RuleCall",
-            "rule": {
               "$ref": "#/rules@17"
             },
             "arguments": []
@@ -818,14 +885,21 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@19"
+              "$ref": "#/rules@18"
             },
             "arguments": []
           },
           {
             "$type": "RuleCall",
             "rule": {
-              "$ref": "#/rules@18"
+              "$ref": "#/rules@20"
+            },
+            "arguments": []
+          },
+          {
+            "$type": "RuleCall",
+            "rule": {
+              "$ref": "#/rules@19"
             },
             "arguments": []
           }
@@ -848,7 +922,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@24"
+            "$ref": "#/rules@25"
           },
           "arguments": []
         }
@@ -870,7 +944,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@22"
+            "$ref": "#/rules@23"
           },
           "arguments": []
         }
@@ -892,7 +966,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@23"
+            "$ref": "#/rules@24"
           },
           "arguments": []
         }
@@ -914,7 +988,7 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
         "terminal": {
           "$type": "RuleCall",
           "rule": {
-            "$ref": "#/rules@21"
+            "$ref": "#/rules@22"
           },
           "arguments": []
         }
@@ -1038,10 +1112,93 @@ export const FaasitGrammar = (): Grammar => loadedFaasitGrammar ?? (loadedFaasit
       "fragment": false
     }
   ],
+  "interfaces": [
+    {
+      "$type": "Interface",
+      "attributes": [
+        {
+          "$type": "TypeAttribute",
+          "name": "id",
+          "type": {
+            "$type": "SimpleType",
+            "primitiveType": "string"
+          },
+          "isOptional": false
+        },
+        {
+          "$type": "TypeAttribute",
+          "name": "symbols",
+          "type": {
+            "$type": "ArrayType",
+            "elementType": {
+              "$type": "SimpleType",
+              "typeRef": {
+                "$ref": "#/types@0"
+              }
+            }
+          },
+          "isOptional": false
+        }
+      ],
+      "name": "SemaPackage",
+      "superTypes": []
+    },
+    {
+      "$type": "Interface",
+      "name": "SemaAtomicType",
+      "attributes": [],
+      "superTypes": []
+    }
+  ],
+  "types": [
+    {
+      "$type": "Type",
+      "name": "NamedElement",
+      "type": {
+        "$type": "UnionType",
+        "types": [
+          {
+            "$type": "SimpleType",
+            "typeRef": {
+              "$ref": "#/interfaces@0"
+            }
+          },
+          {
+            "$type": "SimpleType",
+            "typeRef": {
+              "$ref": "#/rules@9"
+            }
+          },
+          {
+            "$type": "SimpleType",
+            "typeRef": {
+              "$ref": "#/rules@5"
+            }
+          },
+          {
+            "$type": "SimpleType",
+            "typeRef": {
+              "$ref": "#/rules@4"
+            }
+          },
+          {
+            "$type": "SimpleType",
+            "typeRef": {
+              "$ref": "#/rules@3"
+            }
+          },
+          {
+            "$type": "SimpleType",
+            "typeRef": {
+              "$ref": "#/rules@11"
+            }
+          }
+        ]
+      }
+    }
+  ],
   "definesHiddenTokens": false,
   "hiddenTokens": [],
   "imports": [],
-  "interfaces": [],
-  "types": [],
   "usedGrammars": []
 }`));

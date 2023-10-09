@@ -1,3 +1,4 @@
+import { AstNode } from 'langium'
 import { types } from '.'
 import { AppError, InternalError } from '../errors'
 import { ast } from '../parser'
@@ -8,17 +9,12 @@ export async function convertFromAst(opts: {
   return new AstToIrConverter(opts).convert()
 }
 
-const BuiltinTypes = new Map(['string', 'float', 'bool', 'int', 'any', 'type'].map(v => [v, {
-  $ir: {
-    kind: 't_atomic',
-    type: v
-  }
-}])) as Map<string, types.Value>
-
 /**
  * Convert an ast.Instance to Raw IR
  */
 class AstToIrConverter {
+  symbolCache: Map<AstNode, unknown> = new Map()
+
   constructor(private ctx: { mainInst: ast.Instance }) { }
 
   convert(): types.Spec {
@@ -52,6 +48,23 @@ class AstToIrConverter {
     return { version: types.CUR_VERSION, packages: [mainPackage], libs: [mainLib], symbols: [] }
   }
 
+  handleNamedElement(node: ast.NamedElement): unknown {
+    if (ast.isBlock(node)) {
+      return this.handleBlock(node)
+    }
+
+    if (ast.isExpr(node)) {
+      return this.handleExpr(node)
+    }
+
+    if (node.$type === 'SemaPackage') {
+      throw new Error(`not supported`)
+    }
+
+    const chk: never = node
+    throw new Error(`unknown node type=${(node as any).$type}`)
+  }
+
   handleBlock(block: ast.Block): types.Block | undefined {
     if (block.$type === 'BlockBlock') {
       return {
@@ -64,11 +77,15 @@ class AstToIrConverter {
     }
 
     if (block.$type === 'CustomBlock') {
+
+      const block_type_id = 'unknown'
+      const block_type = types.CreateUnresolvedReference<types.BlockBlock>(block_type_id)
+
       return {
         $ir: {
           kind: 'b_custom',
           // todo: use symbol
-          block_type: block.block_type.names.join('.'),
+          block_type,
           name: block.name || '',
           props: this.handlePropList(block.props),
         },
@@ -84,6 +101,16 @@ class AstToIrConverter {
           kind: 'b_struct',
           name: block.name,
           props: this.handlePropList(block.props),
+        }
+      }
+    }
+
+    if (block.$type === 'ScalarBlock') {
+      return {
+        $ir: {
+          kind: 'b_scalar',
+          id: block.name,
+          name: block.name
         }
       }
     }
@@ -144,14 +171,26 @@ class AstToIrConverter {
       // TODO: unify identifier
 
       // builtin types
-      const name = expr.names.join('.')
+      const refElement = expr.element.ref
+      const id = this.getIdOfQualifedName(expr)
 
-      const builtinType = BuiltinTypes.get(name)
-      if (builtinType) {
-        return builtinType
+      if (!refElement) {
+        return types.CreateUnresolvedReference(id)
       }
 
-      return types.CreateUnresolvedReference(name)
+      let value = this.symbolCache.get(refElement)
+      if (!value) {
+        value = this.handleNamedElement(refElement)
+        this.symbolCache.set(refElement, value)
+      }
+
+      return {
+        $ir: {
+          kind: 'r_ref',
+          id
+        },
+        value
+      }
     }
 
     if (expr.$type === 'TypeCallExpr') {
@@ -160,6 +199,18 @@ class AstToIrConverter {
 
     const v: never = expr
     throw new Error(`unknown expr: ${v}`)
+  }
+
+  private getIdOfQualifedName(node: ast.QualifiedName): string {
+    const names = []
+    let p: ast.QualifiedName | undefined = node
+    while (p) {
+      names.push(p.element.$refText)
+      p = p.previous
+    }
+
+    names.reverse()
+    return names.join('.')
   }
 }
 
@@ -174,11 +225,11 @@ class IrEvaluator {
   private symtab: Map<string, types.BaseEirNode> = new Map()
   constructor(private ctx: { spec: types.Spec }) {
     // construct symtab
-    const pkg = ctx.spec.packages[0]
+    // const pkg = ctx.spec.packages[0]
 
-    for (const block of pkg.blocks) {
-      this.symtab.set(block.$ir.name, block)
-    }
+    // for (const block of pkg.blocks) {
+    //   this.symtab.set(block.$ir.name, block)
+    // }
 
     // TODO: add symbols
   }
@@ -225,14 +276,6 @@ class IrEvaluator {
         obj[prop.key] = this.evaluateValue(prop.value)
       }
       return obj
-    }
-
-    if (value.$ir.kind === 'v_empty') {
-      return null
-    }
-
-    if (value.$ir.kind === 't_atomic') {
-      return value
     }
 
     const chk: never = value.$ir

@@ -5,6 +5,7 @@
  ******************************************************************************/
 
 import type {
+  DeepPartial,
   DefaultSharedModuleContext,
   LangiumServices,
   LangiumSharedServices,
@@ -14,8 +15,11 @@ import type {
 import { createDefaultModule, createDefaultSharedModule, inject } from 'langium'
 import { FaasitGeneratedModule, FaasitGeneratedSharedModule } from '../parser'
 import { FaasitValidationRegistry, FaasitValidator } from './validator'
-import { FaasitFormatter } from './formatter'
-import { FaasitSemanticTokenProvider } from './semantic-token'
+import { FaasitFormatter } from './lsp/formatter'
+import { FaasitSemanticTokenProvider } from './lsp/semantic-token-provider'
+import { FaasitHoverProvider } from './lsp/hover-provider'
+import { FaasitScopeProvider } from './scope'
+import { FaasitWorkspaceManager } from './workspace-manager'
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -32,6 +36,8 @@ export type FaasitAddedServices = {
  */
 export type FaasitServices = LangiumServices & FaasitAddedServices
 
+export type FaasitSharedServices = LangiumSharedServices;
+
 /**
  * Dependency injection module that overrides Langium default services and contributes the
  * declared custom services. The Langium defaults can be partially specified to override only
@@ -44,11 +50,21 @@ export const FaasitModule: Module<
   lsp: {
     SemanticTokenProvider: (s) => new FaasitSemanticTokenProvider(s),
     Formatter: () => new FaasitFormatter(),
+    HoverProvider: (services) => new FaasitHoverProvider(services),
+  },
+  references: {
+    ScopeProvider: (services) => new FaasitScopeProvider(services),
   },
   validation: {
     ValidationRegistry: (s) => new FaasitValidationRegistry(s),
     FaasitValidator: () => new FaasitValidator(),
   },
+}
+
+export const FaasitSharedModule: Module<FaasitSharedServices, DeepPartial<FaasitSharedServices>> = {
+  workspace: {
+    WorkspaceManager: (services) => new FaasitWorkspaceManager(services)
+  }
 }
 
 /**
@@ -72,7 +88,8 @@ export function createFaasitServices(context: DefaultSharedModuleContext): {
 } {
   const shared = inject(
     createDefaultSharedModule(context),
-    FaasitGeneratedSharedModule
+    FaasitGeneratedSharedModule,
+    FaasitSharedModule
   )
   const faasit = inject(
     createDefaultModule({ shared }),

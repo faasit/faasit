@@ -7,7 +7,7 @@
 import type { AstNode, Reference, ReferenceInfo, TypeMetaData } from 'langium';
 import { AbstractAstReflection } from 'langium';
 
-export type Block = BlockBlock | CustomBlock | LibBlock | ShapeBlock | StructBlock | UseBlock;
+export type Block = BlockBlock | CustomBlock | LibBlock | ScalarBlock | ShapeBlock | StructBlock | UseBlock;
 
 export const Block = 'Block';
 
@@ -31,8 +31,16 @@ export function isLiteral(item: unknown): item is Literal {
     return reflection.isInstance(item, Literal);
 }
 
+export type NamedElement = BlockBlock | CustomBlock | Expr | ScalarBlock | SemaPackage | StructBlock;
+
+export const NamedElement = 'NamedElement';
+
+export function isNamedElement(item: unknown): item is NamedElement {
+    return reflection.isInstance(item, NamedElement);
+}
+
 export interface BlockBlock extends AstNode {
-    readonly $container: Instance;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'BlockBlock';
     name: string
     props: Array<Property>
@@ -45,7 +53,7 @@ export function isBlockBlock(item: unknown): item is BlockBlock {
 }
 
 export interface BlockExpr extends AstNode {
-    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'BlockExpr';
     props: Array<Property>
 }
@@ -57,10 +65,10 @@ export function isBlockExpr(item: unknown): item is BlockExpr {
 }
 
 export interface CustomBlock extends AstNode {
-    readonly $container: Instance;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'CustomBlock';
     block_type: QualifiedName
-    for_target?: Reference<Block>
+    for_target?: Reference<CustomBlock>
     name?: string
     props: Array<Property>
 }
@@ -96,7 +104,7 @@ export function isInstance(item: unknown): item is Instance {
 }
 
 export interface LibBlock extends AstNode {
-    readonly $container: Instance;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'LibBlock';
     props: Array<Property>
 }
@@ -108,7 +116,7 @@ export function isLibBlock(item: unknown): item is LibBlock {
 }
 
 export interface ListExpr extends AstNode {
-    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'ListExpr';
     items: Array<Expr>
 }
@@ -120,7 +128,7 @@ export function isListExpr(item: unknown): item is ListExpr {
 }
 
 export interface LiteralBool extends AstNode {
-    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'LiteralBool';
     value: boolean
 }
@@ -132,7 +140,7 @@ export function isLiteralBool(item: unknown): item is LiteralBool {
 }
 
 export interface LiteralFloat extends AstNode {
-    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'LiteralFloat';
     value: number
 }
@@ -144,7 +152,7 @@ export function isLiteralFloat(item: unknown): item is LiteralFloat {
 }
 
 export interface LiteralInt extends AstNode {
-    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'LiteralInt';
     value: number
 }
@@ -156,7 +164,7 @@ export function isLiteralInt(item: unknown): item is LiteralInt {
 }
 
 export interface LiteralString extends AstNode {
-    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'LiteralString';
     value: string
 }
@@ -181,9 +189,10 @@ export function isProperty(item: unknown): item is Property {
 }
 
 export interface QualifiedName extends AstNode {
-    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'QualifiedName';
-    names: Array<string>
+    element: Reference<NamedElement>
+    previous?: QualifiedName
 }
 
 export const QualifiedName = 'QualifiedName';
@@ -192,8 +201,43 @@ export function isQualifiedName(item: unknown): item is QualifiedName {
     return reflection.isInstance(item, QualifiedName);
 }
 
+export interface ScalarBlock extends AstNode {
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
+    readonly $type: 'ScalarBlock';
+    name: string
+}
+
+export const ScalarBlock = 'ScalarBlock';
+
+export function isScalarBlock(item: unknown): item is ScalarBlock {
+    return reflection.isInstance(item, ScalarBlock);
+}
+
+export interface SemaAtomicType extends AstNode {
+    readonly $type: 'SemaAtomicType';
+}
+
+export const SemaAtomicType = 'SemaAtomicType';
+
+export function isSemaAtomicType(item: unknown): item is SemaAtomicType {
+    return reflection.isInstance(item, SemaAtomicType);
+}
+
+export interface SemaPackage extends AstNode {
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
+    readonly $type: 'SemaPackage';
+    id: string
+    symbols: Array<NamedElement>
+}
+
+export const SemaPackage = 'SemaPackage';
+
+export function isSemaPackage(item: unknown): item is SemaPackage {
+    return reflection.isInstance(item, SemaPackage);
+}
+
 export interface ShapeBlock extends AstNode {
-    readonly $container: Instance;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'ShapeBlock';
     name: string
     props: Array<Property>
@@ -206,7 +250,7 @@ export function isShapeBlock(item: unknown): item is ShapeBlock {
 }
 
 export interface StructBlock extends AstNode {
-    readonly $container: Instance;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'StructBlock';
     name: string
     props: Array<Property>
@@ -219,7 +263,7 @@ export function isStructBlock(item: unknown): item is StructBlock {
 }
 
 export interface TypeCallExpr extends AstNode {
-    readonly $container: CustomBlock | ListExpr | Property | TypeCallExpr;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'TypeCallExpr';
     callee: QualifiedName
     elements: Array<Expr>
@@ -232,7 +276,7 @@ export function isTypeCallExpr(item: unknown): item is TypeCallExpr {
 }
 
 export interface UseBlock extends AstNode {
-    readonly $container: Instance;
+    readonly $container: CustomBlock | Instance | ListExpr | Property | QualifiedName | SemaPackage | TypeCallExpr;
     readonly $type: 'UseBlock';
     props: Array<Property>
 }
@@ -258,8 +302,12 @@ export type FaasitAstType = {
     LiteralFloat: LiteralFloat
     LiteralInt: LiteralInt
     LiteralString: LiteralString
+    NamedElement: NamedElement
     Property: Property
     QualifiedName: QualifiedName
+    ScalarBlock: ScalarBlock
+    SemaAtomicType: SemaAtomicType
+    SemaPackage: SemaPackage
     ShapeBlock: ShapeBlock
     StructBlock: StructBlock
     TypeCallExpr: TypeCallExpr
@@ -269,18 +317,16 @@ export type FaasitAstType = {
 export class FaasitAstReflection extends AbstractAstReflection {
 
     getAllTypes(): string[] {
-        return ['Block', 'BlockBlock', 'BlockExpr', 'CustomBlock', 'Expr', 'Import', 'Instance', 'LibBlock', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'Property', 'QualifiedName', 'ShapeBlock', 'StructBlock', 'TypeCallExpr', 'UseBlock'];
+        return ['Block', 'BlockBlock', 'BlockExpr', 'CustomBlock', 'Expr', 'Import', 'Instance', 'LibBlock', 'ListExpr', 'Literal', 'LiteralBool', 'LiteralFloat', 'LiteralInt', 'LiteralString', 'NamedElement', 'Property', 'QualifiedName', 'ScalarBlock', 'SemaAtomicType', 'SemaPackage', 'ShapeBlock', 'StructBlock', 'TypeCallExpr', 'UseBlock'];
     }
 
     protected override computeIsSubtype(subtype: string, supertype: string): boolean {
         switch (subtype) {
             case BlockBlock:
             case CustomBlock:
-            case LibBlock:
-            case ShapeBlock:
-            case StructBlock:
-            case UseBlock: {
-                return this.isSubtype(Block, supertype);
+            case ScalarBlock:
+            case StructBlock: {
+                return this.isSubtype(Block, supertype) || this.isSubtype(NamedElement, supertype);
             }
             case BlockExpr:
             case ListExpr:
@@ -288,6 +334,15 @@ export class FaasitAstReflection extends AbstractAstReflection {
             case QualifiedName:
             case TypeCallExpr: {
                 return this.isSubtype(Expr, supertype);
+            }
+            case Expr:
+            case SemaPackage: {
+                return this.isSubtype(NamedElement, supertype);
+            }
+            case LibBlock:
+            case ShapeBlock:
+            case UseBlock: {
+                return this.isSubtype(Block, supertype);
             }
             case LiteralBool:
             case LiteralFloat:
@@ -305,7 +360,10 @@ export class FaasitAstReflection extends AbstractAstReflection {
         const referenceId = `${refInfo.container.$type}:${refInfo.property}`;
         switch (referenceId) {
             case 'CustomBlock:for_target': {
-                return Block;
+                return CustomBlock;
+            }
+            case 'QualifiedName:element': {
+                return NamedElement;
             }
             default: {
                 throw new Error(`${referenceId} is not a valid reference id.`);
@@ -380,11 +438,11 @@ export class FaasitAstReflection extends AbstractAstReflection {
                     ]
                 };
             }
-            case 'QualifiedName': {
+            case 'SemaPackage': {
                 return {
-                    name: 'QualifiedName',
+                    name: 'SemaPackage',
                     mandatory: [
-                        { name: 'names', type: 'array' }
+                        { name: 'symbols', type: 'array' }
                     ]
                 };
             }

@@ -1,9 +1,9 @@
 import { AbstractFormatter, AstNode, Formatting } from 'langium'
-import { ast } from '../parser'
+import { ast } from '../../parser'
 
 export class FaasitFormatter extends AbstractFormatter {
   protected format(node: AstNode): void {
-    if (ast.isModule(node)) {
+    if (ast.isInstance(node)) {
       const formatter = this.getNodeFormatter(node)
       formatter.nodes(...node.imports).prepend(Formatting.noIndent())
       formatter.nodes(...node.blocks).prepend(Formatting.noIndent())

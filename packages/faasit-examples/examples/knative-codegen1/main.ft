@@ -19,7 +19,10 @@ block event {
     type = string
     data = type
   }
-  output = {}
+}
+
+struct A {
+  data = string
 }
 
 @event EchoEvent2 {
@@ -29,7 +32,7 @@ block event {
   }
 }
 
-@usecase A {
+@usecase SendEmail {
   funcs = [EchoFunction]
 }
 
@@ -53,4 +56,3 @@ block event {
 @provider KnativeCluster {
   kind = "knative"
 }
-

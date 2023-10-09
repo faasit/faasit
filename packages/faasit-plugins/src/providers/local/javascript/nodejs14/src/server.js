@@ -43,7 +43,7 @@ app.get("/", async (req,res) => {
     const functionInvoke = require(`/${codeDir}/${codeName}`)
     const event = null;
     const context = null;
-    const result = await functionInvoke.handlers(event,context);
+    const result = await functionInvoke.handler(event,context);
     res.json(result);
 
     runTimeDate = getDate();

@@ -10,7 +10,9 @@ export class KnativeRuntime implements FaasitRuntime {
         this.event = event
     }
     call() {
-        return {};
+        return new Promise<object>((resolve, reject) => {
+            resolve({});
+        });
     }
 
     input() {

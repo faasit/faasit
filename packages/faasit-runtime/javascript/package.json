@@ -17,5 +17,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "module"
+  "type": "module",
+  "dependencies": {
+    "@alicloud/fc-open20210406": "^2.0.9",
+    "@alicloud/openapi-client": "^0.4.6",
+    "@alicloud/tea-util": "^1.4.7"
+  }
 }

@@ -1,0 +1,37 @@
+// basic blocks
+block event {}
+
+shape trigger {}
+
+block http_trigger {
+  shapes = [trigger]
+}
+
+block function {
+  input = {
+    runtime = string
+    codeDir = string
+    resource = {
+      cpu = string
+      memory = string
+    }
+    pubsub = {
+      events = array<event>
+    }
+    input = map<string, type>
+    output = map<string, type>
+  }
+}
+
+block application {
+  input = {
+    functions = array<function>
+    defaultProvider = provider
+  }
+}
+
+block provider {
+  input = {
+    kind = string
+  }
+}

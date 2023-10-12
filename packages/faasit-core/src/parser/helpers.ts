@@ -22,7 +22,7 @@ export async function parse(opts: {
   const document =
     services.shared.workspace.LangiumDocuments.getOrCreateDocument(opts.file)
   await services.shared.workspace.DocumentBuilder.build([document], {
-    validationChecks: check ? 'all' : 'none',
+    validation: check ? true : false,
   })
   const errors = (document.diagnostics ?? []).filter((e) => e.severity === 1)
 

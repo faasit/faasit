@@ -2,11 +2,11 @@
 import * as vscode from 'vscode';
 import { builtins } from '@faasit/core';
 
-export class FaasitBuiltinFileSystemProvider implements vscode.FileSystemProvider {
+export class FaasitFileSystemProvider implements vscode.FileSystemProvider {
 
   static register(context: vscode.ExtensionContext) {
     context.subscriptions.push(
-      vscode.workspace.registerFileSystemProvider('faasit-builtin', new FaasitBuiltinFileSystemProvider(), {
+      vscode.workspace.registerFileSystemProvider(builtins.FsProto, new FaasitFileSystemProvider(), {
         isReadonly: true,
         isCaseSensitive: false
       }));
@@ -17,7 +17,7 @@ export class FaasitBuiltinFileSystemProvider implements vscode.FileSystemProvide
     return {
       ctime: date,
       mtime: date,
-      size: Buffer.from(builtins.BuiltinCore).length,
+      size: Buffer.from(builtins.FileCore).length,
       type: vscode.FileType.File
     };
   }
@@ -25,7 +25,7 @@ export class FaasitBuiltinFileSystemProvider implements vscode.FileSystemProvide
   readFile(uri: vscode.Uri): Uint8Array {
     // We could return different libraries based on the URI
     // We have only one, so we always return the same
-    return new Uint8Array(Buffer.from(builtins.BuiltinCore));
+    return new Uint8Array(Buffer.from(builtins.FileCore));
   }
 
   // The following class members only serve to satisfy the interface

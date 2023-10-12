@@ -2,10 +2,6 @@ import (
   "std/faas"
 )
 
-use {
-  application = faas.application
-}
-
 @event EchoEvent {
   type = "example.echo"
   data = {

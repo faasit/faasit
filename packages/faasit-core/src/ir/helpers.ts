@@ -133,7 +133,7 @@ class AstToIrConverter {
 
   handlePropList(props: ast.Property[]): types.Property[] {
     return props.map((p) => {
-      return { key: p.name, value: this.handleExpr(p.value) }
+      return { key: p.key, value: this.handleExpr(p.value) }
     })
   }
 
@@ -169,10 +169,8 @@ class AstToIrConverter {
 
     if (expr.$type === 'QualifiedName') {
       // TODO: unify identifier
-
-      // builtin types
-      const refElement = expr.element.ref
       const id = this.getIdOfQualifedName(expr)
+      const refElement = expr.element.ref
 
       if (!refElement) {
         return types.CreateUnresolvedReference(id)
@@ -222,7 +220,6 @@ class IrEvaluator {
  * IrService maintains symtab resolves from Ir Spec
  * and provides useful methods to handle with ir
  */
-  private symtab: Map<string, types.BaseEirNode> = new Map()
   constructor(private ctx: { spec: types.Spec }) {
     // construct symtab
     // const pkg = ctx.spec.packages[0]
@@ -261,8 +258,6 @@ class IrEvaluator {
     }
 
     if (value.$ir.kind === 'r_ref') {
-      // modify inplace (since $ir may have a reference to the ref object)
-      Object.defineProperty(value, 'value', { value: this.symtab.get(value.$ir.id) })
       return value
     }
 

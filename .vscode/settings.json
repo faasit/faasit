@@ -11,5 +11,6 @@
     "**/src-gen": true,
     "**/node_modules": false,
     "**/.gradle": true
-  }
+  },
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

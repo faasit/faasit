@@ -3,13 +3,13 @@ import {
   LanguageClient,
 } from 'vscode-languageclient/browser'
 import * as vscode from 'vscode'
-import { FaasitBuiltinFileSystemProvider } from './language-server/file-system-provider'
+import { FaasitFileSystemProvider } from './language-server/file-system-provider'
 
 // This function is called when the extension is activated.
 export function activate(context: vscode.ExtensionContext): void {
   console.log(`starting faasit browser extension`)
 
-  FaasitBuiltinFileSystemProvider.register(context)
+  FaasitFileSystemProvider.register(context)
 
   const client = startLanguageClient(context)
   context.subscriptions.push(client)

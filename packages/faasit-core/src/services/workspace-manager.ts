@@ -15,6 +15,6 @@ export class FaasitWorkspaceManager extends DefaultWorkspaceManager {
 
   protected override async loadAdditionalDocuments(folders: WorkspaceFolder[], collector: (document: LangiumDocument) => void): Promise<void> {
     await super.loadAdditionalDocuments(folders, collector);
-    collector(this.documentFactory.fromString(builtins.BuiltinCore, URI.parse('faasit-builtin:///core.ft')))
+    collector(this.documentFactory.fromString(builtins.FileCore, builtins.DocumentUri))
   }
 }

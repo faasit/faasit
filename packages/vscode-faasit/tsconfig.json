@@ -11,6 +11,11 @@
       "es6",
       "DOM"
     ],
-    "outDir": "./out"
+    "outDir": "./out",
+    "paths": {
+      "langium": [
+        "./node_modules/langium/lib"
+      ]
+    }
   },
 }

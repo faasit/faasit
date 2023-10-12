@@ -258,7 +258,7 @@ export function CustomBlockSchemaT<T>(schema: z.ZodType<T>): z.ZodType<CustomBlo
 }
 
 
-const BlockSchema: z.ZodType<Block> = z.union([
+export const BlockSchema: z.ZodType<Block> = z.union([
   CustomBlockSchemaT(z.unknown()),
   z.object({
     $ir: z.object({
@@ -286,12 +286,12 @@ const BlockSchema: z.ZodType<Block> = z.union([
   }),
 ])
 
-const LibrarySchema: z.ZodType<Library> = z.object({
+export const LibrarySchema: z.ZodType<Library> = z.object({
   kind: z.literal('p_lib'),
   id: z.string()
 })
 
-const SymbolSchema: z.ZodType<Symbol> = z.union([z.object({
+export const SymbolSchema: z.ZodType<Symbol> = z.union([z.object({
   kind: z.literal('s_ref'),
   id: z.string(),
 }), z.object({

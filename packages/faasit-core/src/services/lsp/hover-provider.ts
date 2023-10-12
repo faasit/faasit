@@ -1,26 +1,47 @@
 import { AstNode, AstNodeHoverProvider } from "langium";
 import { Hover } from "vscode-languageserver-types";
 import { ast } from "../../parser";
-import { inferTypeOnce } from "../type-system/infer";
-import * as desc from '../type-system/description'
 
 export class FaasitHoverProvider extends AstNodeHoverProvider {
   protected getAstNodeHoverContent(node: AstNode): Hover | undefined {
-    if (ast.isQualifiedName(node)) {
-      const type = inferTypeOnce(node)
-      if (type.kind === 'error') {
-        return {
-          contents: {
-            kind: 'markdown', language: 'faasit', value: `failed to infer type, err=${type.message}`
-          }
-        }
-      }
 
+    if (ast.isStructBlock(node)) {
       return {
         contents: {
           kind: 'markdown',
           language: 'faasit',
-          value: `${node.element.$refText}: ${desc.typeToString(type)}`
+          value: `struct ${node.name} {}`
+        }
+      }
+    }
+
+    if (ast.isCustomBlock(node)) {
+      const block_type = node.block_type.element.$refText
+      return {
+        contents: {
+          kind: 'markdown',
+          language: 'faasit',
+          value: `@${block_type} ${node.name} {}`
+        }
+      }
+    }
+
+    if (ast.isBlockBlock(node)) {
+      return {
+        contents: {
+          kind: 'markdown',
+          language: 'faasit',
+          value: `block ${node.name} {}`
+        }
+      }
+    }
+
+    if (ast.isScalarBlock(node)) {
+      return {
+        contents: {
+          kind: 'markdown',
+          language: 'faasit',
+          value: `scalar ${node.name} {}`
         }
       }
     }

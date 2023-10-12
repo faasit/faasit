@@ -9,5 +9,3 @@ export { URI, Utils as UriUtils } from 'vscode-uri'
 
 export * as plugin from './plugin'
 export * as builtins from './builtins'
-
-import {} from 'langium/node'

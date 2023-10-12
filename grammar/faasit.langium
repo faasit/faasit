@@ -14,16 +14,19 @@ interface SemaPackage {
 interface SemaAtomicType {
 }
 
-type NamedElement = SemaPackage | CustomBlock | BlockBlock | StructBlock | ScalarBlock | Expr;
+type NamedElement = SemaPackage | CustomBlock | ShapeBlock | BlockBlock | StructBlock | ScalarBlock | Expr;
 
 Import:
-  'import' '(' url+=STRING+  ')';
+  'import' '(' clauses=ImportClause+  ')';
+
+ImportClause:
+  alias=('.'|'_'|ID)? url=STRING;
 
 Block:
   CustomBlock | BlockBlock | ShapeBlock | StructBlock | ScalarBlock | UseBlock | LibBlock;
 
 ScalarBlock:
-  'scalar' name=ID '{' '}';
+  'scalar' name=ID '{' props+=Property* '}';
 
 StructBlock:
   'struct' name=ID '{' props+=Property* '}';
@@ -41,12 +44,12 @@ LibBlock:
   'lib' '{' props+=Property* '}';
 
 CustomBlock:
-  '@' block_type=QualifiedName (name=ID)? ('for' for_target=[CustomBlock:ID])? '{'
+  '@' block_type=QualifiedName (name=ID)? ('for' for_target=[NamedElement:ID])? '{'
   props+=Property*
    '}';
 
 Property:
-  name=ID '=' value=Expr;
+  key=ID '=' value=Expr;
 
 Expr:
   QualifiedName | Literal | ListExpr | TypeCallExpr | BlockExpr;
@@ -61,7 +64,7 @@ TypeCallExpr:
   callee=QualifiedName '<' elements+=Expr (',' elements+=Expr)* '>';
 
 // use 'previous' trick to construct a reversed link list from given qualifed name
-// like a1.b1.c1 => (c1 -> b1 -> a1 -> nullptr) => 3 QualifedName nodes
+// like a1.b1.c1 => (c1 -> b1 -> a1 -> nullptr) => 3 QualifiedName nodes
 QualifiedName:
   element=[NamedElement:ID] (
     {infer QualifiedName.previous=current}

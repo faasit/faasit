@@ -1,23 +1,6 @@
-@function A {}
-
-block function {
-  shapes = [A, B, C]
-  input = {
-    runtime = string
-    codeDir = {}
-  }
-}
-
-@function executor {
-  runtime = "nodejs"
-  codeDir = "./code/executor"
-  input = {
-    text = string
-  }
-  output = {
-    counter = [[string, int]]
-  }
-}
+import (
+  . "std/faas"
+)
 
 @function split {
   runtime = "nodejs"
@@ -57,38 +40,8 @@ block function {
   }
 }
 
-@stage.op StageSplit {
-  function = split
-  next = StageCount
-}
-
-@stage.op StageCount {
-  function = count
-  next = StageSort
-}
-
-@stage.op StageSort {
-  function = sort
-  end = true
-}
-
-@workflow FlowWordCount {
-  stages = [StageSplit, StageCount, StageSort]
-  executor = {
-    generate = false
-    function = executor
-  }
-}
-
-@workflow A {
-  stages = []
-  executor = {
-    name = string
-  }
-}
-
 @application WordCount {
-  workflow = [FlowWordCount]
+  functions = [executor, split, sort, count]
   defaultProvider = Local
 }
 

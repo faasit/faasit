@@ -45,7 +45,7 @@ export class FaasitSemanticTokenProvider extends AbstractSemanticTokenProvider {
     if (ast.isProperty(node)) {
       acceptor({
         node,
-        property: 'name',
+        property: 'key',
         type: 'property',
       })
       return

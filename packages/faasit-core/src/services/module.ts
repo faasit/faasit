@@ -18,8 +18,9 @@ import { FaasitValidationRegistry, FaasitValidator } from './validator'
 import { FaasitFormatter } from './lsp/formatter'
 import { FaasitSemanticTokenProvider } from './lsp/semantic-token-provider'
 import { FaasitHoverProvider } from './lsp/hover-provider'
-import { FaasitScopeProvider } from './scope'
+import { FaasitScopeProvider } from './scope-provider'
 import { FaasitWorkspaceManager } from './workspace-manager'
+import { FaasitCompletionProvider } from './lsp/completion-provider'
 
 /**
  * Declaration of custom services - add your own service classes here.
@@ -50,7 +51,8 @@ export const FaasitModule: Module<
   lsp: {
     SemanticTokenProvider: (s) => new FaasitSemanticTokenProvider(s),
     Formatter: () => new FaasitFormatter(),
-    HoverProvider: (services) => new FaasitHoverProvider(services),
+    HoverProvider: (s) => new FaasitHoverProvider(s),
+    CompletionProvider: (s) => new FaasitCompletionProvider(s),
   },
   references: {
     ScopeProvider: (services) => new FaasitScopeProvider(services),

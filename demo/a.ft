@@ -1,5 +1,5 @@
 import (
-  "std/faas"
+  . "std/faas"
 )
 
 // Serverless 概念模型

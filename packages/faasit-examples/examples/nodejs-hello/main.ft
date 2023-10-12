@@ -1,3 +1,7 @@
+import (
+  "github.com/faasit/restful"
+)
+
 @function hello {
   runtime = "nodejs:16"
   codeDir = "./code"

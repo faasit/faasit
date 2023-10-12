@@ -3,7 +3,7 @@ import {
   AstNode,
   SemanticTokenAcceptor,
 } from 'langium'
-import { ast } from '../parser'
+import { ast } from '../../parser'
 
 export class FaasitSemanticTokenProvider extends AbstractSemanticTokenProvider {
   protected highlightElement(
@@ -45,7 +45,7 @@ export class FaasitSemanticTokenProvider extends AbstractSemanticTokenProvider {
     if (ast.isProperty(node)) {
       acceptor({
         node,
-        property: 'name',
+        property: 'key',
         type: 'property',
       })
       return
@@ -54,7 +54,7 @@ export class FaasitSemanticTokenProvider extends AbstractSemanticTokenProvider {
     if (ast.isQualifiedName(node)) {
       acceptor({
         node,
-        property: 'names',
+        property: 'element',
         type: 'variable',
       })
       return

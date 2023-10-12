@@ -129,7 +129,7 @@ export class Engine {
     }
   }
 
-  async eval(opts: { workingDir: string; file?: string; ir: boolean }) {
+  async eval(opts: { workingDir: string; file?: string; ir: boolean; check: boolean, lazy: boolean }) {
     const irSpecRes = await this.handleCompile({ ...opts, config: opts.file || 'main.ft' })
 
     if (!irSpecRes.ok) {
@@ -139,30 +139,34 @@ export class Engine {
     }
 
     const irSpec = irSpecRes.value
+    let yamlOpts: yaml.DumpOptions = {}
+    if (opts.lazy) {
+      yamlOpts = {
+        noRefs: true,
+        replacer(key, value) {
+          // not print ir
+          if (!opts.ir && key == '$ir') {
+            return undefined
+          }
+
+          // may contains loop reference to cause infinite loop
+          // so just print as <lazy_evaluation>
+          if (ir.types.isReference(value)) {
+            return {
+              $ir: value.$ir,
+              value: '<lazy_evaluation>'
+            }
+          }
+
+          return value
+        },
+      }
+    }
 
     console.log(
       yaml.dump(
         irSpec,
-        {
-          noRefs: true,
-          replacer(key, value) {
-            // not print ir
-            if (!opts.ir && key == '$ir') {
-              return undefined
-            }
-
-            // may contains loop reference to cause infinite loop
-            // so just print as <lazy_evaluation>
-            if (ir.types.isReference(value)) {
-              return {
-                ...value,
-                value: '<lazy_evaluation>'
-              }
-            }
-
-            return value
-          },
-        }
+        yamlOpts
       )
     )
   }
@@ -256,6 +260,7 @@ export class Engine {
   async handleCompile(opts: {
     workingDir: string
     config: string
+    check?: boolean
   }): Promise<ft_utils.Result<ir.Spec, DiagnosticError>> {
     const file = path.resolve(opts.workingDir, opts.config)
     const fileUri = URI.file(file)
@@ -263,6 +268,7 @@ export class Engine {
     const parseResult = await parser.parse({
       file: fileUri,
       fileSystemProvider: () => new NodeFileSystemProvider(),
+      check: opts.check
     })
 
     if (!parseResult.ok) {

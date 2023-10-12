@@ -10,7 +10,11 @@ export type ParseResult<T> = Result<T, DiagnosticError>
 export async function parse(opts: {
   file: URI
   fileSystemProvider: () => FileSystemProvider
-}): Promise<Result<ast.Module, DiagnosticError>> {
+  check?: boolean
+}): Promise<Result<ast.Instance, DiagnosticError>> {
+
+  const { check = true } = opts
+
   const services = createFaasitServices({
     fileSystemProvider: opts.fileSystemProvider,
   })
@@ -18,14 +22,14 @@ export async function parse(opts: {
   const document =
     services.shared.workspace.LangiumDocuments.getOrCreateDocument(opts.file)
   await services.shared.workspace.DocumentBuilder.build([document], {
-    validationChecks: 'all',
+    validation: check ? true : false,
   })
   const errors = (document.diagnostics ?? []).filter((e) => e.severity === 1)
 
   if (errors.length == 0) {
     return {
       ok: true,
-      value: document.parseResult.value as ast.Module,
+      value: document.parseResult.value as ast.Instance,
     }
   }
 

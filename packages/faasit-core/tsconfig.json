@@ -1,6 +1,11 @@
 {
   "compilerOptions": {
-    "composite": true
+    "paths": {
+      // hacked way, it's better to set `moduleResolution=node16` if possible
+      "langium": [
+        "./node_modules/langium/lib"
+      ]
+    },
   },
   "extends": "../../tsconfig.json",
   "include": [

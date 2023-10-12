@@ -1,7 +1,7 @@
 const { createFunction, createExports } = require('faasit-runtime');
 
 const handle = createFunction(async (frt) => {
-  const { text, batchSize } = frt.input()
+  const { text, batchSize, fn1 } = frt.input()
 
   /** @type {string[]} */
   const words = (await frt.call('split', { input: { text } })).output.words

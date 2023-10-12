@@ -8,5 +8,4 @@ export * as runtime from './runtime'
 export { URI, Utils as UriUtils } from 'vscode-uri'
 
 export * as plugin from './plugin'
-
-import {} from 'langium/node'
+export * as builtins from './builtins'

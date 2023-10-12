@@ -4,7 +4,7 @@
   "license": "MIT",
   "type": "module",
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=16.0.0"
   },
   "exports": {
     ".": {
@@ -23,11 +23,10 @@
     "test:unit": "vitest"
   },
   "dependencies": {
-    "langium": "^1.2.0",
+    "langium": "^2.0.0",
     "vscode-uri": "^3.0.7",
-    "zod": "^3.21.4"
+    "zod": "^3.21.4",
+    "vscode-languageserver-types": "^3.17.5"
   },
-  "devDependencies": {
-    "vscode-languageserver-types": "^3.17.3"
-  }
+  "devDependencies": {}
 }

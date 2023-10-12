@@ -1,5 +1,4 @@
 import { types } from '.'
-import type { IrService } from './helpers'
 
 export interface OutFile {
   path: string
@@ -22,9 +21,4 @@ export interface LangPlugin {
 export interface CustomBlockPlugin {
   name: string
   libraryId: string
-
-  transform(opts: {
-    service: IrService
-    block: types.CustomBlock
-  }): types.ComputedCustomBlock
 }

@@ -10,7 +10,7 @@ export function JavascriptGeneratorPlugin(): faas.GeneratorPlugin {
       const { irSpec } = input
 
       const events = irSpec.packages[0].blocks
-        .filter((b) => b.$ir.kind === 'b_custom' && b.$ir.block_type === 'event') as faas.Event[]
+        .filter((b) => b.$ir.kind === 'b_custom' && b.$ir.block_type.$ir.id === 'event') as faas.Event[]
 
       // generate `events.d.ts`
       const generateEventDts = (): faas.GenerationItem => {
@@ -30,11 +30,6 @@ export function JavascriptGeneratorPlugin(): faas.GeneratorPlugin {
 
           if (ir.types.isReference(typ)) {
             printer.printRaw(typ.$ir.id)
-            return
-          }
-
-          if (ir.types.isAtomicType(typ)) {
-            printer.printRaw(typ.$ir.type)
             return
           }
 

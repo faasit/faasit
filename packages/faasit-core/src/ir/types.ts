@@ -16,7 +16,6 @@ export type AtomicValue =
   | { $ir: { kind: 'v_float'; value: number }; }
   | { $ir: { kind: 'v_any'; value: any } }
 
-
 export type ObjectValue = {
   $ir: {
     kind: 'v_object'
@@ -27,17 +26,21 @@ export type ObjectValue = {
   }
 }
 
-export type AtomicType = { $ir: { kind: 't_atomic', type: string } }
+// types
+export const BuiltinScalarIds = ['string', 'bool', 'int', 'float', 'any', 'never', 'null', 'empty'] as const
+export type ScalarBlock = { $ir: { kind: 'b_scalar', id: string; name: string } }
+
+export function isBuiltinScalarId(id: string): id is typeof BuiltinScalarIds[0] {
+  return BuiltinScalarIds.includes(id as typeof BuiltinScalarIds[0])
+}
+
+// values
 
 export type Value =
   | AtomicValue
-  | AtomicType
   | { $ir: { kind: 'v_list'; items: Value[] } }
   | ObjectValue
   | Reference<unknown>
-  | {
-    $ir: { kind: 'v_empty' }
-  }
 
 export type EvaluatedValue = number | boolean | string | Reference | EvaluatedValue[] | { [key: string]: EvaluatedValue }
 
@@ -96,7 +99,7 @@ export type Property = { key: string; value: Value }
 export type CustomBlock<O = unknown> = {
   $ir: {
     kind: 'b_custom'
-    block_type: string
+    block_type: Reference<BlockBlock>
     name: string
     props: Property[]
   }
@@ -120,7 +123,7 @@ export type BlockBlock = {
   }
 }
 
-export type Block = CustomBlock | BlockBlock | StructBlock
+export type Block = CustomBlock | BlockBlock | StructBlock | ScalarBlock
 
 // types
 export function isAtomicValue(v: BaseEirNode): v is AtomicValue {
@@ -150,7 +153,7 @@ export function isReference(v: unknown): v is Reference {
   return false
 }
 
-export function isAtomicType(v: unknown): v is AtomicType {
+export function isAtomicType(v: unknown): v is ScalarBlock {
   if (isBaseEirNode(v)) {
     return v.$ir.kind === 't_atomic'
   }
@@ -180,23 +183,6 @@ export function ReferenceSchemaT<T>(schema: z.ZodType<T>): z.ZodType<Reference<T
   }) as z.ZodType<Reference<T>>
 }
 
-export function CustomBlockSchemaT<T>(schema: z.ZodType<T>): z.ZodType<CustomBlock<T>> {
-  return z.object({
-    $ir: z.object({
-      kind: z.literal('b_custom'),
-      block_type: z.string(),
-      name: z.string(),
-      props: z.array(
-        z.object({
-          key: z.string(),
-          value: ValueSchema,
-        })
-      ),
-    }),
-    output: schema
-  }) as z.ZodType<CustomBlock<T>>
-}
-
 export const ObjectValueSchema: z.ZodType<ObjectValue> = z.object({
   $ir: z.object({
     kind: z.literal('v_object'),
@@ -208,7 +194,6 @@ export const ObjectValueSchema: z.ZodType<ObjectValue> = z.object({
     ),
   })
 })
-
 
 // we should declare type first to use recursive schema
 export const ValueSchema: z.ZodType<Value> = z.union([
@@ -237,18 +222,43 @@ export const ValueSchema: z.ZodType<Value> = z.union([
     })
   }),
   ObjectValueSchema,
-  z.object({
-    $ir: z.object({
-      kind: z.literal('t_atomic'),
-      type: z.string()
-    })
-  }),
   ReferenceSchemaT(z.unknown())
 ])
 
 export const StructLikeTypeSchema: z.ZodType<{ [key: string]: Value }> = z.record(z.string(), ValueSchema);
 
-const BlockSchema: z.ZodType<Block> = z.union([
+export const BlockBlockSchema: z.ZodType<BlockBlock> = z.object({
+  $ir: z.object({
+    kind: z.literal('b_block'),
+    name: z.string(),
+    props: z.array(
+      z.object({
+        key: z.string(),
+        value: ValueSchema,
+      })
+    ),
+  }),
+})
+
+export function CustomBlockSchemaT<T>(schema: z.ZodType<T>): z.ZodType<CustomBlock<T>> {
+  return z.object({
+    $ir: z.object({
+      kind: z.literal('b_custom'),
+      block_type: ReferenceSchemaT(BlockBlockSchema),
+      name: z.string(),
+      props: z.array(
+        z.object({
+          key: z.string(),
+          value: ValueSchema,
+        })
+      ),
+    }),
+    output: schema
+  }) as z.ZodType<CustomBlock<T>>
+}
+
+
+export const BlockSchema: z.ZodType<Block> = z.union([
   CustomBlockSchemaT(z.unknown()),
   z.object({
     $ir: z.object({
@@ -276,12 +286,12 @@ const BlockSchema: z.ZodType<Block> = z.union([
   }),
 ])
 
-const LibrarySchema: z.ZodType<Library> = z.object({
+export const LibrarySchema: z.ZodType<Library> = z.object({
   kind: z.literal('p_lib'),
   id: z.string()
 })
 
-const SymbolSchema: z.ZodType<Symbol> = z.union([z.object({
+export const SymbolSchema: z.ZodType<Symbol> = z.union([z.object({
   kind: z.literal('s_ref'),
   id: z.string(),
 }), z.object({

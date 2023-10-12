@@ -1,4 +1,4 @@
-pub block function {
+block function {
   props = {
     runtime = string
   }

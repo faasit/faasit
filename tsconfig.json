@@ -1,16 +1,18 @@
 {
   "compilerOptions": {
-    "module": "ES2020",
-    "target": "es6",
+    "module": "ESNext",
+    "target": "ESNext",
     "lib": [
       "es2020"
     ],
     "declaration": true,
-    "declarationMap": false,
+    "declarationMap": true,
     "strictNullChecks": true,
     "resolveJsonModule": true,
     "noImplicitAny": true,
     "moduleResolution": "node",
-    "esModuleInterop": true
+    "esModuleInterop": true,
+    "skipDefaultLibCheck": true,
+    "skipLibCheck": true
   }
 }

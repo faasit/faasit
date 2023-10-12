@@ -79,7 +79,7 @@
     },
     "dependencies": {
         "@faasit/core": "workspace:^",
-        "langium": "^1.2.0",
+        "langium": "^2.0.0",
         "vscode-languageclient": "^8.1.0",
         "vscode-languageserver": "^8.1.0"
     },

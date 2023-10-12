@@ -73,6 +73,8 @@ export async function main() {
     .command('eval')
     .argument('[file]', 'input file')
     .option('--no-ir', 'not print $ir for semantic object')
+    .option('--no-check', 'not validate faasit DSL')
+    .option('--no-lazy', 'no lazy evaluation for reference')
     .description('evaluate value and ir of faast DSL')
     .action(async (file, opts) => {
       await engine

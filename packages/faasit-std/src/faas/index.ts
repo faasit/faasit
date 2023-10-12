@@ -96,7 +96,7 @@ export async function resolveApplicationFromIr(opts: {
   ir: ir.Spec
 }): Promise<Application> {
   const applicationBlock = opts.ir.packages[0].blocks.find(
-    (b) => ir.types.isCustomBlock(b) && b.$ir.block_type === 'application'
+    (b) => ir.types.isCustomBlock(b) && b.$ir.block_type.$ir.id === 'application'
   ) as ir.types.CustomBlock
 
   if (!applicationBlock) {

@@ -1,17 +1,18 @@
 // Monarch syntax highlighting for the faasit language.
 export default {
     keywords: [
-        'block','for','import','lib','shape','struct','use'
+        'block','for','import','lib','scalar','shape','struct','use'
     ],
     operators: [
-        ',','.','<','=','>','@'
+        ',','.','<','=','>','@','_'
     ],
-    symbols:  /\(|\)|,|\.|<|=|>|@|\[|\]|\{|\}/,
+    symbols: /\(|\)|,|\.|<|=|>|@|\[|\]|_|\{|\}/,
 
     tokenizer: {
         initial: [
             { regex: /-?[0-9]+\.[0-9]*/, action: {"token":"number"} },
             { regex: /-?[0-9]+/, action: {"token":"number"} },
+            { regex: /(true|false)/, action: {"token":"boolean"} },
             { regex: /"(\\.|[^"\\])*"|'(\\.|[^'\\])*'/, action: {"token":"string"} },
             { regex: /[_a-zA-Z][\w_]*/, action: { cases: { '@keywords': {"token":"keyword"}, '@default': {"token":"ID"} }} },
             { include: '@whitespace' },
@@ -23,9 +24,9 @@ export default {
             { regex: /\/\/[^\n\r]*/, action: {"token":"comment"} },
         ],
         comment: [
-            { regex: /[^\/\*]+/, action: {"token":"comment"} },
+            { regex: /[^/\*]+/, action: {"token":"comment"} },
             { regex: /\*\//, action: {"token":"comment","next":"@pop"} },
-            { regex: /[\/\*]/, action: {"token":"comment"} },
+            { regex: /[/\*]/, action: {"token":"comment"} },
         ],
     }
 };

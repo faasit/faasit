@@ -8,14 +8,19 @@
   },
   "exports": {
     ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs"
+      "import": "./index.mjs"
     }
   },
-  "types": "./dist/index.d.ts",
   "files": [
-    "dist"
+    "dist",
+    "faasit",
+    "index.d.ts",
+    "index.mjs"
   ],
+  "faasit": {
+    "searchDir": "./faasit"
+  },
+  "types": "index.d.ts",
   "scripts": {
     "dev": "unbuild --stub",
     "build": "unbuild",

@@ -13,7 +13,7 @@ const handle = createFunction(async (frt) => {
     const reducedCounter = Array.from(counter.entries())
     reducedCounter.sort((v1, v2) => {
         if (v1[1] != v2[1]) {
-            return v1[1] - v2[1]
+            return v2[1] - v1[1]
         }
         return v1[0].localeCompare(v2[0])
     })

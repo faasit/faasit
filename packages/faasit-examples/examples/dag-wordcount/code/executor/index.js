@@ -7,7 +7,7 @@ const handle = createFunction(async (frt) => {
   const words = (await frt.call('split', { input: { text } })).output.words
 
   const tasks = []
-  for (const i = 0; i < words.size(); i += batchSize) {
+  for (let i = 0; i < words.length; i += batchSize) {
     const input = words.slice(i, i + batchSize);
     tasks.push(
       frt.call('count', {

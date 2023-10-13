@@ -1,5 +1,7 @@
 const { createFunction, createExports } = require('faasit-runtime');
 
+// process.env.FASSIT_PROVIDER = 'local'
+
 const handle = createFunction(async (frt) => {
   const { words } = frt.input()
 
@@ -16,3 +18,18 @@ const handle = createFunction(async (frt) => {
 })
 
 module.exports = createExports(handle)
+
+// const res = module.exports.handler({
+//   words: [
+//     'The', 'quick',
+//     'brown', 'fox',
+//     'jumps', 'over',
+//     'a', 'lazy',
+//     'dog', ''
+//   ]
+// })
+
+
+// res.then((data) => {
+//   console.log(data);
+// });

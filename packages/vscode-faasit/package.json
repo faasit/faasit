@@ -88,10 +88,10 @@
         "vsce:publish": "npm run vsce:ls && vsce publish --no-dependencies",
         "vsce:ls": "vsce ls --no-dependencies",
         "vscode:prepublish": "npm run build:prod",
-        "build:prod": "cross-env NODE_ENV=production tsx build.ts build",
-        "build": "tsx build.ts build",
-        "watch:browser": "tsx build.ts watch -m browser",
-        "watch:node": "tsx build.ts watch -m node",
+        "build:prod": "cross-env NODE_ENV=production node build.mjs build",
+        "build": "node build.mjs build",
+        "watch:browser": "node build.mjs watch -m browser",
+        "watch:node": "node build.mjs watch -m node",
         "update-vscode": "node ./node_modules/vscode/bin/install"
     }
 }

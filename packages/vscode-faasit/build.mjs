@@ -1,9 +1,10 @@
-import * as esbuild from 'esbuild'
 import { Command } from 'commander'
+import * as esbuild from 'esbuild'
 
 const isProduction = process.env.NODE_ENV === 'production'
 
-const sharedConfig: esbuild.BuildOptions = {
+/** @type {esbuild.BuildOptions} */
+const sharedConfig = {
   bundle: true,
   minify: isProduction,
   sourcemap: !isProduction,
@@ -16,7 +17,8 @@ const sharedConfig: esbuild.BuildOptions = {
   conditions: ['faasit:bundler'],
 }
 
-const browserExtensionBuildConfig: esbuild.BuildOptions = {
+/** @type {esbuild.BuildOptions} */
+const browserExtensionBuildConfig = {
   ...sharedConfig,
   entryPoints: [
     {
@@ -30,7 +32,8 @@ const browserExtensionBuildConfig: esbuild.BuildOptions = {
   outdir: './out',
 }
 
-const browserServerBuildConfig: esbuild.BuildOptions = {
+/** @type {esbuild.BuildOptions} */
+const browserServerBuildConfig = {
   ...sharedConfig,
   entryPoints: [
     {
@@ -44,7 +47,8 @@ const browserServerBuildConfig: esbuild.BuildOptions = {
   outdir: './out',
 }
 
-const nodeBuildConfig: esbuild.BuildOptions = {
+/** @type {esbuild.BuildOptions} */
+const nodeBuildConfig = {
   ...sharedConfig,
   entryPoints: [
     {
@@ -78,8 +82,9 @@ async function main() {
       'all'
     )
     .action(async (opts) => {
-      const module: string[] = opts.module.split(',')
-      const context: esbuild.BuildContext[] = []
+      /** t */
+      const module = opts.module.split(',')
+      const context = []
 
       if (module.includes('all') || module.includes('browser')) {
         const ctx1 = await esbuild.context(browserExtensionBuildConfig)

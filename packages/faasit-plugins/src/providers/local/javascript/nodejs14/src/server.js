@@ -1,6 +1,5 @@
-const { exec } = require('child_process');
 var express = require('express');
-const { stderr } = require('process');
+var bodyParser = require('body-parser');
 var app = express();
 
 function getDate() {
@@ -17,7 +16,11 @@ function getDate() {
     return formattedDateTime;
 }
 
-app.get("/", async (req,res) => {
+app.use(bodyParser.json());
+
+app.use(bodyParser.urlencoded({extended: true}));
+
+app.post("/", async (req,res) => {
     var runTimeDate = getDate();
     console.log(`[${runTimeDate}]: Function Start`)
 
@@ -41,7 +44,7 @@ app.get("/", async (req,res) => {
     //     }
     // })
     const functionInvoke = require(`/${codeDir}/${codeName}`)
-    const event = null;
+    const event = req.body;
     const context = null;
     const result = await functionInvoke.handler(event,context);
     res.json(result);
@@ -53,5 +56,5 @@ app.get("/", async (req,res) => {
 const port = 9000
 
 app.listen(port, ()=>{
-    console.log(`Server is running on http://localhost:${port}`)
+    console.log(`Server is running on http://127.0.0.1:${port}`)
 })

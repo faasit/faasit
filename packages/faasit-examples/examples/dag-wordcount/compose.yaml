@@ -1,0 +1,34 @@
+services:
+  master:
+    image: "master-runtime:latest"
+    ports:
+      - "9000:9000"
+    command: ["node","/server/index.js"]
+  executor:
+    image: "nodejs-runtime:latest"
+    ports:
+      - "9001:9000"
+    volumes:
+      - ./code/executor:/code
+    command: ["node","/nodejs14/src/server.js"]
+  split:
+    image: "nodejs-runtime:latest"
+    ports:
+      - "9002:9000"
+    volumes:
+      - ./code/split:/code
+    command: ["node","/nodejs14/src/server.js"]
+  count:
+    image: "nodejs-runtime:latest"
+    ports:
+      - "9003:9000"
+    volumes:
+      - ./code/count:/code
+    command: ["node","/nodejs14/src/server.js"]
+  sort:
+    image: "nodejs-runtime:latest"
+    ports:
+      - "9004:9000"
+    volumes:
+      - ./code/sort:/code
+    command: ["node","/nodejs14/src/server.js"]

@@ -53,17 +53,9 @@ ENV PATH $PATH:/opt/node/bin
 RUN mkdir -p /code && cd /code
 RUN mkdir -p /node_modules
 
-COPY nodejs14 /nodejs14
-# COPY mock.sh /code/mock.sh
-# COPY runtime /code/runtime
-ADD faasit-runtime /node_modules/faasit-runtime
+COPY server /server
 
-# RUN chmod 755 /code/mock.sh
-
-WORKDIR /code
+WORKDIR /server
 
 
-# RUN rm -rf node_modules
-
-# CMD ["bash","/code/mock.sh"]
 CMD ["bash"]

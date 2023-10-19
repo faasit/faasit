@@ -39,7 +39,7 @@ for ( const service_name in service_map ) {
     console.log(port);
     app.post(`/${service_name}`, async (req, res) => {
         const input = req.body;
-        const url = `http://dag-wordcount-${service_name}-1:9000`;
+        const url = `http://${service_name}:9000`;
         try {
             const axiosInstance = axios.create();
             

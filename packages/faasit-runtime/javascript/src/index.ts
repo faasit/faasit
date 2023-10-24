@@ -2,10 +2,21 @@ import { LocalRuntime } from "./LocalRuntime";
 import { KnativeRuntime } from "./KnativeRuntime";
 import { AliyunRuntime } from "./AliyunRuntime";
 import { FaasitRuntime } from "./FaasitRuntime";
+import { WorkflowBuilder, WorkflowSpec } from './Workflow'
 
-type fnType = (frt: FaasitRuntime) => any
+export type { FaasitRuntime };
 
-export function createFunction(fn: fnType) {
+type HandlerType = (frt: FaasitRuntime) => any
+
+type WorkflowBuilderType = (builder: WorkflowBuilder) => WorkflowSpec
+
+export function createWorkflow(fn: WorkflowBuilderType): WorkflowSpec {
+  // TODO: create builder
+  const builder: WorkflowBuilder = undefined as any
+  return fn(builder)
+}
+
+export function createFunction(fn: HandlerType) {
   switch (process.env.FASSIT_PROVIDER) {
     case 'local':
       return (event: any) => {
@@ -26,20 +37,6 @@ export function createFunction(fn: fnType) {
   }
 }
 
-export function createExports(fn: fnType) {
-  switch (process.env.FASSIT_PROVIDER) {
-    case 'local':
-      return {
-        handler: fn
-      }
-    case 'aliyun':
-      return {
-        handler: fn
-      }
-    case 'knative':
-      return {
-        handle: fn
-      }
-
-  }
+export function createExports(conf: { handler: HandlerType } | { workflow: WorkflowSpec }) {
+  return conf
 }

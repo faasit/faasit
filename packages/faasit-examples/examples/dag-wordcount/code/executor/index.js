@@ -1,6 +1,6 @@
 const { createFunction, createExports } = require('faasit-runtime');
 
-const handle = createFunction(async (frt) => {
+const handler = createFunction(async (frt) => {
   const { text, batchSize, fn1 } = frt.input()
 
   /** @type {string[]} */
@@ -26,4 +26,4 @@ const handle = createFunction(async (frt) => {
   })
 })
 
-module.exports = createExports(handle)
+module.exports = createExports({ handler })

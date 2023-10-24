@@ -1,6 +1,6 @@
 const { createFunction, createExports } = require('faasit-runtime');
 
-const handle = createFunction(async (frt) => {
+const handler = createFunction(async (frt) => {
     const counterArray = frt.input().counter
 
     const counter = new Map()
@@ -23,4 +23,4 @@ const handle = createFunction(async (frt) => {
     })
 })
 
-module.exports = createExports(handle)
+module.exports = createExports({ handler })

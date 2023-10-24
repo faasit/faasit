@@ -2,7 +2,7 @@ const { createFunction, createExports } = require('faasit-runtime');
 
 // process.env.FASSIT_PROVIDER = 'local'
 
-const handle = createFunction(async (frt) => {
+const handler = createFunction(async (frt) => {
   const { words } = frt.input()
 
   const counter = new Map()
@@ -17,7 +17,7 @@ const handle = createFunction(async (frt) => {
   })
 })
 
-module.exports = createExports(handle)
+module.exports = createExports({ handler })
 
 // const res = module.exports.handler({
 //   words: [

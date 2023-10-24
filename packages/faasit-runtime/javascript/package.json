@@ -6,6 +6,11 @@
     ".": {
       "import": "./dist/index.mjs",
       "require": "./dist/index.cjs"
+    },
+    "./operators": {
+      "types": "./dist/operators.d.ts",
+      "import": "./dist/operators.mjs",
+      "require": "./dist/operators.cjs"
     }
   },
   "types": "./dist/index.d.ts",

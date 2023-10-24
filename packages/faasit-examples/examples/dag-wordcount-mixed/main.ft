@@ -1,0 +1,39 @@
+import (
+  . "std/faas"
+)
+
+@function split {
+  runtime = "nodejs"
+  slot = true
+}
+
+@function sort {
+  runtime = "nodejs"
+  slot = true
+}
+
+@function count {
+  runtime = "nodejs"
+  slot = true
+}
+
+@workflow WordCountFlow {
+  functions = [split, sort, count]
+
+  // workflow spec runtime
+  runtime = "nodejs"
+  codeDir = "./javascript"
+}
+
+@application WordCount {
+  workflow = WordCountFlow
+  defaultProvider = Local
+}
+
+@provider Local {
+  type = "local"
+}
+
+@provider Knative {
+  type = "knative"
+}

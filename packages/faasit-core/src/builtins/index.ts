@@ -13,6 +13,7 @@ block function {}
 block application {}
 block provider {}
 block usecase {}
+block workflow {}
 `
 
 export const FileCore = `

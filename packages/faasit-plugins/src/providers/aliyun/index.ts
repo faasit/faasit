@@ -276,8 +276,9 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 
 			logger.info('aliyun deploy')
 
-			for (const fn of app.functions) {
-				logger.info(`deploy function ${fn.name}`)
+			for (const fnRef of app.output.functions) {
+				const fn = fnRef.value
+				logger.info(`deploy function ${fn.$ir.name}`)
 
 				await getService().then(getServiceResp => {
 					if (getServiceResp) {
@@ -295,15 +296,15 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 				});
 
 
-				await getFunction(fn.name).then(async getFunctionResp => {
+				await getFunction(fn.$ir.name).then(async getFunctionResp => {
 					if (getFunctionResp) {
-						logger.info(`aliyun function ${fn.name} exists, it will be updated!`);
+						logger.info(`aliyun function ${fn.$ir.name} exists, it will be updated!`);
 						logger.info('update function results: ');
 						await updateFunction({
-							functionName: fn.name,
-							codeDir: fn.codeDir,
-							runtime: fn.runtime,
-							handler: fn.handler ? fn.handler : "index.handler"
+							functionName: fn.$ir.name,
+							codeDir: fn.output.codeDir,
+							runtime: fn.output.runtime,
+							handler: fn.output.handler ? fn.output.handler : "index.handler"
 						})
 							.then(updateFunctionResp => {
 								if (updateFunctionResp) {
@@ -314,13 +315,13 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 								logger.error(err);
 							})
 					} else {
-						logger.info(`create aliyun function ${fn.name}...`);
+						logger.info(`create aliyun function ${fn.$ir.name}...`);
 						logger.info('create function results: ');
 						await createFunction({
-							functionName: fn.name,
-							codeDir: fn.codeDir,
-							runtime: fn.runtime,
-							handler: fn.handler ? fn.handler : "index.handler"
+							functionName: fn.$ir.name,
+							codeDir: fn.output.codeDir,
+							runtime: fn.output.runtime,
+							handler: fn.output.handler ? fn.output.handler : "index.handler"
 						})
 							.then(createFunctionResp => {
 								console.log(createFunctionResp?.body.toMap());
@@ -333,16 +334,16 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 					logger.error(err);
 				})
 
-				for (let trigger of fn.triggers) {
+				for (let trigger of (fn.output.triggers || [])) {
 					const baseTrigger = await Trigger.getTrigger({
 						kind: trigger.kind,
 						name: trigger.name,
 						opts: {/**TODO */ }
 					})
-					await getTrigger(fn.name, trigger.name).then(async getTriggerResp => {
+					await getTrigger(fn.$ir.name, trigger.name).then(async getTriggerResp => {
 						if (getTriggerResp) {
 							logger.info(`aliyun trigger ${trigger.name} exists, it will be updated!`);
-							await updateTrigger(fn.name, {
+							await updateTrigger(fn.$ir.name, {
 								triggerName: trigger.name,
 								triggerType: trigger.kind,
 								triggerConfig: baseTrigger.triggerConfig
@@ -355,7 +356,7 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 								})
 						} else {
 							logger.info(`create trigger ${trigger.name}...`);
-							await createTrigger(fn.name, {
+							await createTrigger(fn.$ir.name, {
 								triggerName: trigger.name,
 								triggerType: trigger.kind,
 								triggerConfig: baseTrigger.triggerConfig
@@ -380,11 +381,13 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 		async invoke(input, ctx) {
 			const { rt, logger } = ctx;
 			const { app } = input;
-			
-			for (const fn of app.functions) {
-				logger.info(`invoke function ${fn.name}`);
-				if (fn.triggers.length > 0 && fn.triggers[0].kind == 'http') {
-					await getTrigger(fn.name, fn.triggers[0].name)
+
+			for (const fnRef of app.output.functions) {
+				const fn = fnRef.value
+				logger.info(`invoke function ${fn.$ir.name}`);
+				const triggers = fn.output.triggers || []
+				if (triggers.length > 0 && triggers[0].kind == 'http') {
+					await getTrigger(fn.$ir.name, triggers[0].name)
 						.then(async triggerResp => {
 							const urlInternet = triggerResp?.body.urlInternet || "";
 							const urlWithoutHttp = urlInternet.replace(/^(http|https):\/\//, "");
@@ -399,7 +402,7 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 							logger.error(err);
 						})
 				} else {
-					await invokeFunction(fn.name).then(resp => {
+					await invokeFunction(fn.$ir.name).then(resp => {
 						if (resp) {
 							logger.info(resp.body.toString());
 						}

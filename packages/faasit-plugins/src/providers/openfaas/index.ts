@@ -12,11 +12,12 @@ export default function OpenFaasPlugin(): faas.ProviderPlugin {
 
       logger.info(`openfaas deploy`)
 
-      for (const fn of app.functions) {
-        logger.info(`deploy function ${fn.name}`)
+      for (const fnRef of app.output.functions) {
+        const fn = fnRef.value
+        logger.info(`deploy function ${fn.$ir.name}`)
 
         // const output = await rt.runCommand(
-        //   `faas-cli deploy -g ${gateway} --lang node --handler ${fn.codeDir} --name ${fn.name} --image hello-world:latest`
+        //   `faas-cli deploy -g ${gateway} --lang node --handler ${fn.codeDir} --name ${fn.$ir.name} --image hello-world:latest`
         // )
 
         const stackObj = {
@@ -26,10 +27,10 @@ export default function OpenFaasPlugin(): faas.ProviderPlugin {
             gateway,
           },
           functions: {
-            [fn.name]: {
+            [fn.$ir.name]: {
               lang: 'node',
-              handler: fn.codeDir,
-              image: `reg.i2ec.top/faasit/${fn.name}:latest`,
+              handler: fn.output.codeDir,
+              image: `reg.i2ec.top/faasit/${fn.$ir.name}:latest`,
             },
           },
         }

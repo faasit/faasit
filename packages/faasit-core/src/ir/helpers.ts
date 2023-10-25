@@ -39,7 +39,13 @@ class AstToIrConverter {
     }
 
     for (const block of mainInst.blocks) {
-      const irBlock = this.handleBlock(block)
+
+      let irBlock = this.symbolCache.get(block) as types.Block | undefined
+      if (!irBlock) {
+        irBlock = this.handleBlock(block)
+        irBlock && this.symbolCache.set(block, irBlock)
+      }
+
       if (irBlock) {
         mainPackage.blocks.push(irBlock)
       }
@@ -77,9 +83,12 @@ class AstToIrConverter {
     }
 
     if (block.$type === 'CustomBlock') {
-
-      const block_type_id = 'unknown'
-      const block_type = types.CreateUnresolvedReference<types.BlockBlock>(block_type_id)
+      const block_type_id = this.getIdOfQualifedName(block.block_type)
+      // const block_type = types.CreateUnresolvedReference<types.BlockBlock>(block_type_id)
+      const block_type: types.Reference = {
+        $ir: { kind: 'r_ref', id: block_type_id },
+        value: undefined
+      }
 
       return {
         $ir: {
@@ -238,6 +247,7 @@ class IrEvaluator {
       if (types.isCustomBlock(blk)) {
         this.evaluateBlock(blk)
       }
+      // console.log(`evaluate blk`, blk)
     }
   }
 

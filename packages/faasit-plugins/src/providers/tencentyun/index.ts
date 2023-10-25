@@ -36,28 +36,29 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
         functionArray.map((fn) => fn.FunctionName)
       )
 
-      app.functions.forEach(async (fn) => {
-        if (!functionNameSet.has(fn.name)) {
+      app.output.functions.forEach(async (fnRef) => {
+        const fn = fnRef.value
+        if (!functionNameSet.has(fn.$ir.name)) {
           // create function
-          logger.info(`Create function ${fn.name}`)
+          logger.info(`Create function ${fn.$ir.name}`)
           try {
             const params = transformCreateFunctionParams(fn)
             const result = await client.CreateFunction(params)
             logger.info(`Create function requestId: ${result.RequestId}`)
           } catch (err) {
-            logger.error(`Error happens when creating function ${fn.name}`)
+            logger.error(`Error happens when creating function ${fn.$ir.name}`)
             logger.error(err)
             return
           }
         } else {
           // update the code of function
-          logger.info(`Update function ${fn.name}`)
+          logger.info(`Update function ${fn.$ir.name}`)
           try {
             const params = transformUpdateFunctionParams(fn)
             const result = await client.UpdateFunctionCode(params)
             logger.info(`Update function requestId: ${result.RequestId}`)
           } catch (err) {
-            logger.error(`Error happens when updating function ${fn.name}`)
+            logger.error(`Error happens when updating function ${fn.$ir.name}`)
             logger.error(err)
             return
           }
@@ -70,18 +71,18 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
           status !== 'CreatFailed' &&
           status !== 'UpdatFailed'
         ) {
-          status = (await client.GetFunction({ FunctionName: fn.name })).Status
-          logger.info(`The status of function ${fn.name} is ${status}...`)
+          status = (await client.GetFunction({ FunctionName: fn.$ir.name })).Status
+          logger.info(`The status of function ${fn.$ir.name} is ${status}...`)
         }
 
         if (status === 'CreatFailed' || status === 'UpdatFailed') {
-          logger.error(`The status of function ${fn.name} is ${status}`)
+          logger.error(`The status of function ${fn.$ir.name} is ${status}`)
           return
         }
 
         // get all triggers
         const existTriggers = await client.ListTriggers({
-          FunctionName: fn.name,
+          FunctionName: fn.$ir.name,
         })
         let triggerAmount = existTriggers.TotalCount
         if (triggerAmount) {
@@ -89,10 +90,10 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
           logger.info(`There are ${triggerAmount} triggers, deleting...`)
           existTriggers.Triggers?.forEach((trigger) => {
             logger.info(
-              `Delete trigger ${trigger.TriggerName} of function ${fn.name}`
+              `Delete trigger ${trigger.TriggerName} of function ${fn.$ir.name}`
             )
             client.DeleteTrigger({
-              FunctionName: fn.name,
+              FunctionName: fn.$ir.name,
               Type: trigger.Type,
               TriggerName: trigger.TriggerName,
             })
@@ -105,23 +106,23 @@ export default function TencentyunPlugin(): faas.ProviderPlugin {
             )
             triggerAmount = (
               await client.ListTriggers({
-                FunctionName: fn.name,
+                FunctionName: fn.$ir.name,
               })
             ).TotalCount
           }
         }
 
         // create trigger
-        fn.triggers.forEach(async (trigger) => {
-          logger.info(`Create trigger ${trigger.name} of function ${fn.name}`)
+        (fn.output.triggers || []).forEach(async (trigger) => {
+          logger.info(`Create trigger ${trigger.name} of function ${fn.$ir.name}`)
           try {
-            const params = transformCreateTriggerParams(trigger, fn.name)
+            const params = transformCreateTriggerParams(trigger, fn.$ir.name)
             const result = await client.CreateTrigger(params)
             logger.info(`Create Trigger requestId: ${result.RequestId}`)
             console.log(result.TriggerInfo)
           } catch (err) {
             logger.error(
-              `Error happens when creating trigger ${trigger.name} of function ${fn.name}`
+              `Error happens when creating trigger ${trigger.name} of function ${fn.$ir.name}`
             )
             logger.error(err)
           }

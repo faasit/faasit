@@ -46,9 +46,9 @@ import (
 }
 
 @provider Local {
-  type = "local"
+  kind = "local"
 }
 
 @provider Knative {
-  type = "knative"
+  kind = "knative"
 }

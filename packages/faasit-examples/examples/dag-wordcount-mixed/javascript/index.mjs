@@ -11,7 +11,9 @@ const workflow = createWorkflow((builder) => {
   builder.executor().set_custom_handler(functions.executor)
 
   // TODO: declarative
-  // builder.executor().set_declarative()
+  builder.executor().set_declarative(() => {
+    pipe('split', 'count', () => {})
+  })
 
   return builder.build()
 })

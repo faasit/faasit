@@ -11,8 +11,9 @@ export default function LocalPlugin(): faas.ProviderPlugin {
 
             logger.info(`local function deploy`)
 
-            for ( const fn of app.output.functions ) {
-                logger.info(`deploy function `)
+            for ( const fnRef of app.output.functions ) {
+                const fn = fnRef.value
+                logger.info(`deploy function ${fn.$ir.name}`)
             }
         },
         async invoke(input,ctx) {

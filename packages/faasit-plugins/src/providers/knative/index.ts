@@ -11,10 +11,11 @@ export default function KnativePlugin(): faas.ProviderPlugin {
 
       logger.info(`deploy on knative`)
 
-      for (const fn of app.functions) {
-        logger.info(`deploy function ${fn.name}`)
+      for (const fnRef of app.output.functions) {
+        const fn = fnRef.value
+        logger.info(`deploy function ${fn.$ir.name}`)
 
-        const imageName = `${app.name}-${fn.name}`.toLowerCase()
+        const imageName = `${app.$ir.name}-${fn.$ir.name}`.toLowerCase()
 
         const funcObj = {
           specVersion: "0.35.0",
@@ -54,7 +55,7 @@ export default function KnativePlugin(): faas.ProviderPlugin {
         )
         await proc.wait()
 
-        logger.info(`deployed function ${fn.name}`)
+        logger.info(`deployed function ${fn.$ir.name}`)
       }
     },
 
@@ -64,7 +65,7 @@ export default function KnativePlugin(): faas.ProviderPlugin {
 
       logger.info(`invoke function ${input.funcName}`)
 
-      const svcName = `${app.name}-${input.funcName}`
+      const svcName = `${app.$ir.name}-${input.funcName}`
 
       const url = `http://${svcName}.knative-serving.192.168.1.240.sslip.io`
 

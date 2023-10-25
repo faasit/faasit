@@ -179,7 +179,7 @@ export function ReferenceSchemaT<T>(schema: z.ZodType<T>): z.ZodType<Reference<T
       kind: z.literal('r_ref'),
       id: z.string()
     }),
-    value: schema
+    value: z.optional(schema)
   }) as z.ZodType<Reference<T>>
 }
 

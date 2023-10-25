@@ -38,6 +38,7 @@
     "axios": "^1.4.0",
     "dockerode": "^3.3.5",
     "dotenv": "^16.3.1",
+    "tencentcloud-sdk-nodejs-scf": "^4.0.713",
     "zod": "^3.21.4"
   }
 }

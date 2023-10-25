@@ -26,6 +26,7 @@ async function getProviderPlugin(name: string): Promise<faas.ProviderPlugin> {
     aliyun: () => providers.aliyun.default(),
     tencentyun: () => providers.tencentyun.default(),
     knative: () => providers.knative.default(),
+    local: () => providers.local.default(),
   } as const
 
   const isPluginName = (name: string): name is keyof typeof plugins => {
@@ -268,7 +269,7 @@ export class Engine {
     const parseResult = await parser.parse({
       file: fileUri,
       fileSystemProvider: () => new NodeFileSystemProvider(),
-      check: opts.check
+      check: opts.check || false
     })
 
     if (!parseResult.ok) {

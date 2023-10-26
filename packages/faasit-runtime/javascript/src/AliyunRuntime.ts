@@ -17,13 +17,9 @@ export class AliyunRuntime implements FaasitRuntime {
         sequence?: number;
         input: object;
     }): Promise<object> {
-        try {
-            const res = await this.invokeAliyunFunction(fnName, fnParams?.input);
-            const result = res.body.toString();
-            return { output: JSON.parse(result) };
-        } catch (error) {
-            throw error;
-        }
+        const res = await this.invokeAliyunFunction(fnName, fnParams?.input);
+        const result = res.body.toString();
+        return { output: JSON.parse(result) };
     }
 
     input() {

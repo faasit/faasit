@@ -21,8 +21,8 @@ export default function KnativePlugin(): faas.ProviderPlugin {
           specVersion: "0.35.0",
           name: imageName,
           runtime: "node",
-          registry: "reg.i2ec.top/funcs",
-          image: `reg.i2ec.top/funcs/${imageName}:latest`,
+          registry: "docker.io/cdd1037",
+          image: `docker.io/cdd1037/${imageName}:latest`,
           build: {
             builder: "pack",
             pvcSize: "256Mi"
@@ -32,12 +32,12 @@ export default function KnativePlugin(): faas.ProviderPlugin {
           }
         }
 
-        const funcFile = `code/func.yaml`
+        const funcFile = `${fn.output.codeDir}/func.yaml`
 
         await rt.writeFile(funcFile, yaml.dump(funcObj))
 
-        const proc = rt.runCommand(`kn func deploy`, {
-          cwd: 'code',
+        const proc = rt.runCommand(`kn func deploy -n faasit`, {
+          cwd: fn.output.codeDir,
           shell: true,
           stdio: 'inherit'
         })
@@ -67,7 +67,7 @@ export default function KnativePlugin(): faas.ProviderPlugin {
 
       const svcName = `${app.$ir.name}-${input.funcName}`
 
-      const url = `http://${svcName}.knative-serving.192.168.1.240.sslip.io`
+      const url = `http://${svcName}.faasit.192.168.1.240.sslip.io`
 
       const resp = await axios.get(url)
 

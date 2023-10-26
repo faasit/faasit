@@ -1,4 +1,5 @@
 import { FaasitRuntime } from "./FaasitRuntime";
+import axios from "axios";
 
 // TODO: KnativeRuntime
 export class KnativeRuntime implements FaasitRuntime {
@@ -9,17 +10,28 @@ export class KnativeRuntime implements FaasitRuntime {
         this.context = context
         this.event = event
     }
-    call() {
-        return new Promise<object>((resolve, reject) => {
-            resolve({});
-        });
+    async call(fnName: string, fnParams?: {
+        sequence?: number;
+        input: object;
+    }): Promise<object> {
+        const res = await this.invokeKnativeFunction(fnName, fnParams?.input);
+        const result = res.data;
+        return { output: result };
     }
 
     input() {
-        return {}
+        return this.event
     }
 
-    output(obj: any) {
-        return obj
+    output(returnObject: any) {
+        return {
+            body: returnObject
+        }
+    }
+
+    private async invokeKnativeFunction(fnName: string, event: any) {
+        const svcName = `${process.env.FASSIT_APP_NAME}-${fnName}`
+        const url = `http://${svcName}.faasit.192.168.1.240.sslip.io`
+        return await axios.post(url, event)
     }
 }

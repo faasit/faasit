@@ -29,7 +29,6 @@ export function createFunction(fn: HandlerType) {
         return fn(runtime)
       }
     case 'knative':
-      // TODO
       return (context: any, event: any) => {
         const runtime = new KnativeRuntime(context, event)
         return fn(runtime)
@@ -38,5 +37,17 @@ export function createFunction(fn: HandlerType) {
 }
 
 export function createExports(conf: { handler: HandlerType } | { workflow: WorkflowSpec }) {
+  if ("handler" in conf) {
+    switch (process.env.FASSIT_PROVIDER) {
+      case 'local':
+        return conf
+      case 'aliyun':
+        return conf
+      case 'knative':
+        return {
+          handle: conf.handler
+        }
+    }
+  }
   return conf
 }

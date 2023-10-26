@@ -5,7 +5,7 @@
       "name": "Faasit deploy",
       "program": "${workspaceFolder}/packages/faasit/bin/faasit.cjs",
       "request": "launch",
-      "cwd" : "${workspaceFolder}/packages/faasit-examples/examples/demo1/aliyun",
+      "cwd" : "${workspaceFolder}/packages/faasit-examples/examples/dag-wordcount",
       "skipFiles": [
         "<node_internals>/**"
       ],

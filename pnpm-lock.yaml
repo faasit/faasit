@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -161,18 +161,6 @@ importers:
         specifier: ^3.21.4
         version: 3.21.4
 
-  packages/faasit-runtime/javascript:
-    dependencies:
-      '@alicloud/fc-open20210406':
-        specifier: ^2.0.9
-        version: 2.0.9
-      '@alicloud/openapi-client':
-        specifier: ^0.4.6
-        version: 0.4.6
-      '@alicloud/tea-util':
-        specifier: ^1.4.7
-        version: 1.4.7
-
   packages/faasit-std:
     dependencies:
       '@faasit/core':
@@ -255,6 +243,7 @@ packages:
       kitx: 2.1.0
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /@alicloud/endpoint-util@0.0.1:
     resolution: {integrity: sha512-+pH7/KEXup84cHzIL6UJAaPqETvln4yXlD9JzlrqioyCSaWxbug5FUobsiI6fuUOpw5WwoB3fWAtGbFnJ1K3Yg==}
@@ -263,6 +252,7 @@ packages:
       kitx: 2.1.0
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /@alicloud/fc-open20210406@2.0.9:
     resolution: {integrity: sha512-pOcsywACVfmgQs9E8/57svKcjhLvzjSD/UucEpcUUnQT4NN+PmnLVFlxCWpaGQ5VAND3zUgvhPhcfxmzIhvHRA==}
@@ -274,6 +264,7 @@ packages:
       '@alicloud/tea-util': 1.4.7
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /@alicloud/gateway-spi@0.0.8:
     resolution: {integrity: sha512-KM7fu5asjxZPmrz9sJGHJeSU+cNQNOxW+SFmgmAIrITui5hXL2LB+KNRuzWmlwPjnuA2X3/keq9h6++S9jcV5g==}
@@ -282,6 +273,7 @@ packages:
       '@alicloud/tea-typescript': 1.8.0
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /@alicloud/openapi-client@0.4.6:
     resolution: {integrity: sha512-cyhUQOJehLRslHy2l+lsginiyXdzfV7yF7b9EJcxzGG7zHAEX0XF3OJvfo13n7WgiqCzt9suQBatJz7b5F+14A==}
@@ -294,6 +286,7 @@ packages:
       '@alicloud/tea-xml': 0.0.2
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /@alicloud/openapi-util@0.3.1:
     resolution: {integrity: sha512-6mGT+hs+SXismZi/CEkjPhhbn2U3qTT/Qv/RXAYFA1DC3Jk4/YaX3N7RtpgdzOhdD7uI8XtNkaULKHZY3BrtxQ==}
@@ -304,6 +297,7 @@ packages:
       sm3: 1.0.3
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /@alicloud/tea-typescript@1.8.0:
     resolution: {integrity: sha512-CWXWaquauJf0sW30mgJRVu9aaXyBth5uMBCUc+5vKTK1zlgf3hIqRUjJZbjlwHwQ5y9anwcu18r48nOZb7l2QQ==}
@@ -312,6 +306,7 @@ packages:
       httpx: 2.2.7
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /@alicloud/tea-util@1.4.7:
     resolution: {integrity: sha512-Lrpfk9kxihHsit3oMoeIMjk783AxjOvzMhLAbZcIzazKiVg3Zk/209XDe9r1lXqxII59j3V4rhC9X14y6WGYyg==}
@@ -320,6 +315,7 @@ packages:
       kitx: 2.1.0
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /@alicloud/tea-xml@0.0.2:
     resolution: {integrity: sha512-Xs7v5y7YSNSDDYmiDWAC0/013VWPjS3dQU4KezSLva9VGiTVPaL3S7Nk4NrTmAYCG6MKcrRj/nGEDIWL5KRoPg==}
@@ -329,6 +325,7 @@ packages:
       xml2js: 0.4.23
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /@ampproject/remapping@2.2.1:
     resolution: {integrity: sha512-lFMjJTrFL3j7L9yBxwYfCq2k6qqwHyzuUl/XBnif78PWTJYyL/dfowQHWE3sp6U6ZzqWiiIZnpTMO96zhkjwtg==}
@@ -1584,9 +1581,11 @@ packages:
 
   /@types/node@12.20.55:
     resolution: {integrity: sha512-J8xLz7q2OFulZ2cyGTLE1TbbZcjpno7FaN6zdJNrgAdrJ+DZzh/uFR6YrTb4C+nXakvud8Q4+rbhoIWlYQbUFQ==}
+    dev: true
 
   /@types/node@14.18.63:
     resolution: {integrity: sha512-fAtCfv4jJg+ExtXhvCkCqUKZ+4ok/JQk01qDKhL5BDDoS3AxKXhV5/MAVUZyQnSEd2GT92fkgZl0pz0Q0AzcIQ==}
+    dev: true
 
   /@types/node@17.0.45:
     resolution: {integrity: sha512-w+tIMs3rq2afQdsPJlODhoUEKzFP1ayaoyl1CcnwtIlsVe7K7bA1NGm4s3PraqTLlXnbIN84zuBlxBWo1u9BLw==}
@@ -1600,6 +1599,7 @@ packages:
     resolution: {integrity: sha512-ZVPnqU58giiCjSxjVUESDtdPk4QR5WQhhINbc9UBrKLU68MX5BF6kbQzTrkwbolyr0X8ChBpXfavr5mZFKZQ5A==}
     dependencies:
       undici-types: 5.25.3
+    dev: true
 
   /@types/resolve@1.20.2:
     resolution: {integrity: sha512-60BCwRFOZCQhDncwQdxxeOEEkbc5dIMccYLwbxsS4TUNeVECQ/pBJ0j09mrHOl/JJvpRPGwO9SvE4nR2Nb/a4Q==}
@@ -1619,6 +1619,7 @@ packages:
     resolution: {integrity: sha512-JdigeAKmCyoJUiQljjr7tQG3if9NkqGUgwEUqBvV0N7LM4HyQk7UXCnusRa1lnvXAEYJ8mw8GtZWioagNztOwA==}
     dependencies:
       '@types/node': 20.8.4
+    dev: true
 
   /@vitest/expect@0.31.4:
     resolution: {integrity: sha512-tibyx8o7GUyGHZGyPgzwiaPaLDQ9MMuCOrc03BYT0nryUuhLbL7NV2r/q98iv5STlwMgaKuFJkgBW/8iPKwlSg==}
@@ -2280,6 +2281,7 @@ packages:
         optional: true
     dependencies:
       ms: 2.1.2
+    dev: true
 
   /decompress-response@6.0.0:
     resolution: {integrity: sha512-aW35yZM6Bb/4oJlZncMH2LCoZtJXTRxES17vE3hoRiowU2kWHaJKFkSBDnDR+cm9J+9QhXmREyIfv0pji9ejCQ==}
@@ -2846,6 +2848,7 @@ packages:
       debug: 4.3.4
     transitivePeerDependencies:
       - supports-color
+    dev: true
 
   /human-signals@2.1.0:
     resolution: {integrity: sha512-B4FFZ6q/T2jhhksgkbEW3HBvWIfDW85snkQgawt07S7J5QXTk6BkNV+0yAeZrM5QpMAdYlocGoljn0sJ/WQkFw==}
@@ -2879,6 +2882,7 @@ packages:
 
   /ini@1.3.8:
     resolution: {integrity: sha512-JV/yugV2uzW5iMRSiZAyDtQd+nxtUnjeLt0acNdw98kKLrvuRVyB80tsREOE7yvGVgalhZ6RNXCmEHkUKBKxew==}
+    dev: true
 
   /is-binary-path@2.1.0:
     resolution: {integrity: sha512-ZMERYes6pDydyuGidse7OsHxtbI7WVeUEozgR/g7rd0xUimYNlvZRE/K2MgZTjWy725IfelLeVcEM97mmtRGXw==}
@@ -3056,6 +3060,7 @@ packages:
     resolution: {integrity: sha512-C/5v9MtIX7aHGOjwn5BmrrbNkJSf7i0R5mRzmh13GSAdRqQ7bYQo/Su2pTYNylFicqKNTVX3HML9k1u8k51+pQ==}
     dependencies:
       '@types/node': 12.20.55
+    dev: true
 
   /langium-cli@2.0.1:
     resolution: {integrity: sha512-dPPaHimIoCgELED4tvRGdU3i26tjWuyVwexXgPtTtTzp1MBdGCBLppLADXHkL8yFVdWM/PWlCq06YyqAT4eV3A==}
@@ -3295,6 +3300,7 @@ packages:
 
   /ms@2.1.2:
     resolution: {integrity: sha512-sGkPx+VjMtmA6MX27oA4FBFELFCZZ4S4XqeGOXCv68tT+jb3vk/RyaKWP0PTKyWtmLSM0b+adUTEvbs1PEaH2w==}
+    dev: true
 
   /mute-stream@0.0.8:
     resolution: {integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==}
@@ -3703,6 +3709,7 @@ packages:
 
   /sax@1.2.4:
     resolution: {integrity: sha512-NqVDv9TpANUjFm0N8uM5GxL36UgKi9/atZw+x7YFnQ8ckwFGKrl4xX4yWtrey3UJm5nP1kUbnYgLopqWNSRhWw==}
+    dev: true
 
   /sax@1.3.0:
     resolution: {integrity: sha512-0s+oAmw9zLl1V1cS9BtZN7JAd0cW5e0QH4W3LWEK6a4LaLEA2OTpGYWDY+6XasBLtz6wkm3u1xRw95mRuJ59WA==}
@@ -3825,6 +3832,7 @@ packages:
 
   /sm3@1.0.3:
     resolution: {integrity: sha512-KyFkIfr8QBlFG3uc3NaljaXdYcsbRy1KrSfc4tsQV8jW68jAktGeOcifu530Vx/5LC+PULHT0Rv8LiI8Gw+c1g==}
+    dev: true
 
   /source-map-js@1.0.2:
     resolution: {integrity: sha512-R0XvVJ9WusLiqTCEiGCmICCMplcCkIwwR11mOSD9CR5u+IXYdiseeEuXCVAjS54zqwkLcPNnmU4OeJ6tUrWhDw==}
@@ -4166,6 +4174,7 @@ packages:
 
   /undici-types@5.25.3:
     resolution: {integrity: sha512-Ga1jfYwRn7+cP9v8auvEXN1rX3sWqlayd4HP7OKk4mZWylEmu3KzXDUGrQUN6Ol7qo1gPvB2e5gX6udnyEPgdA==}
+    dev: true
 
   /universalify@2.0.0:
     resolution: {integrity: sha512-hAZsKq7Yy11Zu1DE0OzWjw7nnLZmJZYTDZZyEFHZdUhV8FkH5MCfoU1XMaxXovpyW5nq5scPqq0ZDP9Zyl04oQ==}
@@ -4467,6 +4476,7 @@ packages:
     dependencies:
       sax: 1.2.4
       xmlbuilder: 11.0.1
+    dev: true
 
   /xml2js@0.5.0:
     resolution: {integrity: sha512-drPFnkQJik/O+uPKpqSgr22mpuFHqKdbS835iAQrUC73L2F5WkboIRd63ai/2Yg6I1jzifPFKH2NTK+cfglkIA==}
@@ -4479,6 +4489,7 @@ packages:
   /xmlbuilder@11.0.1:
     resolution: {integrity: sha512-fDlsI/kFEx7gLvbecc0/ohLG50fugQp8ryHzMTuW9vSa1GJ0XYWKnhsUx7oie3G98+r56aTQIUB4kht42R3JvA==}
     engines: {node: '>=4.0'}
+    dev: true
 
   /yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}

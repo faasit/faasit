@@ -26,7 +26,7 @@ async function getProviderPlugin(name: string): Promise<faas.ProviderPlugin> {
     aliyun: () => providers.aliyun.default(),
     tencentyun: () => providers.tencentyun.default(),
     knative: () => providers.knative.default(),
-    local: () => providers.local.default(),
+    local: ()=> providers.local.default()
   } as const
 
   const isPluginName = (name: string): name is keyof typeof plugins => {

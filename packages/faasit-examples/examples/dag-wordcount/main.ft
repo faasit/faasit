@@ -31,7 +31,7 @@ import (
 
 @function executor {
   runtime = "nodejs"
-  codeDir = "./code/count"
+  codeDir = "./code/executor"
   input = {
     words = [string]
   }

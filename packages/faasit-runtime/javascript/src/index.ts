@@ -17,7 +17,7 @@ export function createWorkflow(fn: WorkflowBuilderType): WorkflowSpec {
 }
 
 export function createFunction(fn: HandlerType) {
-  switch (process.env.FASSIT_PROVIDER) {
+  switch (process.env.FAASIT_PROVIDER) {
     case 'local':
       return (event: any) => {
         const runtime = new LocalRuntime(event)
@@ -38,7 +38,7 @@ export function createFunction(fn: HandlerType) {
 
 export function createExports(conf: { handler: HandlerType } | { workflow: WorkflowSpec }) {
   if ("handler" in conf) {
-    switch (process.env.FASSIT_PROVIDER) {
+    switch (process.env.FAASIT_PROVIDER) {
       case 'local':
         return conf
       case 'aliyun':

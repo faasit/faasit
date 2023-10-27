@@ -25,7 +25,19 @@ export default function KnativePlugin(): faas.ProviderPlugin {
           image: `docker.io/cdd1037/${imageName}:latest`,
           build: {
             builder: "pack",
-            pvcSize: "256Mi"
+            pvcSize: "256Mi",
+          },
+          run: {
+            envs: [
+              {
+                name: "FAASIT_PROVIDER",
+                value: "knative"
+              },
+              {
+                name: "FAASIT_APP_NAME",
+                value: app.$ir.name
+              },
+            ]
           },
           deploy: {
             namespace: "faasit"

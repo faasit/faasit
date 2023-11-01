@@ -1,4 +1,4 @@
-import { types } from '.'
+import * as types from './types'
 
 export interface OutFile {
   path: string

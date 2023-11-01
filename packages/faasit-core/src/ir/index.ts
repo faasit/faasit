@@ -1,4 +1,5 @@
 export * as types from './types'
+export type * as Types from './types'
 export * from './helpers'
 export * from './common'
 export type { Spec } from './types'

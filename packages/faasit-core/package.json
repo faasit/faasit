@@ -25,8 +25,8 @@
   "dependencies": {
     "langium": "^2.0.0",
     "vscode-uri": "^3.0.7",
-    "zod": "^3.21.4",
-    "vscode-languageserver-types": "^3.17.5"
+    "vscode-languageserver-types": "^3.17.5",
+    "zod": "^3.21.4"
   },
   "devDependencies": {}
 }

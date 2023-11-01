@@ -26,7 +26,7 @@ async function getProviderPlugin(name: string): Promise<faas.ProviderPlugin> {
     aliyun: () => providers.aliyun.default(),
     tencentyun: () => providers.tencentyun.default(),
     knative: () => providers.knative.default(),
-    local: ()=> providers.local.default()
+    local: () => providers.local.default()
   } as const
 
   const isPluginName = (name: string): name is keyof typeof plugins => {
@@ -223,10 +223,31 @@ export class Engine {
               })
             })
 
+          const streamStdout = p.stdout ? new S2A<string>(p.stdout) : null
+          const streamStderr = p.stderr ? new S2A<string>(p.stderr) : null
+
+          const readStream = async (stream: S2A<string> | null, cb: (v: string) => void): Promise<void> => {
+            if (!stream) {
+              return
+            }
+
+            for await (const chunk of stream) {
+              cb(chunk)
+            }
+          }
+
           return {
             wait,
-            stdout: p.stdout ? new S2A(p.stdout) : null,
-            stderr: p.stderr ? new S2A(p.stderr) : null,
+            stdout: streamStdout,
+            stderr: streamStderr,
+
+            async readOut(cb) {
+              return readStream(streamStdout, cb)
+            },
+
+            async readErr(cb) {
+              return readStream(streamStderr, cb)
+            },
           }
         },
 

@@ -1,6 +1,6 @@
 {
   "name": "@faasit/plugins",
-  "version": "0.0.0",
+  "version": "1.0.0",
   "license": "MIT",
   "type": "module",
   "engines": {
@@ -24,21 +24,21 @@
   "dependencies": {
     "@faasit/core": "workspace:^",
     "@faasit/std": "workspace:^",
-    "js-yaml": "^4.1.0"
-  },
-  "devDependencies": {
+    "js-yaml": "^4.1.0",
     "@alicloud/fc-open20210406": "^2.0.9",
     "@alicloud/openapi-client": "^0.4.6",
     "@alicloud/tea-util": "^1.4.7",
-    "@types/adm-zip": "^0.5.0",
-    "@types/dockerode": "^3.3.20",
-    "@types/dotenv": "^8.2.0",
-    "@types/js-yaml": "^4.0.5",
     "adm-zip": "^0.5.10",
     "axios": "^1.4.0",
     "dockerode": "^3.3.5",
     "dotenv": "^16.3.1",
     "tencentcloud-sdk-nodejs-scf": "^4.0.713",
     "zod": "^3.21.4"
+  },
+  "devDependencies": {
+    "@types/adm-zip": "^0.5.0",
+    "@types/dockerode": "^3.3.20",
+    "@types/dotenv": "^8.2.0",
+    "@types/js-yaml": "^4.0.5"
   }
 }

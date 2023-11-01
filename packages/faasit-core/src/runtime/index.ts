@@ -34,12 +34,18 @@ export interface StreamReader {
   [Symbol.asyncIterator](): AsyncIterableIterator<string>
 }
 
+export interface CommandProcess {
+  stdout: StreamReader | null
+  stderr: StreamReader | null
+  wait: () => Promise<{ exitcode: number }>
+
+  // helpers
+  readOut(cb: (v: string) => void): Promise<void>
+  readErr(cb: (v: string) => void): Promise<void>
+}
+
 export interface PluginRuntime {
-  runCommand(cmd: string, options?: { args?: string[], shell?: boolean, cwd?: string, stdio?: 'inherit' | 'pipe' }): {
-    stdout: StreamReader | null
-    stderr: StreamReader | null
-    wait: () => Promise<{ exitcode: number }>
-  }
+  runCommand(cmd: string, options?: { args?: string[], shell?: boolean, cwd?: string, stdio?: 'inherit' | 'pipe' }): CommandProcess
 
   joinPath(...path: string[]): string
   writeFile(path: string, content: string): Promise<void>

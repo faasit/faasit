@@ -1,5 +1,5 @@
 {
-  "name": "faasit-runtime",
+  "name": "@faasit/runtime",
   "version": "1.0.0",
   "description": "",
   "exports": {
@@ -8,11 +8,14 @@
       "require": "./dist/index.cjs"
     },
     "./operators": {
-      "types": "./dist/operators.d.ts",
       "import": "./dist/operators.mjs",
       "require": "./dist/operators.cjs"
     }
   },
+  "files": [
+    "dist/",
+    "operators.d.ts"
+  ],
   "types": "./dist/index.d.ts",
   "scripts": {
     "dev": "unbuild --stub",

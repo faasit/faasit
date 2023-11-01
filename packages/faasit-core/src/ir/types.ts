@@ -16,15 +16,6 @@ export type AtomicValue =
   | { $ir: { kind: 'v_float'; value: number }; }
   | { $ir: { kind: 'v_any'; value: any } }
 
-export type ObjectValue = {
-  $ir: {
-    kind: 'v_object'
-    props: {
-      key: string
-      value: Value
-    }[]
-  }
-}
 
 // types
 export const BuiltinScalarIds = ['string', 'bool', 'int', 'float', 'any', 'never', 'null', 'empty'] as const
@@ -35,11 +26,29 @@ export function isBuiltinScalarId(id: string): id is typeof BuiltinScalarIds[0] 
 }
 
 // values
+export type ObjectValue = {
+  $ir: {
+    kind: 'v_object'
+    props: {
+      key: string
+      value: Value
+    }[]
+  }
+}
 
 export type Value =
   | AtomicValue
   | { $ir: { kind: 'v_list'; items: Value[] } }
-  | ObjectValue
+  |
+  {
+    $ir: {
+      kind: 'v_object'
+      props: {
+        key: string
+        value: Value
+      }[]
+    }
+  }
   | Reference<unknown>
 
 export type EvaluatedValue = number | boolean | string | Reference | EvaluatedValue[] | { [key: string]: EvaluatedValue }

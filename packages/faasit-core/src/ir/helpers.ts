@@ -1,5 +1,5 @@
 import { AstNode } from 'langium'
-import { types } from '.'
+import * as types from './types'
 import { AppError, InternalError } from '../errors'
 import { ast } from '../parser'
 
@@ -94,7 +94,7 @@ class AstToIrConverter {
         $ir: {
           kind: 'b_custom',
           // todo: use symbol
-          block_type,
+          block_type: block_type as types.Reference<types.BlockBlock>,
           name: block.name || '',
           props: this.handlePropList(block.props),
         },

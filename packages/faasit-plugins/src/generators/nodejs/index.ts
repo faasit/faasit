@@ -16,7 +16,7 @@ export function JavascriptGeneratorPlugin(): faas.GeneratorPlugin {
       const generateEventDts = (): faas.GenerationItem => {
         const printer = new ft_utils.StringPrinter()
 
-        const printType = (typ: ir.types.Value) => {
+        const printType = (typ: ir.Types.Value) => {
 
           if (typeof typ === 'string') {
             throw new Error(`failed to print type, got string, typ=${typ}`)

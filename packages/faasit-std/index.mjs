@@ -1,1 +1,1 @@
-export * as faas from './dist/faas'
+export * as faas from './dist/faas.mjs'

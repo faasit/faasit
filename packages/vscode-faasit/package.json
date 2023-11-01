@@ -2,7 +2,7 @@
     "name": "vscode-faasit",
     "displayName": "FaasIt Language Support",
     "description": "Language support for FaasIt",
-    "version": "0.0.3",
+    "version": "1.0.0",
     "publisher": "brody715",
     "license": "MIT",
     "icon": "./images/logo.png",

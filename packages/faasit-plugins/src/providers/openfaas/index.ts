@@ -42,13 +42,11 @@ export default function OpenFaasPlugin(): faas.ProviderPlugin {
 
         const proc = rt.runCommand(`faas-cli up -f ${stackFile}`)
 
-        await Promise.all(
-          [proc.stdout, proc.stderr].map(async (v) => {
-            for await (const chunk of v) {
-              logger.info(chunk)
-            }
-          })
-        )
+        await Promise.all([
+          proc.readOut(v => logger.info(v)),
+          proc.readErr(v => logger.error(v))
+        ])
+
         await proc.wait()
 
         await rt.removeFile(stackFile)
@@ -64,14 +62,10 @@ export default function OpenFaasPlugin(): faas.ProviderPlugin {
         `echo "" | faas-cli invoke ${input.funcName} -g ${gateway}`
       )
 
-      await Promise.all(
-        [proc.stdout, proc.stderr].map(async (v) => {
-          for await (const chunk of v) {
-            logger.info(chunk)
-          }
-        })
-      )
-
+      await Promise.all([
+        proc.readOut(v => logger.info(v)),
+        proc.readErr(v => logger.error(v))
+      ])
       await proc.wait()
     },
   }

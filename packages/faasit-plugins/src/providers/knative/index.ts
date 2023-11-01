@@ -54,17 +54,10 @@ export default function KnativePlugin(): faas.ProviderPlugin {
           stdio: 'inherit'
         })
 
-        await Promise.all(
-          [proc.stdout, proc.stderr].map(async (v) => {
-            if (!v) {
-              return;
-            }
-
-            for await (const chunk of v) {
-              logger.info(chunk)
-            }
-          })
-        )
+        await Promise.all([
+          proc.readOut(v => logger.info(v)),
+          proc.readErr(v => logger.error(v))
+        ])
         await proc.wait()
 
         logger.info(`deployed function ${fn.$ir.name}`)

@@ -3,6 +3,8 @@ import { z } from 'zod'
 
 import { runtime } from '@faasit/core'
 
+type ObjectValue = ir.Types.ObjectValue;
+
 export interface GeneratorPluginContext { }
 
 export interface GenerationItem {
@@ -97,7 +99,7 @@ export async function resolveApplicationFromIr(opts: {
 }): Promise<Application> {
   const applicationBlock = opts.ir.packages[0].blocks.find(
     (b) => ir.types.isCustomBlock(b) && b.$ir.block_type.$ir.id === 'application'
-  ) as ir.types.CustomBlock
+  ) as ir.Types.CustomBlock
 
   if (!applicationBlock) {
     throw new Error(`no @application block`)

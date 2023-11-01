@@ -46,15 +46,21 @@ export default function LocalPlugin(): faas.ProviderPlugin {
             }
             await rt.writeFile("compose.yaml",yaml.dump(docker_compose_obj))
 
-            exec('docker-compose up -d', (error,stdout,stderr) => {
-                if (error) {
-                    logger.error('Error: '+ error)
-                } else {
-                    logger.info('Serverless Workflow deployed successfully')
-                    logger.info('Deployed URL: http://localhost:9000')
-                }
-            })
+            const proc = rt.runCommand(
+                `docker-compose up -d`
+              )
+            await Promise.all([
+                proc.readOut(v => logger.info(v)),
+                proc.readErr(v => logger.error(v))
+            ])
+            const { exitcode } = await proc.wait()
 
+            if (exitcode == 0) {
+                logger.info('Serverless Workflow deployed successfully')
+                logger.info('Deployed URL: http://localhost:9000')
+            } else {
+                logger.error('Error')
+            }
 
         },
         async invoke(input, ctx) {

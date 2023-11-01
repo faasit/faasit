@@ -3,7 +3,7 @@
     "private": true,
     "displayName": "Faasit Cloud Extension",
     "description": "Faasit Cloud Extension, contains FileSystemProvider impl & code samples",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "publisher": "brody715",
     "license": "MIT",
     "icon": "./images/logo.png",

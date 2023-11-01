@@ -11,21 +11,29 @@ export default function KnativePlugin(): faas.ProviderPlugin {
 
       logger.info(`deploy on knative`)
 
-      for (const fnRef of app.output.functions) {
+      const runOnce = async (fnRef: any) => {
         const fn = fnRef.value
         logger.info(`deploy function ${fn.$ir.name}`)
 
         const imageName = `${app.$ir.name}-${fn.$ir.name}`.toLowerCase()
 
+        const registry = 'reg.i2ec.top'
+
         const funcObj = {
           specVersion: "0.35.0",
           name: imageName,
           runtime: "node",
-          registry: "docker.io/cdd1037",
-          image: `docker.io/cdd1037/${imageName}:latest`,
+          registry: `${registry}/cdd1037`,
+          image: `${registry}/cdd1037/${imageName}:latest`,
           build: {
             builder: "pack",
             pvcSize: "256Mi",
+            builderImages: {
+              // pack: "reg.i2ec.top/library/ubuntu:20.04"
+              // pack: "reg.i2ec.top/knative/builder-jammy-base:latest"
+              // pack: "reg.i2ec.top/knative/builder-base-1:latest"
+              pack: "reg.i2ec.top/builder/i2ec-builder2:latest"
+            }
           },
           run: {
             envs: [
@@ -62,6 +70,14 @@ export default function KnativePlugin(): faas.ProviderPlugin {
 
         logger.info(`deployed function ${fn.$ir.name}`)
       }
+
+      const tasks = app.output.functions.map(
+        fn => runOnce(fn)
+      )
+      
+      await Promise.all(tasks)
+
+
     },
 
     async invoke(input, ctx) {

@@ -48,12 +48,29 @@ export async function main() {
   program
     .command('deploy')
     .description('deploy serverless application')
+    .option('--provider [string]', 'deploy on given provider')
     .action(async (p) => {
       const config = resolveConfigPath('')
       await engine
         .deploy({
           config,
           workingDir: process.cwd(),
+          ...p,
+        })
+        .catch(handleError)
+    })
+
+  program
+    .command('run')
+    .description('run serverless application once')
+    .option('--input.value [string]', 'input value in JSON format')
+    .action(async (p) => {
+      const config = resolveConfigPath('')
+      await engine
+        .run({
+          config,
+          workingDir: process.cwd(),
+          ...p,
         })
         .catch(handleError)
     })

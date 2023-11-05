@@ -1,7 +1,9 @@
-import { FaasitRuntime } from "faasit-runtime"
+/**
+ * @typedef {import('@faasit/runtime').FaasitRuntime} FaasitRuntime
+ */
 
 /**
- * @param {FaasitRuntime} frt 
+ * @param {FaasitRuntime} frt
  */
 export async function count (frt) {
   const { words } = frt.input()
@@ -19,7 +21,7 @@ export async function count (frt) {
 }
 
 /**
- * @param {FaasitRuntime} frt 
+ * @param {FaasitRuntime} frt
  */
 export async function sort (frt) {
   const counterArray = frt.input().counter
@@ -60,7 +62,7 @@ export async function split (frt) {
 
 /** @param {FaasitRuntime} frt */
 export async function executor (frt) {
-  const { text, batchSize } = frt.input()
+  const { text, batchSize = 10 } = frt.input()
 
   /** @type {string[]} */
   const words = (await frt.call('split', { input: { text } })).output.words

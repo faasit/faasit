@@ -249,7 +249,7 @@ export const BlockBlockSchema: z.ZodType<BlockBlock> = z.object({
   }),
 })
 
-export function CustomBlockSchemaT<T>(schema: z.ZodType<T>): z.ZodType<CustomBlock<T>> {
+export function CustomBlockSchemaT<K extends z.ZodType>(schema: K): z.ZodType<CustomBlock<z.output<K>>> {
   return z.object({
     $ir: z.object({
       kind: z.literal('b_custom'),
@@ -263,7 +263,13 @@ export function CustomBlockSchemaT<T>(schema: z.ZodType<T>): z.ZodType<CustomBlo
       ),
     }),
     output: schema
-  }) as z.ZodType<CustomBlock<T>>
+  }) as z.ZodType<CustomBlock<z.output<K>>>
+}
+
+export function CustomBlockSchemaWithExtraT<T>(schema: z.ZodType<T>): z.ZodType<CustomBlock<Record<string, unknown> & T>> {
+  return CustomBlockSchemaT(z.intersection(
+    schema, z.record(z.string(), z.any())
+  ))
 }
 
 

@@ -30,21 +30,27 @@ export interface ProviderPluginContext {
   logger: runtime.PluginLogger
 }
 
+export interface ProviderDeployInput {
+  app: Application
+  // used to dynamic set different provider
+  provider: Provider
+}
+
+export interface ProviderInvokeInput {
+  app: Application
+  funcName: string
+}
+
 export interface ProviderPlugin {
   name: string
 
   deploy?: (
-    input: {
-      app: Application
-    },
+    input: ProviderDeployInput,
     ctx: ProviderPluginContext
   ) => Promise<void>
 
   invoke?: (
-    input: {
-      app: Application
-      funcName: string
-    },
+    input: ProviderInvokeInput,
     ctx: ProviderPluginContext
   ) => Promise<void>
 }
@@ -56,7 +62,7 @@ export const EventSchema = ir.types.CustomBlockSchemaT(z.object({
 
 export type Event = z.infer<typeof EventSchema>
 
-const ProviderSchema = ir.types.CustomBlockSchemaT(z.object({
+const ProviderSchema = ir.types.CustomBlockSchemaWithExtraT(z.object({
   kind: z.string(),
 }))
 
@@ -67,7 +73,7 @@ const FunctionTriggerSchema = z.object({
 
 const FunctionSchema = ir.types.CustomBlockSchemaT(z.object({
   runtime: z.string(),
-  codeDir: z.string(),
+  codeDir: z.string().default(""),
   handler: z.string().optional(),
   resource: z.object({
     cpu: z.string(),
@@ -80,15 +86,28 @@ const FunctionSchema = ir.types.CustomBlockSchemaT(z.object({
   role: z.string().optional(),
 }))
 
+const WorkflowSchema = ir.types.CustomBlockSchemaT(z.object({
+  functions: z.array(ir.types.ReferenceSchemaT(FunctionSchema)),
+
+  // workflow spec runtime and codeDir
+  runtime: z.string(),
+  codeDir: z.string()
+}))
+
 const ApplicationSchema = ir.types.CustomBlockSchemaT(z.object({
   name: z.string().optional(),
   defaultProvider: ir.types.ReferenceSchemaT(ProviderSchema),
-  functions: z.array(ir.types.ReferenceSchemaT(FunctionSchema)),
+  functions: z.array(ir.types.ReferenceSchemaT(FunctionSchema)).default(() => []),
+  workflow: ir.types.ReferenceSchemaT(WorkflowSchema).optional(),
+  inputExamples: z.array(z.object({
+    value: z.unknown()
+  })).default(() => [])
 }))
 
-export type Application = z.infer<typeof ApplicationSchema>
-export type FunctionType = z.infer<typeof FunctionSchema>
-export type FunctionTrigger = z.infer<typeof FunctionTriggerSchema>
+export type Provider = z.output<typeof ProviderSchema>
+export type Application = z.output<typeof ApplicationSchema>
+export type FunctionType = z.output<typeof FunctionSchema>
+export type FunctionTrigger = z.output<typeof FunctionTriggerSchema>
 
 export function parseApplication(o: unknown): Application {
   return ApplicationSchema.parse(o)

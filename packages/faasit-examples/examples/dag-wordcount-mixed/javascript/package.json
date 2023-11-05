@@ -7,6 +7,6 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "faasit-runtime": "../../../../faasit-runtime/javascript"
+    "@faasit/runtime": "../../../../faasit-runtime/javascript"
   }
 }

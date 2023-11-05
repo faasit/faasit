@@ -26,7 +26,8 @@ async function getProviderPlugin(name: string): Promise<faas.ProviderPlugin> {
     aliyun: () => providers.aliyun.default(),
     tencentyun: () => providers.tencentyun.default(),
     knative: () => providers.knative.default(),
-    local: () => providers.local.default()
+    local: () => providers.local.default(),
+    'local-once': () => providers.local_once.default(),
   } as const
 
   const isPluginName = (name: string): name is keyof typeof plugins => {
@@ -105,13 +106,61 @@ export class Engine {
     this.logger.info(`create project ${projectDir}`)
   }
 
-  async deploy(opts: { config: string; workingDir: string }) {
+  async deploy(opts: { config: string; workingDir: string; provider?: string }) {
     const app = await this.resolveApplication(opts)
+    let provider = app.output.defaultProvider.value
+
+    if (opts.provider) {
+      throw new Error(`not implemented to select provider dynamically`)
+    }
 
     const plugin = await getProviderPlugin(app.output.defaultProvider.value.output.kind)
 
     if (plugin.deploy) {
-      await plugin.deploy({ app }, this.getPluginRuntime())
+      await plugin.deploy({ app, provider }, this.getPluginRuntime())
+    }
+  }
+
+  async run(opts: { config: string, workingDir: string, 'input.value': string }) {
+    const rt = this.getPluginRuntime()
+    const app = await this.resolveApplication(opts)
+
+    // use local-once provider to simulate run locally
+    const providerKind = `local-once`
+
+    // use input examples as default
+    let value = app.output.inputExamples[0]?.value
+    if (opts['input.value']) {
+      value = JSON.parse(opts['input.value'])
+    }
+
+    if (value == undefined) {
+      rt.logger.warn(`no input value provided, use '--input.value' to specify the input value in json format`)
+    }
+
+
+    const provider = {
+      '$ir': {
+        kind: 'b_custom',
+        block_type: {
+          '$ir': { kind: 'r_ref', id: 'provider' },
+          value: { $ir: { kind: 'b_block', name: 'provider', props: [] } }
+        },
+        name: '',
+        props: []
+      },
+      output: {
+        kind: providerKind,
+        input: {
+          value
+        }
+      }
+    } as faas.Provider
+
+    const plugin = await getProviderPlugin(providerKind)
+
+    if (plugin.deploy) {
+      await plugin.deploy({ app, provider }, rt)
     }
   }
 

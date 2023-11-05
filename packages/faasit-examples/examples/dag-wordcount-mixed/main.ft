@@ -4,20 +4,18 @@ import (
 
 @function split {
   runtime = "nodejs"
-  slot = true
 }
 
 @function sort {
   runtime = "nodejs"
-  slot = true
 }
 
 @function count {
   runtime = "nodejs"
-  slot = true
 }
 
 @workflow WordCountFlow {
+  // env.FAASIT_WORKFLOW_FUNC = split
   functions = [split, sort, count]
 
   // workflow spec runtime
@@ -28,12 +26,22 @@ import (
 @application WordCount {
   workflow = WordCountFlow
   defaultProvider = Local
+
+  // used by `ft run`
+  inputExamples = [
+    {
+      value = {
+        text = "Hello world this is a happy day"
+        batchSize = 3
+      }
+    }
+  ]
 }
 
 @provider Local {
-  type = "local"
+  kind = "local"
 }
 
 @provider Knative {
-  type = "knative"
+  kind = "knative"
 }

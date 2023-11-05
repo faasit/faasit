@@ -1,19 +1,12 @@
-import { createExports, createWorkflow } from "faasit-runtime"
+import { createExports, createWorkflow } from "@faasit/runtime"
 import * as functions from './functions.mjs'
 
-import { pipe, parallel, forkjoin } from "faasit-runtime/operators"
-
 const workflow = createWorkflow((builder) => {
-  builder.slot('split').set_handler(functions.split)
-  builder.slot('count').set_handler(functions.sort)
-  builder.slot('sort').set_handler(functions.count)
+  builder.func('split').set_handler(functions.split)
+  builder.func('count').set_handler(functions.count)
+  builder.func('sort').set_handler(functions.sort)
 
   builder.executor().set_custom_handler(functions.executor)
-
-  // TODO: declarative
-  builder.executor().set_declarative(() => {
-    pipe('split', 'count', () => {})
-  })
 
   return builder.build()
 })

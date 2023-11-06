@@ -104,9 +104,10 @@ const ApplicationSchema = ir.types.CustomBlockSchemaT(z.object({
   })).default(() => [])
 }))
 
+export type Workflow = z.output<typeof WorkflowSchema>
 export type Provider = z.output<typeof ProviderSchema>
 export type Application = z.output<typeof ApplicationSchema>
-export type FunctionType = z.output<typeof FunctionSchema>
+export type Function = z.output<typeof FunctionSchema>
 export type FunctionTrigger = z.output<typeof FunctionTriggerSchema>
 
 export function parseApplication(o: unknown): Application {

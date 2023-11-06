@@ -1,6 +1,6 @@
 // For tencentyun provider, transform data from standard IR to params which tencentyun API can use.
 
-import { FunctionTrigger, FunctionType } from '@faasit/std/src/faas'
+import { FunctionTrigger, Function } from '@faasit/std/src/faas'
 import Admzip from 'adm-zip'
 
 function zipFolderAndEncode(folderPath: string) {
@@ -11,7 +11,7 @@ function zipFolderAndEncode(folderPath: string) {
   return base64
 }
 
-export function transformCreateFunctionParams(fn: FunctionType) {
+export function transformCreateFunctionParams(fn: Function) {
   return {
     FunctionName: fn.name,
     Code: {
@@ -24,7 +24,7 @@ export function transformCreateFunctionParams(fn: FunctionType) {
   }
 }
 
-export function transformUpdateFunctionParams(fn: FunctionType) {
+export function transformUpdateFunctionParams(fn: Function) {
   return {
     FunctionName: fn.name,
     Code: {

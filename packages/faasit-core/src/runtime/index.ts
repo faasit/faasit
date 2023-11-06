@@ -50,6 +50,7 @@ export interface PluginRuntime {
   joinPath(...path: string[]): string
   writeFile(path: string, content: string): Promise<void>
   removeFile(path: string): Promise<void>
+  fileExists(path: string): Promise<boolean>
 }
 
 export interface PluginLogger {

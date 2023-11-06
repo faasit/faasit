@@ -311,6 +311,15 @@ export class Engine {
         async removeFile(path) {
           await fs.unlink(path)
         },
+
+        async fileExists(path) {
+          try {
+            const stat = await fs.lstat(path)
+            return stat.isFile()
+          } catch (e) {
+            return false
+          }
+        },
       },
       logger: this.logger,
     }

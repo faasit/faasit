@@ -1,5 +1,5 @@
-import { createExports, createWorkflow } from "@faasit/runtime"
-import * as functions from './functions.mjs'
+const { createExports, createWorkflow } = require('@faasit/runtime')
+const functions = require('./functions')
 
 const workflow = createWorkflow((builder) => {
   builder.func('split').set_handler(functions.split)
@@ -11,4 +11,4 @@ const workflow = createWorkflow((builder) => {
   return builder.build()
 })
 
-export default createExports({ workflow })
+module.exports = createExports({ workflow })

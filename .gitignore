@@ -236,3 +236,4 @@ template/
 
 .func/
 func.yaml
+.vscode/sftp.json

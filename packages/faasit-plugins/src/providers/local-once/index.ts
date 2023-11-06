@@ -21,9 +21,9 @@ class LocalOnceProvider implements faas.ProviderPlugin {
     )
     const inputData = onceProvider.output.input.value
 
-    const workflowRef = app.output.workflow
-    if (workflowRef) {
-      await this.runWorkflow(ctx, inputData, workflowRef.value)
+    if (faas.isWorkflowApplication(app)) {
+      const workflow = app.output.workflow.value
+      await this.deployWorkflow(ctx, inputData, workflow)
       return
     }
 
@@ -32,7 +32,7 @@ class LocalOnceProvider implements faas.ProviderPlugin {
       throw new Error(`no functions provided`)
     }
 
-    await this.runFunction(ctx, inputData, func.value)
+    await this.deployFunction(ctx, inputData, func.value)
   }
 
   async invoke(input: faas.ProviderInvokeInput, ctx: faas.ProviderPluginContext) {
@@ -40,7 +40,7 @@ class LocalOnceProvider implements faas.ProviderPlugin {
   }
 
   // helpers
-  async runWorkflow(ctx: faas.ProviderPluginContext, inputData: unknown, workflowBlk: faas.Workflow) {
+  async deployWorkflow(ctx: faas.ProviderPluginContext, inputData: unknown, workflowBlk: faas.Workflow) {
     const { logger } = ctx
     const workflow = workflowBlk.output
     assert(workflow.runtime === 'nodejs')
@@ -50,13 +50,12 @@ class LocalOnceProvider implements faas.ProviderPlugin {
     logger.info(`workflow executed, output=${JSON.stringify(output)}`)
   }
 
-  async runFunction(ctx: faas.ProviderPluginContext, inputData: unknown, fn: faas.Function) {
+  async deployFunction(ctx: faas.ProviderPluginContext, inputData: unknown, fn: faas.Function) {
     const { logger } = ctx
 
     logger.info(`run function locally, use input=${JSON.stringify(inputData)}`)
     const output = await this.executeJsCode(ctx, 'func', fn.$ir.name, fn.output.codeDir, inputData)
     logger.info(`function executed, output=${JSON.stringify(output)}`)
-
   }
 
   async executeJsCode(ctx: faas.ProviderPluginContext, type: string, name: string, codeDir: string, inputData: unknown) {
@@ -66,16 +65,20 @@ class LocalOnceProvider implements faas.ProviderPlugin {
 
     const dir = path.resolve(process.cwd(), codeDir)
     let moduleId = dir
+    let moduleType: 'commonjs' | 'es6' = 'commonjs'
 
     // if index.mjs exists
     if (await ctx.rt.fileExists(path.resolve(dir, 'index.mjs'))) {
       moduleId = path.resolve(dir, 'index.mjs')
+      moduleType = 'es6'
     } else {
       moduleId = path.resolve(dir, 'index.js')
+      moduleType = 'commonjs'
     }
 
     const code = await import(moduleId)
-    const output = await code.default.handler(inputData)
+    const handler = moduleType == 'commonjs' ? code.handler : code.default.handler
+    const output = await handler(inputData)
     return output
   }
 }

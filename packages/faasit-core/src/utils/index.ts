@@ -124,3 +124,39 @@ export class StringPrinter {
     return this.buffer
   }
 }
+
+// async pool
+export async function* asyncPool<T, R>(concurrency: number, iterable: Iterable<T>, iteratorFn: (v: T, arr: Iterable<T>) => Promise<R>): AsyncIterableIterator<R> {
+  // copy from https://github.com/rxaviers/async-pool/blob/master/lib/es9.js
+  const executing = new Set();
+  async function consume() {
+    // @ts-ignore
+    const [promise, value] = await Promise.race(executing);
+    executing.delete(promise);
+    return value;
+  }
+  for (const item of iterable) {
+    // Wrap iteratorFn() in an async fn to ensure we get a promise.
+    // Then expose such promise, so it's possible to later reference and
+    // remove it from the executing pool.
+    // @ts-ignore
+    const promise = (async () => await iteratorFn(item, iterable))().then(
+      value => [promise, value]
+    );
+    executing.add(promise);
+    if (executing.size >= concurrency) {
+      yield await consume();
+    }
+  }
+  while (executing.size) {
+    yield await consume();
+  }
+}
+
+export async function asyncPoolAll<T, R>(concurrency: number, iterable: Iterable<T>, iteratorFn: (v: T) => Promise<R>): Promise<R[]> {
+  const results: R[] = [];
+  for await (const result of asyncPool(concurrency, iterable, iteratorFn)) {
+    results.push(result);
+  }
+  return results;
+}

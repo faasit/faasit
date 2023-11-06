@@ -44,7 +44,22 @@ node $FAASIT_SRC_HOME/packages/faasit/bin/faasit.cjs "$@"
 cd packages/faasit-examples/examples/nodejs-hello
 
 # 将 DSL 转换为 IR
-ft compile main.ft
+ft eval main.ft
+
+# 部署函数到云平台
+ft deploy
+
+# 调用部署好的函数
+ft invoke
+
+# 在本地运行 Function & Workflow
+ft run
+
+# 执行代码生成
+ft codegen
+
+# 新建 Function 项目目录
+ft init
 ```
 
 ## Development

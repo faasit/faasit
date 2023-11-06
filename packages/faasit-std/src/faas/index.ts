@@ -110,6 +110,13 @@ export type Application = z.output<typeof ApplicationSchema>
 export type Function = z.output<typeof FunctionSchema>
 export type FunctionTrigger = z.output<typeof FunctionTriggerSchema>
 
+// special application
+export type WorkflowApplication = Application & { output: { workflow: ir.Types.Reference<Workflow> } }
+
+export function isWorkflowApplication(app: Application): app is WorkflowApplication {
+  return app.output.workflow != undefined
+}
+
 export function parseApplication(o: unknown): Application {
   return ApplicationSchema.parse(o)
 }

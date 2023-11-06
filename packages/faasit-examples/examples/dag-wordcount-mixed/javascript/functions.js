@@ -5,7 +5,7 @@
 /**
  * @param {FaasitRuntime} frt
  */
-export async function count (frt) {
+async function count (frt) {
   const { words } = frt.input()
 
   const counter = new Map()
@@ -23,7 +23,7 @@ export async function count (frt) {
 /**
  * @param {FaasitRuntime} frt
  */
-export async function sort (frt) {
+async function sort (frt) {
   const counterArray = frt.input().counter
 
   const counter = new Map()
@@ -49,7 +49,7 @@ export async function sort (frt) {
 /**
  * @param {FaasitRuntime} frt
  */
-export async function split (frt) {
+async function split (frt) {
   const { text } = frt.input()
 
   const words = text.split(/[\s,\.]/)
@@ -61,7 +61,7 @@ export async function split (frt) {
 }
 
 /** @param {FaasitRuntime} frt */
-export async function executor (frt) {
+async function executor (frt) {
   const { text, batchSize = 10 } = frt.input()
 
   /** @type {string[]} */
@@ -86,3 +86,5 @@ export async function executor (frt) {
     result: result.output
   })
 }
+
+module.exports = { count, sort, split, executor }

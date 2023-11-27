@@ -11,6 +11,7 @@ export type { FaasitRuntime };
 
 type HandlerType = (frt: FaasitRuntime) => any
 
+
 export function createFunction(fn: HandlerType) {
   const containerConf = getFunctionContainerConfig()
 
@@ -88,4 +89,12 @@ export function createExports(obj: { handler: unknown } | { workflow: WorkflowSp
   }
 
   return obj
+}
+
+
+// helpers
+export function defineHandler(fn: HandlerType): HandlerType { return fn }
+
+export function defineFunctionNames<K extends string>(obj: Record<K, unknown>): Record<K, string> {
+  return Object.fromEntries(Object.keys(obj).map(v => [v, v])) as Record<K, string>
 }

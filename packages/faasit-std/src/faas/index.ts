@@ -1,6 +1,5 @@
 import { ir } from '@faasit/core'
 import { z } from 'zod'
-
 import { runtime } from '@faasit/core'
 
 type ObjectValue = ir.Types.ObjectValue;
@@ -26,6 +25,7 @@ export interface GeneratorPlugin {
 }
 
 export interface ProviderPluginContext {
+  cwd: string
   rt: runtime.PluginRuntime
   logger: runtime.PluginLogger
 }

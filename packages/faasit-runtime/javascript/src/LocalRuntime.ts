@@ -1,5 +1,5 @@
 import axios from "axios";
-import { FaasitRuntime } from "./FaasitRuntime";
+import { CallResult, FaasitRuntime } from "./FaasitRuntime";
 
 export class LocalRuntime implements FaasitRuntime {
     private event: any;
@@ -9,13 +9,13 @@ export class LocalRuntime implements FaasitRuntime {
     async call(fnName: string, fnParams: {
         sequence?: number;
         input: object;
-    }): Promise<object> {
+    }): Promise<CallResult> {
         console.log("call funtion");
         const axiosInstance = axios.create();
         const url = `http://master:9000/${fnName}`
-        const resp = await axiosInstance.post(url,fnParams.input)
+        const resp = await axiosInstance.post(url, fnParams.input)
         console.log(resp.data);
-        return {output: resp.data};
+        return { output: resp.data };
     }
 
     input() {

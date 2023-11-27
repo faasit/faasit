@@ -1,0 +1,46 @@
+import (
+  . "std/faas"
+)
+
+@function split {
+  runtime = "nodejs"
+}
+
+@function compute {
+  runtime = "nodejs"
+}
+
+@function merge {
+  runtime = "nodejs"
+}
+
+@workflow ParallelSVDFlow {
+  functions = [split, compute, merge]
+
+  // workflow spec runtime
+  runtime = "nodejs"
+  codeDir = "./javascript"
+}
+
+@application ParallelSVD {
+  workflow = ParallelSVDFlow
+  defaultProvider = Knative
+
+  // used by `ft run`
+  inputExamples = [
+    {
+      value = {
+        X = [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+        numSplits = 3
+      }
+    }
+  ]
+}
+
+@provider Local {
+  kind = "local"
+}
+
+@provider Knative {
+  kind = "knative"
+}

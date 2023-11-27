@@ -1,0 +1,39 @@
+@startuml provider-plugin
+
+class Application {
+  +functions
+}
+class Provider {
+  +kind
+}
+
+class ProviderDeployInput {
+  +app: Application
+  +provider: Provider
+}
+
+ProviderDeployInput *-- Application
+ProviderDeployInput *-- Provider
+
+class ProviderInvokeInput {
+  +app: Application
+  +funcName: string
+}
+
+class PluginRuntime {}
+class ProviderPluginContext {
+  rt: PluginRuntime
+}
+
+ProviderPluginContext *-- PluginRuntime
+
+interface ProviderPlugin {
+  +deploy(input, ctx)
+  +invoke(input, ctx)
+}
+
+ProviderPlugin *-- ProviderPluginContext
+ProviderPlugin *-- ProviderDeployInput
+ProviderPlugin *-- ProviderInvokeInput
+
+@enduml

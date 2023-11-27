@@ -1,4 +1,4 @@
-import { FaasitRuntime } from "./FaasitRuntime";
+import { CallResult, FaasitRuntime } from "./FaasitRuntime";
 import { WorkflowFunc } from "./Workflow"
 
 // Run function in a local and unit scope
@@ -16,7 +16,7 @@ export class LocalOnceRuntime implements FaasitRuntime {
   output(returnObject: any): object {
     return returnObject
   }
-  async call(fnName: string, fnParams: { sequence?: number | undefined; input: object; }): Promise<object> {
+  async call(fnName: string, fnParams: { sequence?: number | undefined; input: object; }): Promise<CallResult> {
     const func = this.funcMap.get(fnName)
     if (!func) {
       throw new Error(`unknown function to call, name=${fnName}`)

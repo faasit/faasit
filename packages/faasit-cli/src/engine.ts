@@ -117,12 +117,12 @@ export class Engine {
     const plugin = await getProviderPlugin(app.output.defaultProvider.value.output.kind)
 
     if (plugin.deploy) {
-      await plugin.deploy({ app, provider }, this.getPluginRuntime())
+      await plugin.deploy({ app, provider }, this.getPluginRuntime(opts))
     }
   }
 
   async run(opts: { config: string, workingDir: string, 'input.value': string }) {
-    const rt = this.getPluginRuntime()
+    const rt = this.getPluginRuntime(opts)
     const app = await this.resolveApplication(opts)
 
     // use local-once provider to simulate run locally
@@ -137,7 +137,6 @@ export class Engine {
     if (value == undefined) {
       rt.logger.warn(`no input value provided, use '--input.value' to specify the input value in json format`)
     }
-
 
     const provider = {
       '$ir': {
@@ -236,7 +235,7 @@ export class Engine {
     if (generator.generate) {
       const result = await generator.generate(
         { app, irSpec },
-        this.getPluginRuntime()
+        this.getPluginRuntime(opts)
       )
 
       this.logger.info(`Write the code generation results to the code/gen/`)
@@ -248,8 +247,9 @@ export class Engine {
     }
   }
 
-  private getPluginRuntime(): faas.ProviderPluginContext {
+  private getPluginRuntime(opts: { workingDir: string }): faas.ProviderPluginContext {
     return {
+      cwd: opts.workingDir,
       rt: {
         runCommand(cmd, options) {
           const { args = [], ...rest } = options || {}

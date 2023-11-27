@@ -1,4 +1,4 @@
-import { FaasitRuntime } from "./FaasitRuntime";
+import { CallResult, FaasitRuntime } from "./FaasitRuntime";
 import axios from "axios";
 
 // TODO: KnativeRuntime
@@ -13,7 +13,7 @@ export class KnativeRuntime implements FaasitRuntime {
     async call(fnName: string, fnParams?: {
         sequence?: number;
         input: object;
-    }): Promise<object> {
+    }): Promise<CallResult> {
         const res = await this.invokeKnativeFunction(fnName, fnParams?.input);
         const result = res.data;
         return { output: result };

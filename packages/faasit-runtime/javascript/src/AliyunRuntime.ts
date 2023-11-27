@@ -1,4 +1,4 @@
-import { FaasitRuntime } from "./FaasitRuntime";
+import { CallResult, FaasitRuntime } from "./FaasitRuntime";
 import FC_Open20210406, * as $FC_Open20210406 from '@alicloud/fc-open20210406';
 import * as $OpenApi from '@alicloud/openapi-client';
 import Util, * as $Util from '@alicloud/tea-util';
@@ -16,7 +16,7 @@ export class AliyunRuntime implements FaasitRuntime {
     async call(fnName: string, fnParams?: {
         sequence?: number;
         input: object;
-    }): Promise<object> {
+    }): Promise<CallResult> {
         const res = await this.invokeAliyunFunction(fnName, fnParams?.input);
         const result = res.body.toString();
         return { output: JSON.parse(result) };

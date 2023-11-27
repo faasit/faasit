@@ -22,16 +22,19 @@
     "test:unit": "vitest"
   },
   "dependencies": {
-    "@faasit/core": "workspace:^",
-    "@faasit/std": "workspace:^",
-    "js-yaml": "^4.1.0",
     "@alicloud/fc-open20210406": "^2.0.9",
     "@alicloud/openapi-client": "^0.4.6",
     "@alicloud/tea-util": "^1.4.7",
+    "@faasit/core": "workspace:^",
+    "@faasit/std": "workspace:^",
     "adm-zip": "^0.5.10",
     "axios": "^1.4.0",
     "dockerode": "^3.3.5",
     "dotenv": "^16.3.1",
+    "fs-extra": "^11.1.1",
+    "globby": "^13.2.2",
+    "ignore": "^5.2.4",
+    "js-yaml": "^4.1.0",
     "tencentcloud-sdk-nodejs-scf": "^4.0.713",
     "zod": "^3.21.4"
   },
@@ -39,6 +42,7 @@
     "@types/adm-zip": "^0.5.0",
     "@types/dockerode": "^3.3.20",
     "@types/dotenv": "^8.2.0",
+    "@types/fs-extra": "^11.0.1",
     "@types/js-yaml": "^4.0.5"
   }
 }

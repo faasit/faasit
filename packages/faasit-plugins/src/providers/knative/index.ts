@@ -3,9 +3,13 @@ import { faas } from '@faasit/std'
 import axios from 'axios'
 import yaml from 'js-yaml'
 
+import * as plugin_utils from '../../utils'
+import path from 'path'
+
 interface DeployParams {
   ctx: faas.ProviderPluginContext
   input: faas.ProviderDeployInput
+  providerDataDir: string
 }
 
 interface DeployFunctionParams {
@@ -18,10 +22,11 @@ class KnativeProvider implements faas.ProviderPlugin {
   name: string = 'knative'
 
   async deploy(input: faas.ProviderDeployInput, ctx: faas.ProviderPluginContext) {
+    const providerDataDir = await plugin_utils.mkdir(path.resolve(ctx.cwd, '.ft', 'providers', this.name))
     if (faas.isWorkflowApplication(input.app)) {
-      return this.deployWorkflowApp({ ctx, input }, input.app)
+      return this.deployWorkflowApp({ ctx, input, providerDataDir }, input.app)
     }
-    return this.deployFunctionApp({ ctx, input })
+    return this.deployFunctionApp({ ctx, input, providerDataDir })
   }
 
   async invoke(input: faas.ProviderInvokeInput, ctx: faas.ProviderPluginContext) {
@@ -105,13 +110,11 @@ class KnativeProvider implements faas.ProviderPlugin {
     name: string
     codeDir: string
   }) {
-
     const { rt, logger } = p.ctx
 
     logger.info(`  > deploy function ${fnParams.name}`)
 
     const imageName = `${p.input.app.$ir.name}-${fnParams.name}`.toLowerCase()
-
     const registry = 'reg.i2ec.top'
 
     const funcObj = {
@@ -156,7 +159,6 @@ class KnativeProvider implements faas.ProviderPlugin {
     }
 
     const funcFile = `${fnParams.codeDir}/func.yaml`
-
     await rt.writeFile(funcFile, yaml.dump(funcObj))
 
     const proc = rt.runCommand(`kn func deploy -n faasit`, {

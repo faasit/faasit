@@ -45,7 +45,12 @@ class LocalOnceProvider implements faas.ProviderPlugin {
     const workflow = workflowBlk.output
     assert(workflow.runtime === 'nodejs')
 
-    logger.info(`running workflow locally, use input=${JSON.stringify(inputData)}`)
+    const inputJSON = JSON.stringify(inputData)
+    if (inputJSON.length < 100) {
+      logger.info(`running workflow locally, use input=${inputJSON}`)
+    } else {
+      logger.info(`running workflow locally`)
+    }
     const output = await this.executeJsCode(ctx, 'executor', 'executor', workflow.codeDir, inputData)
     logger.info(`workflow executed, output=${JSON.stringify(output)}`)
   }

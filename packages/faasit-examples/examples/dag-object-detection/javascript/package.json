@@ -1,0 +1,16 @@
+{
+  "name": "dag-wordcount-mixed",
+  "version": "1.0.0",
+  "description": "",
+  "main": "workflow.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@faasit/runtime": "../../../../faasit-runtime/javascript"
+  },
+  "dependencies": {
+    "@tensorflow-models/coco-ssd": "^2.2.3",
+    "@tensorflow/tfjs-node": "^4.13.0"
+  }
+}

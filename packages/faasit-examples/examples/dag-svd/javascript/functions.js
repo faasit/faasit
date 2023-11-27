@@ -44,22 +44,19 @@ const merge = defineHandler(async (frt) => {
   const U = numeric.dot(U_tilde, svdY.U);
   const S = svdY.S;
   const V = svdY.V;
-  return { U, S, V }
+  return { S, V }
 })
 
 const executor = defineHandler(async (frt) => {
   const { X, numSplits = 3 } = frt.input()
-
   const { output: { subXs } } = await frt.call('split', {
     input: { X, numSplits }
   })
-
 
   const tasks = subXs.map((Xi, i) => frt.call('compute', {
     sequence: i,
     input: { Xi }
   }))
-
   const compResults = (await Promise.all(tasks)).flatMap(o => o.output.result)
 
   const finalResult = await frt.call('merge', {

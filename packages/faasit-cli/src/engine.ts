@@ -121,7 +121,7 @@ export class Engine {
     }
   }
 
-  async run(opts: { config: string, workingDir: string, 'input.value': string }) {
+  async run(opts: { config: string, workingDir: string, 'input.value': string, example: number }) {
     const rt = this.getPluginRuntime(opts)
     const app = await this.resolveApplication(opts)
 
@@ -129,9 +129,11 @@ export class Engine {
     const providerKind = `local-once`
 
     // use input examples as default
-    let value = app.output.inputExamples[0]?.value
+    let value = app.output.inputExamples[opts.example]?.value
     if (opts['input.value']) {
       value = JSON.parse(opts['input.value'])
+    } else {
+      value = await this.transformInputValue(value)
     }
 
     if (value == undefined) {
@@ -174,7 +176,7 @@ export class Engine {
         // get first function
         funcName = app.output.functions[0].value.$ir.name
       }
-      await plugin.invoke({ app, funcName }, this.getPluginRuntime())
+      await plugin.invoke({ app, funcName }, this.getPluginRuntime(opts))
     }
   }
 
@@ -398,5 +400,41 @@ export class Engine {
     })
 
     await Promise.all(tasks)
+  }
+
+
+  // hacky way to handle file loading
+  async transformInputValue(value: unknown): Promise<unknown> {
+    // handle special ir first
+    if (ir.types.isBaseEirNode(value)) {
+      if (ir.types.isTypeCallValue(value)) {
+        if (value.$ir.callee.value.$ir.name === 'file') {
+          // load file
+          const file = value.args![0] as string
+
+          const content = await fs.readFile(file, { encoding: 'base64' })
+          const ext = path.extname(file)
+          // to base64 with type
+          return {
+            path: file,
+            ext,
+            base64: content
+          }
+        }
+      }
+
+      return value
+    }
+
+    // recursively transform
+    if (typeof value === 'object' && value !== null) {
+      let obj: Record<string, unknown> = {}
+      for (const [key, val] of Object.entries(value)) {
+        obj[key] = await this.transformInputValue(val)
+      }
+      return obj
+    }
+
+    return value
   }
 }

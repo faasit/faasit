@@ -36,6 +36,16 @@ export type ObjectValue = {
   }
 }
 
+export type TypeCallValue = {
+  $ir: {
+    kind: 'v_typecall'
+    callee: Reference<ScalarBlock>,
+    args: Value[]
+  }
+  // evaluated
+  args?: unknown[]
+}
+
 export type Value =
   | AtomicValue
   | { $ir: { kind: 'v_list'; items: Value[] } }
@@ -48,7 +58,8 @@ export type Value =
         value: Value
       }[]
     }
-  }
+  } |
+  TypeCallValue
   | Reference<unknown>
 
 export type EvaluatedValue = number | boolean | string | Reference | EvaluatedValue[] | { [key: string]: EvaluatedValue }
@@ -146,6 +157,10 @@ export function isCustomBlock(v: BaseEirNode): v is CustomBlock {
   return v.$ir.kind === 'b_custom'
 }
 
+export function isTypeCallValue(v: BaseEirNode): v is TypeCallValue {
+  return v.$ir.kind === 'v_typecall'
+}
+
 export function isBaseEirNode(v: unknown): v is BaseEirNode {
   if (typeof v !== 'object' || v == null) {
     return false
@@ -204,6 +219,14 @@ export const ObjectValueSchema: z.ZodType<ObjectValue> = z.object({
   })
 })
 
+export const TypeCallValueSchema: z.ZodType<TypeCallValue> = z.object({
+  $ir: z.object({
+    kind: z.literal('v_typecall'),
+    callee: ReferenceSchemaT(z.any()),
+    args: z.array(z.lazy(() => ValueSchema))
+  })
+})
+
 // we should declare type first to use recursive schema
 export const ValueSchema: z.ZodType<Value> = z.union([
   z.object({
@@ -230,6 +253,7 @@ export const ValueSchema: z.ZodType<Value> = z.union([
       items: z.array(z.lazy(() => ValueSchema)),
     })
   }),
+  TypeCallValueSchema,
   ObjectValueSchema,
   ReferenceSchemaT(z.unknown())
 ])

@@ -9,10 +9,36 @@ export { createWorkflow } from './Workflow'
 
 export type { FaasitRuntime };
 
-type HandlerType = (frt: FaasitRuntime) => any
+export type HandlerType = (frt: FaasitRuntime) => any
+
+export function createExports(obj: { handler: HandlerType } | { workflow: WorkflowSpec }) {
+  const containerConf = getFunctionContainerConfig()
+
+  if ("handler" in obj) {
+    const handler = transformFunction(obj.handler)
+    return transformHandlerExports(containerConf, { handler })
+  }
+
+  if ("workflow" in obj) {
+    const runner = new WorkflowContainerRunner(containerConf, obj.workflow)
+
+    const executorFunc = transformWorkflowFunction(
+      containerConf,
+      obj.workflow,
+      (frt) => {
+        return runner.run(frt)
+      },
+    )
+    return transformHandlerExports(containerConf, { handler: executorFunc })
+  }
+
+  return obj
+}
+
+export function createFunction(fn: HandlerType): HandlerType { return fn }
 
 
-export function createFunction(fn: HandlerType) {
+function transformFunction(fn: HandlerType) {
   const containerConf = getFunctionContainerConfig()
 
   switch (containerConf.provider) {
@@ -41,7 +67,7 @@ export function createFunction(fn: HandlerType) {
   }
 }
 
-function createWorkflowFunction(containerConf: FunctionContainerConfig, spec: WorkflowSpec, fn: HandlerType) {
+function transformWorkflowFunction(containerConf: FunctionContainerConfig, spec: WorkflowSpec, fn: HandlerType) {
   switch (containerConf.provider) {
     case 'local-once':
       return (event: any) => {
@@ -51,50 +77,26 @@ function createWorkflowFunction(containerConf: FunctionContainerConfig, spec: Wo
     case 'local':
     case 'aliyun':
     case 'knative':
-      return createFunction(fn)
+      return transformFunction(fn)
     default:
       throw new UnknownProvider(containerConf.provider)
   }
 }
 
-export function createExports(obj: { handler: unknown } | { workflow: WorkflowSpec }) {
-  const containerConf = getFunctionContainerConfig()
+export type PlatformDependentExports = { handler: unknown } | { handle: unknown }
 
-  if ("handler" in obj) {
-    switch (containerConf.provider) {
-      case 'local':
-      case 'local-once':
-      case 'aliyun':
-        return obj
-      case 'knative':
-        return {
-          handle: obj.handler
-        }
-      default:
-        throw new UnknownProvider(containerConf.provider)
-    }
+function transformHandlerExports(conf: FunctionContainerConfig, obj: { handler: unknown }): PlatformDependentExports {
+  switch (conf.provider) {
+    case 'local':
+    case 'local-once':
+    case 'aliyun':
+      return obj
+    case 'knative':
+      return {
+        handle: obj.handler
+      }
+    default:
+      throw new UnknownProvider(conf.provider)
   }
-
-  if ("workflow" in obj) {
-    const runner = new WorkflowContainerRunner(containerConf, obj.workflow)
-
-    const executorFunc = createWorkflowFunction(
-      containerConf,
-      obj.workflow,
-      (frt) => {
-        return runner.run(frt)
-      },
-    )
-    return createExports({ handler: executorFunc })
-  }
-
-  return obj
 }
 
-
-// helpers
-export function defineHandler(fn: HandlerType): HandlerType { return fn }
-
-export function defineFunctionNames<K extends string>(obj: Record<K, unknown>): Record<K, string> {
-  return Object.fromEntries(Object.keys(obj).map(v => [v, v])) as Record<K, string>
-}

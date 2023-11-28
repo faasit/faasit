@@ -1,31 +1,20 @@
-const { defineHandler } = require('@faasit/runtime')
+const { createFunction } = require('@faasit/runtime')
 const tf = require('@tensorflow/tfjs-node');
 const cocoSsd = require('@tensorflow-models/coco-ssd');
 
-const preprocess = defineHandler(async (frt) => {
-  const { base64Image } = frt.input()
-  const pattern = /^data:image\/(\w+);base64,/
-
-  const type = pattern.exec(base64Image)[1]
-  return {
-    type,
-    data: base64Image.replace(pattern, "")
-  }
+const preprocess = createFunction(async (frt) => {
+  const { image } = frt.input()
+  return frt.output({
+    data: image.base64
+  })
 })
 
-const detect = defineHandler(async (frt) => {
-  const { type, data } = frt.input()
+const detect = createFunction(async (frt) => {
+  const { data } = frt.input()
 
   // Decode the base64 image to a tensor
   const imageBuffer = Buffer.from(data, 'base64')
-  let imageTensor;
-  if (type == 'jpeg') {
-    imageTensor = tf.node.decodeJpeg(imageBuffer);
-  } else if (type == 'png') {
-    imageTensor = tf.node.decodePng(imageBuffer);
-  } else {
-    throw new Error('Unsupported image format. Only JPEG and PNG are supported.');
-  }
+  const imageTensor = tf.node.decodeImage(imageBuffer);
 
   // Load the COCO-SSD model
   const model = await cocoSsd.load();
@@ -40,15 +29,23 @@ const detect = defineHandler(async (frt) => {
   })
 })
 
-const executor = defineHandler(async (frt) => {
+const postprocess = createFunction(async (frt) => {
+  const res = frt.input()
+  return frt.output(res)
+})
+
+const executor = createFunction(async (frt) => {
   const input = frt.input()
 
   const r1 = await frt.call('preprocess', { input })
   const r2 = await frt.call('detect', {
     input: r1.output
   })
+  const r3 = await frt.call('postprocess', {
+    input: r2.output
+  })
 
-  return frt.output(r2.output)
+  return frt.output(r3.output)
 })
 
-module.exports = { preprocess, detect, executor }
+module.exports = { preprocess, detect, postprocess, executor }

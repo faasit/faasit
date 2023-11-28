@@ -1,11 +1,6 @@
-/**
- * @typedef {import('@faasit/runtime').FaasitRuntime} FaasitRuntime
- */
+const { createFunction } = require('@faasit/runtime')
 
-/**
- * @param {FaasitRuntime} frt
- */
-async function count (frt) {
+const count = createFunction(async (frt) => {
   const { words } = frt.input()
 
   const counter = new Map()
@@ -18,12 +13,9 @@ async function count (frt) {
   return frt.output({
     counter: Array.from(counter.entries())
   })
-}
+})
 
-/**
- * @param {FaasitRuntime} frt
- */
-async function sort (frt) {
+const sort = createFunction(async (frt) => {
   const counterArray = frt.input().counter
 
   const counter = new Map()
@@ -44,12 +36,9 @@ async function sort (frt) {
   return frt.output({
     counter: reducedCounter
   })
-}
+})
 
-/**
- * @param {FaasitRuntime} frt
- */
-async function split (frt) {
+const split = createFunction(async (frt) => {
   const { text } = frt.input()
 
   const words = text.split(/[\s,\.]/)
@@ -58,10 +47,9 @@ async function split (frt) {
     message: 'ok',
     words
   })
-}
+})
 
-/** @param {FaasitRuntime} frt */
-async function executor (frt) {
+const executor = createFunction(async (frt) => {
   const { text, batchSize = 10 } = frt.input()
 
   /** @type {string[]} */
@@ -85,6 +73,6 @@ async function executor (frt) {
     message: 'ok',
     result: result.output
   })
-}
+})
 
 module.exports = { count, sort, split, executor }

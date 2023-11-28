@@ -64,6 +64,7 @@ export async function main() {
     .command('run')
     .description('run serverless application once')
     .option('--input.value [string]', 'input value in JSON format')
+    .option('--example [int]', 'select specified example', '0')
     .action(async (p) => {
       const config = resolveConfigPath('')
       await engine

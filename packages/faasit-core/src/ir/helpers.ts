@@ -177,35 +177,45 @@ class AstToIrConverter {
     }
 
     if (expr.$type === 'QualifiedName') {
-      // TODO: unify identifier
-      const id = this.getIdOfQualifedName(expr)
-      const refElement = expr.element.ref
-
-      if (!refElement) {
-        return types.CreateUnresolvedReference(id)
-      }
-
-      let value = this.symbolCache.get(refElement)
-      if (!value) {
-        value = this.handleNamedElement(refElement)
-        this.symbolCache.set(refElement, value)
-      }
-
-      return {
-        $ir: {
-          kind: 'r_ref',
-          id
-        },
-        value
-      }
+      return this.handleQualifiedName(expr)
     }
 
     if (expr.$type === 'TypeCallExpr') {
-      throw new Error('not implemented for TypeCallExpr')
+      return {
+        $ir: {
+          kind: 'v_typecall',
+          callee: this.handleQualifiedName(expr.callee) as types.Reference<types.ScalarBlock>,
+          args: expr.elements.map((e) => this.handleExpr(e))
+        }
+      }
     }
 
     const v: never = expr
     throw new Error(`unknown expr: ${v}`)
+  }
+
+  private handleQualifiedName(expr: ast.QualifiedName): types.Reference {
+    // TODO: unify identifier
+    const id = this.getIdOfQualifedName(expr)
+    const refElement = expr.element.ref
+
+    if (!refElement) {
+      return types.CreateUnresolvedReference(id)
+    }
+
+    let value = this.symbolCache.get(refElement)
+    if (!value) {
+      value = this.handleNamedElement(refElement)
+      this.symbolCache.set(refElement, value)
+    }
+
+    return {
+      $ir: {
+        kind: 'r_ref',
+        id
+      },
+      value
+    }
   }
 
   private getIdOfQualifedName(node: ast.QualifiedName): string {
@@ -281,6 +291,17 @@ class IrEvaluator {
         obj[prop.key] = this.evaluateValue(prop.value)
       }
       return obj
+    }
+
+    if (value.$ir.kind === 'v_typecall') {
+      let args = []
+      for (const arg of value.$ir.args) {
+        args.push(this.evaluateValue(arg))
+      }
+      return {
+        ...value,
+        args
+      }
     }
 
     const chk: never = value.$ir

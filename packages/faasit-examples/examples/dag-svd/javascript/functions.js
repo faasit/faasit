@@ -1,7 +1,7 @@
-const { defineHandler, defineFunctionNames } = require('@faasit/runtime')
+const { createFunction } = require('@faasit/runtime')
 const numeric = require('numeric')
 
-const split = defineHandler(async (frt) => {
+const split = createFunction(async (frt) => {
   // Step 1: Partition X by rows
   const { X, numSplits } = frt.input()
 
@@ -18,7 +18,7 @@ const split = defineHandler(async (frt) => {
   })
 })
 
-const compute = defineHandler(async (frt) => {
+const compute = createFunction(async (frt) => {
   const { Xi } = frt.input()
 
   // Step 2: Perform SVD for each Xi & calculate Yi
@@ -33,7 +33,7 @@ function concatRows (matrices) {
   return matrices.reduce((acc, curr) => acc.concat(curr), []);
 }
 
-const merge = defineHandler(async (frt) => {
+const merge = createFunction(async (frt) => {
   // Step 3: Create combined eigen-matrix Y and perform SVD
   const { compResults } = frt.input()
   const Y = concatRows(compResults.map(v => v.Yi))
@@ -47,7 +47,7 @@ const merge = defineHandler(async (frt) => {
   return { S, V }
 })
 
-const executor = defineHandler(async (frt) => {
+const executor = createFunction(async (frt) => {
   const { X, numSplits = 3 } = frt.input()
   const { output: { subXs } } = await frt.call('split', {
     input: { X, numSplits }

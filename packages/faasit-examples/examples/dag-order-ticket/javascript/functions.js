@@ -128,19 +128,23 @@ const executor = createFunction(async (frt) => {
     }
   }
 
-  const ok = await txn
+  const res = await txn
     .WithTcc({ buyTrainTicket, reserveFlight, reserveHotel })
     .Run(async (tx) => {
-      await Promise.all([
-        tx.tasks.buyTrainTicket.execute({}),
-        tx.tasks.reserveFlight.execute({}),
-        tx.tasks.reserveHotel.execute({}),
-      ])
+      const r1 = await tx.exec.buyTrainTicket()
+      if (r1.error) {
+        return
+      }
 
-      return tx.status === 'ok'
+      const r2 = await tx.exec.reserveFlight()
+      if (r2.error) {
+        return
+      }
+
+      return await tx.exec.reserveHotel()
     })
 
-  return { ok, logs }
+  return { ok: res.status === 'ok', logs }
 
 })
 

@@ -1,5 +1,5 @@
 import * as crypto from 'crypto'
-import { CoreResult } from '../type'
+import { CoreError, CoreResult } from '../type'
 
 export function CreateTccTask<T, R>(item: {
   tryFn: (p: { txnID: string; payload: T }) => Promise<CoreResult<R>>
@@ -50,13 +50,20 @@ export function CreateTccTask<T, R>(item: {
   }
 }
 
+export type TccRunResult<R> = {
+  status: 'ok'
+  result: R
+} | {
+  status: 'failed'
+}
+
 // WithTcc 函数使用上述类型
 export function WithTcc<Tasks extends Record<string, TccTask<any, any>>>(
   tasks: Tasks
 ): {
   Run<R>(
     fn: (tx: TccTransactionContext<Tasks>) => Promise<R>
-  ): Promise<R>;
+  ): Promise<TccRunResult<R>>;
 } {
   return {
     async Run(fn) {
@@ -68,13 +75,16 @@ export function WithTcc<Tasks extends Record<string, TccTask<any, any>>>(
       })) as TccExecutors<Tasks>
 
       const tx: TccTransactionContext<Tasks> = {
-        get status() { return manager.hasError ? 'failed' : 'ok' },
-        tasks: executors,
+        exec: executors,
       }
 
       const res = await fn(tx)
       manager.finalize()
-      return res
+
+      if (manager.hasError) {
+        return { status: 'failed' }
+      }
+      return { status: 'ok', result: res }
     },
   };
 }
@@ -85,9 +95,7 @@ export interface TccTask<T, R> {
   cancel(): Promise<void>
 }
 
-export interface TccExecutor<T, R> {
-  execute(payload: T): Promise<CoreResult<R>>
-}
+export type TccExecutor<T, R> = (payload: T) => Promise<CoreResult<R>>
 
 type TccTaskRecord = Record<string, TccTask<any, any>>
 
@@ -99,8 +107,7 @@ type TccExecutors<Tasks extends TccTaskRecord> = {
 };
 
 export interface TccTransactionContext<Tasks extends TccTaskRecord> {
-  status: 'ok' | 'failed'
-  tasks: TccExecutors<Tasks>
+  exec: TccExecutors<Tasks>
 }
 
 
@@ -112,22 +119,20 @@ class TccManager {
   get hasError() { return this._hasError }
 
   addTask<T, R>(task: TccTask<T, R>): TccExecutor<T, R> {
-    return {
-      execute: async (payload) => {
-        // no need to try if one has error
-        if (this._hasError) {
-          return { ok: false, error: { code: "TCC_ERROR", detail: "previous task is already error" } }
-        }
+    return async (payload: T) => {
+      // no need to try if one has error
+      if (this._hasError) {
+        return { ok: false, error: { code: "TCC_ERROR", detail: "previous task is already error" } }
+      }
 
-        const res = await task.try(payload)
-        this._triedTasks.push(task)
+      const res = await task.try(payload)
+      this._triedTasks.push(task)
 
-        if (res.error) {
-          this._hasError = true
-        }
+      if (res.error) {
+        this._hasError = true
+      }
 
-        return res
-      },
+      return res
     }
   }
 

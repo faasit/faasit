@@ -7,6 +7,8 @@ import { FunctionContainerConfig, UnknownProvider, getFunctionContainerConfig } 
 import { LocalOnceRuntime } from "./LocalOnceRuntime";
 export { createWorkflow } from './Workflow'
 
+export * as txn from "./txn"
+
 export type { FaasitRuntime };
 
 export type HandlerType = (frt: FaasitRuntime) => any

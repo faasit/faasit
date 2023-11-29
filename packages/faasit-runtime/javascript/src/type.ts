@@ -1,5 +1,17 @@
 import { z } from 'zod'
 
+// Result like Rust
+export type CoreError = { code: string, detail: unknown }
+export type CoreResult<T> = {
+  ok: true
+  value: T
+  error?: undefined
+} | {
+  ok: false
+  value?: undefined
+  error: CoreError
+}
+
 export class UnknownProvider extends Error {
   constructor(provider: string) {
     super(`unknown provider=${provider}`)

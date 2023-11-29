@@ -19,6 +19,12 @@ importers:
         specifier: ../../../../faasit-runtime/javascript
         version: link:../../../../faasit-runtime/javascript
 
+  dag-order-ticket/javascript:
+    devDependencies:
+      '@faasit/runtime':
+        specifier: ../../../../faasit-runtime/javascript
+        version: link:../../../../faasit-runtime/javascript
+
   dag-svd/javascript:
     dependencies:
       numeric:

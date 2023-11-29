@@ -1,0 +1,46 @@
+import (
+  . "std/faas"
+)
+
+@workflow ParallelSVDFlow {
+  functions = []
+
+  // workflow spec runtime
+  runtime = "nodejs"
+  codeDir = "./javascript"
+}
+
+@application ParallelSVD {
+  workflow = ParallelSVDFlow
+  defaultProvider = Knative
+
+  // used by `ft run`
+  inputExamples = [
+    {
+      value = {
+        control = {
+          BuyTrainTicket = "ok"
+          ReserveFlight = "ok"
+          ReserveHotel = "ok"
+        }
+      }
+    },
+    {
+      value = {
+        control = {
+          BuyTrainTicket = "ok"
+          ReserveFlight = "fail"
+          ReserveHotel = "ok"
+        }
+      }
+    }
+  ]
+}
+
+@provider Local {
+  kind = "local"
+}
+
+@provider Knative {
+  kind = "knative"
+}

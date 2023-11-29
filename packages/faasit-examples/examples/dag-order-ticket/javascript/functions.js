@@ -54,7 +54,7 @@ const executor = createFunction(async (frt) => {
 
   const { control } = frt.input()
 
-  const buyTrainTicket = txn.CreateTccExecutor({
+  const buyTrainTicket = txn.CreateTccTask({
     tryFn: async ({ txnID }) => {
       addLog(`Try TrainTicket`, txnID)
       const r1 = await frt.call('BuyTrainTicket', { input: { control } })
@@ -69,7 +69,7 @@ const executor = createFunction(async (frt) => {
     }
   })
 
-  const reserveFlight = txn.CreateTccExecutor({
+  const reserveFlight = txn.CreateTccTask({
     tryFn: async ({ txnID }) => {
       addLog(`Try ReserveFlight`, txnID)
       const r1 = await frt.call(`ReserveFlight`, { input: { control } })
@@ -84,7 +84,7 @@ const executor = createFunction(async (frt) => {
     }
   })
 
-  const reserveHotel = txn.CreateTccExecutor({
+  const reserveHotel = txn.CreateTccTask({
     tryFn: async ({ txnID }) => {
       addLog(`Try ReserveHotel`, txnID)
       const r1 = await frt.call('ReserveHotel', { input: { control } })
@@ -99,31 +99,49 @@ const executor = createFunction(async (frt) => {
     }
   })
 
-  // parallel try
-  const [r1, r2, r3] = await Promise.all([
-    buyTrainTicket.try({}),
-    reserveFlight.try({}),
-    reserveHotel.try({})
-  ])
 
-  if (r1.ok && r2.ok && r3.ok) {
-    await Promise.all([
-      buyTrainTicket.confirm(),
-      reserveFlight.confirm(),
-      reserveHotel.confirm()
-    ])
-    return { ok: true, logs }
-  } else {
-
-    // rollback
-    await Promise.all([
-      buyTrainTicket.cancel(),
-      reserveFlight.cancel(),
-      reserveHotel.cancel()
+  const runManually = async () => {
+    // parallel try
+    const [r1, r2, r3] = await Promise.all([
+      buyTrainTicket.try({}),
+      reserveFlight.try({}),
+      reserveHotel.try({})
     ])
 
-    return { ok: false, logs }
+    if (r1.ok && r2.ok && r3.ok) {
+      await Promise.all([
+        buyTrainTicket.confirm(),
+        reserveFlight.confirm(),
+        reserveHotel.confirm()
+      ])
+      return { ok: true, logs }
+    } else {
+
+      // rollback
+      await Promise.all([
+        buyTrainTicket.cancel(),
+        reserveFlight.cancel(),
+        reserveHotel.cancel()
+      ])
+
+      return { ok: false, logs }
+    }
   }
+
+  const ok = await txn
+    .WithTcc({ buyTrainTicket, reserveFlight, reserveHotel })
+    .Run(async (tx) => {
+      await Promise.all([
+        tx.tasks.buyTrainTicket.execute({}),
+        tx.tasks.reserveFlight.execute({}),
+        tx.tasks.reserveHotel.execute({}),
+      ])
+
+      return tx.status === 'ok'
+    })
+
+  return { ok, logs }
+
 })
 
 module.exports = { BuyTrainTicket, ReserveFlight, ReserveHotel, CancelFlight, CancelTrainTicket, CancelHotel, executor }

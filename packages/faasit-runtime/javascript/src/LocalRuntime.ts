@@ -2,6 +2,9 @@ import axios from "axios";
 import { CallResult, FaasitRuntime } from "./FaasitRuntime";
 
 export class LocalRuntime implements FaasitRuntime {
+
+    name: string = "local"
+
     private event: any;
     constructor(event: any) {
         this.event = event;

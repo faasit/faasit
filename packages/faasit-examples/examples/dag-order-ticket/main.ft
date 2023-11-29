@@ -2,8 +2,12 @@ import (
   . "std/faas"
 )
 
+@function BuyTrainTicket {
+  runtime = "nodejs"
+}
+
 @workflow ParallelSVDFlow {
-  functions = []
+  functions = [BuyTrainTicket]
 
   // workflow spec runtime
   runtime = "nodejs"

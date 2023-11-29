@@ -3,6 +3,9 @@ import axios from "axios";
 
 // TODO: KnativeRuntime
 export class KnativeRuntime implements FaasitRuntime {
+
+    name: string = "knative";
+
     private context: any
     private event: any
 

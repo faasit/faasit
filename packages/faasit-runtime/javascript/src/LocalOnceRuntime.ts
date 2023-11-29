@@ -1,8 +1,12 @@
 import { CallResult, FaasitRuntime } from "./FaasitRuntime";
 import { WorkflowFunc } from "./Workflow"
+import { DurableClient } from "./durable";
 
 // Run function in a local and unit scope
 export class LocalOnceRuntime implements FaasitRuntime {
+
+  name: string = "local-once";
+
   funcMap: Map<string, WorkflowFunc> = new Map()
   constructor(private funcs: WorkflowFunc[], private inputData: object) {
     for (const func of funcs) {
@@ -28,5 +32,34 @@ export class LocalOnceRuntime implements FaasitRuntime {
     const frt = new LocalOnceRuntime(this.funcs, fnParams.input)
     const data = await func.handler(frt)
     return { output: data }
+  }
+
+  get extendedFeatures() {
+    return LocalOnceRuntime.extendedFeaturesStatic
+  }
+
+  static extendedFeaturesStatic = {
+    durable: () => {
+      return new LocalOnceDurableClient()
+    }
+  }
+}
+
+class LocalOnceDurableClient implements DurableClient {
+
+  static stores: Map<string, unknown> = new Map()
+  private stores: Map<string, unknown> = LocalOnceDurableClient.stores
+
+  async set(key: string, value: unknown): Promise<void> {
+    this.stores.set(key, value)
+  }
+  async get<T = unknown>(key: string, defaultFn?: (() => T) | undefined): Promise<T | undefined> {
+    let value = this.stores.get(key) as T
+    if (!value && defaultFn) {
+      value = defaultFn()
+      this.stores.set(key, value)
+    }
+
+    return value
   }
 }

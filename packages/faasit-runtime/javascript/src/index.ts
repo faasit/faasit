@@ -8,6 +8,7 @@ import { LocalOnceRuntime } from "./LocalOnceRuntime";
 export { createWorkflow } from './Workflow'
 
 export * as txn from "./txn"
+export * as df from "./durable"
 
 export type { FaasitRuntime };
 

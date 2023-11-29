@@ -1,0 +1,42 @@
+import (
+  . "std/faas"
+)
+
+@function IncrCounter {
+  runtime = "nodejs"
+}
+
+@workflow Flow {
+  functions = [IncrCounter]
+
+  // workflow spec runtime
+  runtime = "nodejs"
+  codeDir = "./javascript"
+}
+
+@application App {
+  workflow = Flow
+  defaultProvider = Knative
+
+  // used by `ft run`
+  inputExamples = [
+    {
+      value = {
+        task = "adtCounter"
+      }
+    },
+    {
+      value = {
+        task = "adtList"
+      }
+    },
+  ]
+}
+
+@provider Local {
+  kind = "local"
+}
+
+@provider Knative {
+  kind = "knative"
+}

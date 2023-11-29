@@ -43,6 +43,12 @@ importers:
         specifier: ../../../../faasit-runtime/javascript
         version: link:../../../../faasit-runtime/javascript
 
+  durable-adt/javascript:
+    devDependencies:
+      '@faasit/runtime':
+        specifier: ../../../../faasit-runtime/javascript
+        version: link:../../../../faasit-runtime/javascript
+
   knative-codegen1/code:
     dependencies:
       cloudevents:

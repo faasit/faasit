@@ -5,6 +5,9 @@ import Util, * as $Util from '@alicloud/tea-util';
 
 // TODO: AliyunRuntime
 export class AliyunRuntime implements FaasitRuntime {
+
+    name: string = "aliyun";
+
     private event: Buffer;
     private context: any;
     private callback: (error: any, data: object) => void;

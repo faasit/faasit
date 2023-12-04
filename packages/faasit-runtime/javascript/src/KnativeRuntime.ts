@@ -1,8 +1,8 @@
-import { CallResult, FaasitRuntime } from "./FaasitRuntime";
+import { BaseFaasitRuntime, CallResult, FaasitRuntime } from "./FaasitRuntime";
 import axios from "axios";
 
 // TODO: KnativeRuntime
-export class KnativeRuntime implements FaasitRuntime {
+export class KnativeRuntime extends BaseFaasitRuntime {
 
     name: string = "knative";
 
@@ -10,6 +10,7 @@ export class KnativeRuntime implements FaasitRuntime {
     private event: any
 
     constructor(context: any, event: any) {
+        super()
         this.context = context
         this.event = event
     }

@@ -1,9 +1,12 @@
 const { df, createFunction } = require('@faasit/runtime')
 
+const scopeId = df.ScopeId.create({ ns: 'faasit', name: 'durable-adt' })
+
 const adtCounter = createFunction(async (frt) => {
   const { op, rhs } = frt.input()
 
-  const client = df.getClient(frt)
+  const client = df.getClient(frt).getScoped(scopeId)
+
   const key = 'counter'
   let counter = await client.get(key, () => 0)
 
@@ -25,7 +28,7 @@ const adtCounter = createFunction(async (frt) => {
 const adtList = createFunction(async (frt) => {
   const { op, rhs } = frt.input()
 
-  const client = df.getClient(frt)
+  const client = df.getClient(frt).getScoped(scopeId)
   const key = 'list'
   const list = await client.get(key, () => [])
 

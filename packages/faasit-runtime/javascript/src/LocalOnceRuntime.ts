@@ -1,14 +1,15 @@
-import { CallResult, FaasitRuntime } from "./FaasitRuntime";
+import { BaseFaasitRuntime, CallParams, CallResult, FaasitRuntime, TellParams, TellResult } from "./FaasitRuntime";
 import { WorkflowFunc } from "./Workflow"
-import { DurableClient } from "./durable";
+import { LowLevelDurableClient } from "./durable";
 
 // Run function in a local and unit scope
-export class LocalOnceRuntime implements FaasitRuntime {
+export class LocalOnceRuntime extends BaseFaasitRuntime {
 
   name: string = "local-once";
 
   funcMap: Map<string, WorkflowFunc> = new Map()
   constructor(private funcs: WorkflowFunc[], private inputData: object) {
+    super()
     for (const func of funcs) {
       this.funcMap.set(func.name, func)
     }
@@ -17,10 +18,12 @@ export class LocalOnceRuntime implements FaasitRuntime {
   input(): object {
     return this.inputData
   }
+
   output(returnObject: any): object {
     return returnObject
   }
-  async call(fnName: string, fnParams: { sequence?: number | undefined; input: object; }): Promise<CallResult> {
+
+  async call(fnName: string, fnParams: CallParams): Promise<CallResult> {
     const func = this.funcMap.get(fnName)
     if (!func) {
       throw new Error(`unknown function to call, name=${fnName}`)
@@ -34,6 +37,26 @@ export class LocalOnceRuntime implements FaasitRuntime {
     return { output: data }
   }
 
+  async tell(fnName: string, fnParams: TellParams): Promise<TellResult> {
+    const func = this.funcMap.get(fnName)
+    if (!func) {
+      throw new Error(`unknown function to tell, name=${fnName}`)
+    }
+
+    console.log(`function told, name=${fnName}`)
+
+    const frt = new LocalOnceRuntime(this.funcs, fnParams.input)
+
+    // create task but no wait
+    const task = async () => {
+      const data = await func.handler(frt)
+    }
+    task()
+
+    // return directly
+    return {}
+  }
+
   get extendedFeatures() {
     return LocalOnceRuntime.extendedFeaturesStatic
   }
@@ -45,12 +68,12 @@ export class LocalOnceRuntime implements FaasitRuntime {
   }
 }
 
-class LocalOnceDurableClient implements DurableClient {
-
+class LocalOnceDurableClient implements LowLevelDurableClient {
   static stores: Map<string, unknown> = new Map()
-  private stores: Map<string, unknown> = LocalOnceDurableClient.stores
+  private stores = LocalOnceDurableClient.stores
 
   async set(key: string, value: unknown): Promise<void> {
+    console.log(`[Trace] LocalOnceDurableClient set key = ${key}, value =`, value)
     this.stores.set(key, value)
   }
   async get<T = unknown>(key: string, defaultFn?: (() => T) | undefined): Promise<T | undefined> {

@@ -1,12 +1,13 @@
 import axios from "axios";
-import { CallResult, FaasitRuntime } from "./FaasitRuntime";
+import { BaseFaasitRuntime, CallResult } from "./FaasitRuntime";
 
-export class LocalRuntime implements FaasitRuntime {
+export class LocalRuntime extends BaseFaasitRuntime {
 
     name: string = "local"
 
     private event: any;
     constructor(event: any) {
+        super()
         this.event = event;
     }
     async call(fnName: string, fnParams: {

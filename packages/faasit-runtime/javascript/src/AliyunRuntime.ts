@@ -1,20 +1,21 @@
-import { CallResult, FaasitRuntime } from "./FaasitRuntime";
+import { BaseFaasitRuntime, CallResult, FaasitRuntime } from "./FaasitRuntime";
 import FC_Open20210406, * as $FC_Open20210406 from '@alicloud/fc-open20210406';
 import * as $OpenApi from '@alicloud/openapi-client';
 import Util, * as $Util from '@alicloud/tea-util';
 
 // TODO: AliyunRuntime
-export class AliyunRuntime implements FaasitRuntime {
+export class AliyunRuntime extends BaseFaasitRuntime {
 
     name: string = "aliyun";
 
     private event: Buffer;
     private context: any;
-    private callback: (error: any, data: object) => void;
+    private _callback: (error: any, data: object) => void;
     constructor(event: Buffer, context: any, callback: any) {
+        super()
         this.event = event;
         this.context = context;
-        this.callback = callback;
+        this._callback = callback;
     }
     async call(fnName: string, fnParams?: {
         sequence?: number;
@@ -30,7 +31,7 @@ export class AliyunRuntime implements FaasitRuntime {
     }
 
     output(returnObject: any) {
-        this.callback(null, returnObject)
+        this._callback(null, returnObject)
         return returnObject
     }
 

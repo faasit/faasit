@@ -293,11 +293,11 @@ export class DurableFaasitRuntime {
   }
 
   metadata(): FaasitRuntimeMetadata {
-    return this.rt.metadata()
+    return this.orchestratorMetadata.initialData.metadata
   }
 
   input(): object {
-    return this.orchestratorMetadata.initialInput
+    return this.orchestratorMetadata.initialData.input
   }
 
   output(returnObject: any): object {

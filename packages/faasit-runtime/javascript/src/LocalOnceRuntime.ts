@@ -1,4 +1,4 @@
-import { BaseFaasitRuntime, CallParams, CallResult, FaasitRuntime, TellParams, TellResult } from "./FaasitRuntime";
+import { BaseFaasitRuntime, InputType, CallParams, CallResult, FaasitRuntime, TellParams, TellResult, FaasitRuntimeMetadata } from "./FaasitRuntime";
 import { WorkflowFunc } from "./Workflow"
 import { LowLevelDurableClient } from "./durable";
 
@@ -8,15 +8,19 @@ export class LocalOnceRuntime extends BaseFaasitRuntime {
   name: string = "local-once";
 
   funcMap: Map<string, WorkflowFunc> = new Map()
-  constructor(private funcs: WorkflowFunc[], private inputData: object) {
+  constructor(private funcs: WorkflowFunc[], private data: { input: InputType, metadata: FaasitRuntimeMetadata }) {
     super()
     for (const func of funcs) {
       this.funcMap.set(func.name, func)
     }
   }
 
-  input(): object {
-    return this.inputData
+  metadata(): FaasitRuntimeMetadata {
+    return this.data.metadata
+  }
+
+  input(): InputType {
+    return this.data.input
   }
 
   output(returnObject: any): object {
@@ -31,8 +35,9 @@ export class LocalOnceRuntime extends BaseFaasitRuntime {
 
     console.log(`function called, name=${fnName}, seq=${fnParams.sequence || 0}`)
 
+    const metadata = this.helperCollectMetadata(fnName, fnParams)
     // call locally and recusively
-    const frt = new LocalOnceRuntime(this.funcs, fnParams.input)
+    const frt = new LocalOnceRuntime(this.funcs, { input: fnParams.input, metadata })
     const data = await func.handler(frt)
     return { output: data }
   }
@@ -45,7 +50,8 @@ export class LocalOnceRuntime extends BaseFaasitRuntime {
 
     console.log(`function told, name=${fnName}`)
 
-    const frt = new LocalOnceRuntime(this.funcs, fnParams.input)
+    const metadata = this.helperCollectMetadata(fnName, fnParams)
+    const frt = new LocalOnceRuntime(this.funcs, { input: fnParams.input, metadata })
 
     // create task but no wait
     const task = async () => {

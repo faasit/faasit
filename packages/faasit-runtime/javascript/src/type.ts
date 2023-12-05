@@ -21,6 +21,7 @@ export class UnknownProvider extends Error {
 // Config for each function container
 // Passed by environment variables
 export const FunctionContainerConfigSchema = z.object({
+  funcName: z.string(),
   provider: z.union([
     z.literal('local'),
     z.literal('aliyun'),
@@ -39,6 +40,7 @@ export function getFunctionContainerConfig() {
   const env = process.env
 
   const config: Partial<FunctionContainerConfig> = {
+    funcName: env.FAASIT_FUNC_NAME,
     provider: env.FAASIT_PROVIDER as FunctionContainerConfig['provider'],
     workflow: {
       funcType: env.FAASIT_WORKFLOW_FUNC_TYPE || '',

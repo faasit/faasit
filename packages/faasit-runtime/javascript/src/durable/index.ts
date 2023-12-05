@@ -1,6 +1,7 @@
 import { randomUUID } from "crypto";
 import { HandlerType } from "..";
-import { CallParams, CallResult, FaasitRuntime, TellParams, TellResult } from "../FaasitRuntime";
+import { CallParams, CallResult, DurableMetadata, FaasitRuntime, OrchestratorMetadata, TellParams, TellResult } from "../FaasitRuntime";
+import assert from "assert";
 
 export interface LowLevelDurableClient {
   set(key: string, value: unknown): Promise<void>;
@@ -67,34 +68,79 @@ export function getClient(frt: FaasitRuntime): DurableClient {
   return new DurableClient(dc)
 }
 
-// High-Level API
+// Pass data by callback context
+type DurableCallbackContext = {
+  kind: 'durable-orchestrator-callback'
+  orchestrator: OrchestratorMetadata
+  taskPc: number
+}
 
-export function createDurable(fn: (frt: DurableFaasitRuntime) => Promise<void>): HandlerType {
+function parseDurableCallbackContext(ctx: unknown): DurableCallbackContext | undefined {
+  if (typeof ctx !== 'object' || ctx == null) {
+    return undefined
+  }
+
+  if ((ctx as DurableCallbackContext)['kind'] !== 'durable-orchestrator-callback') {
+    return undefined
+  }
+
+  return ctx as DurableCallbackContext
+}
+
+// High-Level API
+export function createDurable(fn: (frt: DurableFaasitRuntime) => Promise<unknown>): HandlerType {
 
   return async (frt) => {
     const metadata = frt.metadata()
 
-    const getState = async () => {
-      const invocationId = metadata.invocation.id || randomUUID()
-      const scopeId = ScopeId.create({
-        ns: '__state__', name: invocationId, type: 'orchestration'
-      })
-      const client = getClient(frt).getScoped(scopeId)
+    let orchestratorMetadata: OrchestratorMetadata
 
-      // first called, init state
-      if (!metadata.invocation.caller) {
+    let callbackCtx: DurableCallbackContext | undefined
 
-        const state = new DurableFunctionState()
-        await state.store(client)
+    // parse callback ctx
+    if (metadata.invocation.kind === 'tell') {
+      callbackCtx = parseDurableCallbackContext(metadata.invocation.responseCtx)
+    }
 
-        return state
-      } else {
-        // recover state
-        return await DurableFunctionState.load(client)
+    // initialized required metadata
+    if (callbackCtx) {
+      // non-first called
+      orchestratorMetadata = callbackCtx.orchestrator
+      metadata.durable = {
+        orchestrator: orchestratorMetadata
+      }
+    } else {
+      // first called, no orchestrator metadata definied, init orchestrator
+      orchestratorMetadata = {
+        id: randomUUID(),
+        initialInput: frt.input()
+      }
+
+      metadata.durable = {
+        orchestrator: orchestratorMetadata
       }
     }
 
-    const state = await getState()
+    const orchestratorId = orchestratorMetadata.id
+    const scopeId = ScopeId.create({
+      ns: '__state__', name: orchestratorId, type: 'orchestration'
+    })
+    const client = getClient(frt).getScoped(scopeId)
+
+    const { state } = await DurableFunctionState.load(client)
+
+    // update task if not first called
+    if (callbackCtx) {
+      const { callback } = frt.input()
+      const action = state.actions[callbackCtx.taskPc]
+      if (!action) {
+        throw new Error(`no such task in durable state, taskPc=${callbackCtx.taskPc}`)
+      }
+      action.status = 'done'
+      action.result = callback as CallResult
+
+      await state.store(client)
+    }
 
     const durableRt = new DurableFaasitRuntime(frt, state)
 
@@ -103,43 +149,93 @@ export function createDurable(fn: (frt: DurableFaasitRuntime) => Promise<void>):
       return await fn(durableRt)
     } catch (e) {
       if (e instanceof DurableYieldIRQ) {
-        // TODO: handle scheduling
+        console.log(`[Trace] ${metadata.funcName} id=${orchestratorId} yield, store the state`)
+
+        // store state
+        await state.store(client)
+
+        // just return
+        return
       }
     }
   }
 }
 
+// Serializable action
+type Action = {
+  kind: 'call',
+  status: 'pending' | 'done'
+  result: CallResult
+}
+
 // Serializable state
 export class DurableFunctionState {
 
-  static async load(client: ScopedDurableClient): Promise<DurableFunctionState> {
+  private _actions: Action[] = []
+  constructor() { }
+
+  static async load(client: ScopedDurableClient): Promise<{
+    init: boolean,
+    state: DurableFunctionState
+  }> {
+
+    const initialized = client.get('initialized', () => false)
+
+    // init state
+    if (!initialized) {
+      const state = new DurableFunctionState()
+      await client.set(`initialized`, true)
+      await state.store(client)
+      return { state, init: true }
+    }
+
+    // load initialized state
     const state = new DurableFunctionState()
-    return state
+    state._actions = await client.get('actions', () => []) as Action[]
+    return { state, init: false }
   }
 
   async store(client: ScopedDurableClient): Promise<void> {
-    console.log(`store function state`)
+    client.set('actions', this._actions)
+  }
+
+  addAction(action: Action) {
+    this._actions.push(action)
+  }
+
+  get actions() {
+    return this._actions
   }
 
 }
 
 // IRQ = Interrupt ReQuest, like softirq in Linux
-export class DurableYieldIRQ extends Error {
-  constructor(private state: DurableFunctionState) {
+class DurableYieldIRQ extends Error {
+  constructor() {
     super(`DurableYieldIRQ`)
   }
 }
 
 // Special faasit runtime with durable feature
 export class DurableFaasitRuntime {
-  constructor(private rt: FaasitRuntime, private _state: DurableFunctionState) { }
+  // program counter
+  private _pc: number = 0
+
+  private orchestratorMetadata: NonNullable<DurableMetadata['orchestrator']>
+  constructor(private rt: FaasitRuntime, private _state: DurableFunctionState) {
+    const orcheMetadata = rt.metadata().durable?.orchestrator
+    if (!orcheMetadata) {
+      throw new Error(`no durable.orchestrator definied in metadata`)
+    }
+    this.orchestratorMetadata = orcheMetadata
+  }
 
   get state(): DurableFunctionState {
     return this._state
   }
 
   input(): object {
-    return this.rt.input()
+    return this.orchestratorMetadata.initialInput
   }
 
   output(returnObject: any): object {
@@ -147,22 +243,45 @@ export class DurableFaasitRuntime {
   }
 
   async call(fnName: string, fnParams: CallParams): Promise<CallResult> {
-    const invocationId = this.rt.metadata().invocation.id
-    // tell function
+    const pc = this.incrPc()
+
+    // already called
+    if (pc < this._state.actions.length) {
+      const task = this._state.actions[pc]
+      assert(task.kind === 'call' && task.status === 'done')
+      return task.result
+    }
+
+    // not called, create task
+
+    // tell function and need callback
     await this.rt.tell(fnName, {
       ...fnParams,
-      state: undefined,
-      ctx: {
-        kind: 'state-call-callback',
-        invocationId
+      callback: {
+        ctx: {
+          kind: 'durable-orchestrator-callback',
+          orchestrator: this.orchestratorMetadata
+        } as DurableCallbackContext
       }
-    } as TellParams)
+    })
 
-    // yield and schedule next
-    throw new DurableYieldIRQ(this._state)
+    this._state.addAction({
+      kind: 'call',
+      status: 'pending',
+      result: { output: {} }
+    })
+
+    // yield and suspend until callback
+    throw new DurableYieldIRQ()
   }
 
   async tell(fnName: string, fnParams: TellParams): Promise<TellResult> {
     return await this.rt.tell(fnName, fnParams)
+  }
+
+  private incrPc() {
+    const pc = this._pc
+    ++this._pc
+    return pc
   }
 }

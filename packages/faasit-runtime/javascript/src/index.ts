@@ -1,7 +1,7 @@
 import { LocalRuntime } from "./LocalRuntime";
 import { KnativeRuntime } from "./KnativeRuntime";
 import { AliyunRuntime } from "./AliyunRuntime";
-import { FaasitRuntime } from "./FaasitRuntime";
+import { FaasitRuntime, createFaasitRuntimeMetadata } from "./FaasitRuntime";
 import { WorkflowContainerRunner, WorkflowSpec } from './Workflow'
 import { FunctionContainerConfig, UnknownProvider, getFunctionContainerConfig } from "./type";
 import { LocalOnceRuntime } from "./LocalOnceRuntime";
@@ -32,17 +32,43 @@ export function createExports(obj: { handler: HandlerType } | { workflow: Workfl
         return runner.run(frt)
       },
     )
+
     return transformHandlerExports(containerConf, { handler: executorFunc })
   }
 
   return obj
 }
 
-export function createFunction(fn: HandlerType): HandlerType { return fn }
+export function createFunction(fn: HandlerType): HandlerType {
+
+  return async (frt) => {
+    const metadata = frt.metadata()
+    const invocation = metadata.invocation
+
+    // tell and needs to callback
+    if (invocation.kind === 'tell' && invocation.callback) {
+
+      const result = await fn(frt)
+
+      await frt.tell(metadata.funcName, {
+        input: result,
+        responseCtx: invocation.callback.ctx
+      })
+
+    } else {
+      return await fn(frt)
+    }
+  }
+}
 
 
 function transformFunction(fn: HandlerType) {
   const containerConf = getFunctionContainerConfig()
+
+  // TODO: get metadata from container
+  const metadata = createFaasitRuntimeMetadata({
+    funcName: containerConf.funcName
+  })
 
   switch (containerConf.provider) {
     case 'local':
@@ -52,7 +78,10 @@ function transformFunction(fn: HandlerType) {
       }
     case 'local-once':
       return (event: any) => {
-        const runtime = new LocalOnceRuntime([], event)
+        const runtime = new LocalOnceRuntime([], {
+          input: event,
+          metadata
+        })
         return fn(runtime)
       }
     case 'aliyun':

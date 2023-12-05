@@ -2,12 +2,8 @@ import (
   . "std/faas"
 )
 
-@function IncrCounter {
-  runtime = "nodejs"
-}
-
 @workflow Flow {
-  functions = [IncrCounter]
+  functions = []
 
   // workflow spec runtime
   runtime = "nodejs"
@@ -22,22 +18,12 @@ import (
   inputExamples = [
     {
       value = {
-        task = "durChain"
+        task = "adtCounter"
       }
     },
     {
       value = {
-        task = "durLoop"
-      }
-    },
-    {
-      value = {
-        task = "durParallel"
-      }
-    },
-    {
-      value = {
-        task = "durRecursive"
+        task = "adtList"
       }
     },
   ]

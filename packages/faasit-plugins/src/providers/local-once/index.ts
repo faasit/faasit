@@ -65,6 +65,7 @@ class LocalOnceProvider implements faas.ProviderPlugin {
 
   async executeJsCode(ctx: faas.ProviderPluginContext, type: string, name: string, codeDir: string, inputData: unknown) {
     process.env.FAASIT_PROVIDER = 'local-once'
+    process.env.FAASIT_FUNC_NAME = name
     process.env.FAASIT_WORKFLOW_FUNC_TYPE = type
     process.env.FAASIT_WORKFLOW_FUNC_NAME = name
 

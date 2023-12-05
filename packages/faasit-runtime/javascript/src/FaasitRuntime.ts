@@ -1,7 +1,7 @@
+import { randomUUID } from "crypto";
 import { LowLevelDurableClient } from "./durable";
 
 export type InvocationMetadata = {
-    funcName: string
     id: string
     // useful for callback
     caller?: {
@@ -12,21 +12,59 @@ export type InvocationMetadata = {
     kind: 'call'
 } | {
     kind: 'tell'
+    callback?: {
+        // context need to passed back to callback
+        ctx: unknown
+    }
+    responseCtx?: unknown
 })
+
+export type DurableMetadata = {
+    // consistent with one orchestrator
+    orchestrator?: OrchestratorMetadata
+}
+
+export type OrchestratorMetadata = {
+    id: string
+    initialInput: object
+}
 
 // Metadata for faasit runtime, like invocation info
 export interface FaasitRuntimeMetadata {
+    funcName: string
     invocation: InvocationMetadata
+    durable?: DurableMetadata
 }
 
-export type CallbackParams = { input: object; ctx?: unknown }
-export type CallParams = { sequence?: number; input: object }
+export function createFaasitRuntimeMetadata(opt: {
+    funcName: string
+}): FaasitRuntimeMetadata {
+    return {
+        funcName: opt.funcName,
+        invocation: {
+            id: randomUUID(),
+            kind: 'call'
+        }
+    }
+}
+
+export type InputType = Record<string, unknown>
+export type MetadataInput = Record<string, unknown>
+export type CallbackParams = { input: InputType; ctx?: unknown; }
+export type CallParams = { sequence?: number; input: InputType; }
 export type CallResult = { output: any }
 
 export type TellParams = {
-    input: object
-    // context need to passed to callback
-    callbackCtx?: unknown
+    input: InputType
+
+    // whether needs callback from remote function
+    callback?: {
+        // context need to passed back to callback
+        ctx: unknown
+    }
+
+    // callback context (when response)
+    responseCtx?: unknown
 }
 
 export type TellResult = {}
@@ -36,12 +74,9 @@ export interface FaasitRuntime {
 
     metadata(): FaasitRuntimeMetadata;
 
-    input(): object;
+    input(): InputType;
 
     output(returnObject: any): object;
-
-    // send back to caller
-    callback(fnParams: CallbackParams): Promise<void>;
 
     // sync call
     call(fnName: string, fnParams: CallParams): Promise<CallResult>;
@@ -62,7 +97,7 @@ export abstract class BaseFaasitRuntime implements FaasitRuntime {
         throw new Error(`Method not implemented.`)
     }
 
-    input(): object {
+    input(): InputType {
         throw new Error("Method not implemented.");
     }
 
@@ -70,20 +105,44 @@ export abstract class BaseFaasitRuntime implements FaasitRuntime {
         throw new Error("Method not implemented.");
     }
 
-    async callback(fnParams: CallParams): Promise<void> {
-        const metadata = this.metadata()
-        const caller = metadata.invocation.caller
-        if (!caller) {
-            throw new Error(`no caller info in metadata`)
-        }
-
-        await this.tell(caller.funcName, fnParams)
-    }
-
     call(fnName: string, fnParams: CallParams): Promise<CallResult> {
         throw new Error("Method not implemented.");
     }
+
     tell(fnName: string, fnParams: TellParams): Promise<TellResult> {
         throw new Error("Method not implemented.");
+    }
+
+    // helpers function
+    protected helperCollectMetadata(fnName: string, params: CallParams | TellParams): FaasitRuntimeMetadata {
+        const metadata = this.metadata()
+
+        const baseInvocation: Pick<InvocationMetadata, 'id' | 'caller'> = {
+            id: randomUUID(),
+            caller: {
+                funcName: metadata.funcName,
+                invocationId: metadata.invocation.id
+            }
+        }
+
+        const getInvocation = (): InvocationMetadata => {
+            if ('callback' in params) {
+                return {
+                    ...baseInvocation,
+                    kind: 'tell',
+                    callback: params.callback,
+                    responseCtx: params.responseCtx
+                }
+            }
+            return {
+                ...baseInvocation,
+                kind: 'call',
+            }
+        }
+
+        return {
+            funcName: fnName,
+            invocation: getInvocation()
+        }
     }
 }

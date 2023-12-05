@@ -1,7 +1,9 @@
 import { randomUUID } from "crypto";
 import { HandlerType } from "..";
-import { CallParams, CallResult, DurableMetadata, FaasitRuntime, OrchestratorMetadata, TellParams, TellResult } from "../FaasitRuntime";
+import { CallParams, CallResult, DurableMetadata, FaasitRuntime, FaasitRuntimeMetadata, InputType, OrchestratorMetadata, TellParams, TellResult } from "../FaasitRuntime";
 import assert from "assert";
+
+import * as utils from '../utils'
 
 export interface LowLevelDurableClient {
   set(key: string, value: unknown): Promise<void>;
@@ -87,6 +89,21 @@ function parseDurableCallbackContext(ctx: unknown): DurableCallbackContext | und
   return ctx as DurableCallbackContext
 }
 
+// Tricky way to mark function as orchestrator, only useful in local-once runtime
+// the local once runtime should polling and wait it until end
+// TODO: Refactor it
+export class IsDurableOrchestratorFlag {
+  constructor(public orchestratorId: string) {
+  }
+}
+
+function createOrchestatorScopeId(orcheId: string): ScopeId {
+  const scopeId = ScopeId.create({
+    ns: '__state__', name: orcheId, type: 'orchestration'
+  })
+  return scopeId
+}
+
 // High-Level API
 export function createDurable(fn: (frt: DurableFaasitRuntime) => Promise<unknown>): HandlerType {
 
@@ -113,31 +130,35 @@ export function createDurable(fn: (frt: DurableFaasitRuntime) => Promise<unknown
       // first called, no orchestrator metadata definied, init orchestrator
       orchestratorMetadata = {
         id: randomUUID(),
-        initialInput: frt.input()
+        initialData: {
+          input: frt.input(),
+          metadata: frt.metadata()
+        }
       }
 
       metadata.durable = {
         orchestrator: orchestratorMetadata
       }
+
+      console.log(`first called durable function, name=${metadata.funcName}, orche=`, orchestratorMetadata)
     }
 
     const orchestratorId = orchestratorMetadata.id
-    const scopeId = ScopeId.create({
-      ns: '__state__', name: orchestratorId, type: 'orchestration'
-    })
+
+    const scopeId = createOrchestatorScopeId(orchestratorId)
     const client = getClient(frt).getScoped(scopeId)
 
     const { state } = await DurableFunctionState.load(client)
 
     // update task if not first called
     if (callbackCtx) {
-      const { callback } = frt.input()
+      const result = frt.input()
       const action = state.actions[callbackCtx.taskPc]
       if (!action) {
         throw new Error(`no such task in durable state, taskPc=${callbackCtx.taskPc}`)
       }
       action.status = 'done'
-      action.result = callback as CallResult
+      action.result = { output: result }
 
       await state.store(client)
     }
@@ -146,7 +167,17 @@ export function createDurable(fn: (frt: DurableFaasitRuntime) => Promise<unknown
 
     // catch and schedule
     try {
-      return await fn(durableRt)
+      const result = await fn(durableRt)
+
+      // console.log(`running callback`, metadata.invocation)
+      await utils.handlePostCallback(frt, {
+        result: result as InputType,
+        metadata: orchestratorMetadata.initialData.metadata
+      })
+
+      // save result
+      await state.saveResult(client, result)
+
     } catch (e) {
       if (e instanceof DurableYieldIRQ) {
         console.log(`[Trace] ${metadata.funcName} id=${orchestratorId} yield, store the state`)
@@ -154,11 +185,32 @@ export function createDurable(fn: (frt: DurableFaasitRuntime) => Promise<unknown
         // store state
         await state.store(client)
 
-        // just return
-        return
+        return new IsDurableOrchestratorFlag(orchestratorId)
       }
     }
   }
+}
+
+export async function waitOrchestratorResult(frt: FaasitRuntime, orcheId: string, opt: {
+  pollingMs?: number
+  deadlineMs?: number
+}) {
+  const { pollingMs = 100, deadlineMs = 2000 } = opt
+
+  const scopeId = createOrchestatorScopeId(orcheId)
+  const client = getClient(frt).getScoped(scopeId)
+
+  for (let i = 0; i < deadlineMs; i += pollingMs) {
+    const finished = await client.get(`finished`, () => false)
+    if (finished) {
+      break
+    }
+
+    // wait
+    await new Promise((resolve) => setTimeout(resolve, pollingMs))
+  }
+
+  return client.get(`result`)
 }
 
 // Serializable action
@@ -185,6 +237,7 @@ export class DurableFunctionState {
     if (!initialized) {
       const state = new DurableFunctionState()
       await client.set(`initialized`, true)
+      await client.set(`finished`, false)
       await state.store(client)
       return { state, init: true }
     }
@@ -197,6 +250,11 @@ export class DurableFunctionState {
 
   async store(client: ScopedDurableClient): Promise<void> {
     client.set('actions', this._actions)
+  }
+
+  async saveResult(client: ScopedDurableClient, result: unknown): Promise<void> {
+    await client.set(`finished`, true)
+    await client.set(`result`, result)
   }
 
   addAction(action: Action) {
@@ -234,6 +292,10 @@ export class DurableFaasitRuntime {
     return this._state
   }
 
+  metadata(): FaasitRuntimeMetadata {
+    return this.rt.metadata()
+  }
+
   input(): object {
     return this.orchestratorMetadata.initialInput
   }
@@ -260,7 +322,8 @@ export class DurableFaasitRuntime {
       callback: {
         ctx: {
           kind: 'durable-orchestrator-callback',
-          orchestrator: this.orchestratorMetadata
+          orchestrator: this.orchestratorMetadata,
+          taskPc: pc
         } as DurableCallbackContext
       }
     })

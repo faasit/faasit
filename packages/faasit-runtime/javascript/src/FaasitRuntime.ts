@@ -26,7 +26,10 @@ export type DurableMetadata = {
 
 export type OrchestratorMetadata = {
     id: string
-    initialInput: object
+    initialData: {
+        input: object
+        metadata: FaasitRuntimeMetadata
+    }
 }
 
 // Metadata for faasit runtime, like invocation info
@@ -114,7 +117,7 @@ export abstract class BaseFaasitRuntime implements FaasitRuntime {
     }
 
     // helpers function
-    protected helperCollectMetadata(fnName: string, params: CallParams | TellParams): FaasitRuntimeMetadata {
+    protected helperCollectMetadata(kind: 'call' | 'tell', fnName: string, params: CallParams | TellParams): FaasitRuntimeMetadata {
         const metadata = this.metadata()
 
         const baseInvocation: Pick<InvocationMetadata, 'id' | 'caller'> = {
@@ -126,12 +129,13 @@ export abstract class BaseFaasitRuntime implements FaasitRuntime {
         }
 
         const getInvocation = (): InvocationMetadata => {
-            if ('callback' in params) {
+            if (kind === 'tell') {
+                const p = params as TellParams
                 return {
                     ...baseInvocation,
                     kind: 'tell',
-                    callback: params.callback,
-                    responseCtx: params.responseCtx
+                    callback: p.callback,
+                    responseCtx: p.responseCtx
                 }
             }
             return {

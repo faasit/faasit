@@ -7,6 +7,8 @@ import { FunctionContainerConfig, UnknownProvider, getFunctionContainerConfig } 
 import { LocalOnceRuntime } from "./LocalOnceRuntime";
 export { createWorkflow } from './Workflow'
 
+import * as utils from './utils'
+
 export * as txn from "./txn"
 export * as df from "./durable"
 
@@ -42,30 +44,19 @@ export function createExports(obj: { handler: HandlerType } | { workflow: Workfl
 export function createFunction(fn: HandlerType): HandlerType {
 
   return async (frt) => {
-    const metadata = frt.metadata()
-    const invocation = metadata.invocation
+    const result = await fn(frt)
+    await utils.handlePostCallback(frt, {
+      result
+    })
 
-    // tell and needs to callback
-    if (invocation.kind === 'tell' && invocation.callback) {
-
-      const result = await fn(frt)
-
-      await frt.tell(metadata.funcName, {
-        input: result,
-        responseCtx: invocation.callback.ctx
-      })
-
-    } else {
-      return await fn(frt)
-    }
+    return result
   }
 }
 
-
 function transformFunction(fn: HandlerType) {
+  // container config is injected by different provider plugins
   const containerConf = getFunctionContainerConfig()
 
-  // TODO: get metadata from container
   const metadata = createFaasitRuntimeMetadata({
     funcName: containerConf.funcName
   })
@@ -102,8 +93,9 @@ function transformFunction(fn: HandlerType) {
 function transformWorkflowFunction(containerConf: FunctionContainerConfig, spec: WorkflowSpec, fn: HandlerType) {
   switch (containerConf.provider) {
     case 'local-once':
+      const metadata = createFaasitRuntimeMetadata({ funcName: containerConf.funcName })
       return (event: any) => {
-        const runtime = new LocalOnceRuntime(spec.functions, event)
+        const runtime = new LocalOnceRuntime(spec.functions, { input: event, metadata })
         return fn(runtime)
       }
     case 'local':

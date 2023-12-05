@@ -1,6 +1,6 @@
 import { BaseFaasitRuntime, InputType, CallParams, CallResult, FaasitRuntime, TellParams, TellResult, FaasitRuntimeMetadata } from "./FaasitRuntime";
 import { WorkflowFunc } from "./Workflow"
-import { LowLevelDurableClient } from "./durable";
+import { LowLevelDurableClient, IsDurableOrchestratorFlag, waitOrchestratorResult } from "./durable";
 
 // Run function in a local and unit scope
 export class LocalOnceRuntime extends BaseFaasitRuntime {
@@ -35,10 +35,17 @@ export class LocalOnceRuntime extends BaseFaasitRuntime {
 
     console.log(`function called, name=${fnName}, seq=${fnParams.sequence || 0}`)
 
-    const metadata = this.helperCollectMetadata(fnName, fnParams)
+    const metadata = this.helperCollectMetadata('call', fnName, fnParams)
     // call locally and recusively
     const frt = new LocalOnceRuntime(this.funcs, { input: fnParams.input, metadata })
     const data = await func.handler(frt)
+
+    // polling and wait for result
+    if (data instanceof IsDurableOrchestratorFlag) {
+      const result = await waitOrchestratorResult(frt, data.orchestratorId, {})
+      return { output: result }
+    }
+
     return { output: data }
   }
 
@@ -48,14 +55,14 @@ export class LocalOnceRuntime extends BaseFaasitRuntime {
       throw new Error(`unknown function to tell, name=${fnName}`)
     }
 
-    console.log(`function told, name=${fnName}`)
+    console.log(`function tell, name=${fnName}, responseCtx=${!!fnParams.responseCtx}`)
 
-    const metadata = this.helperCollectMetadata(fnName, fnParams)
+    const metadata = this.helperCollectMetadata('tell', fnName, fnParams)
     const frt = new LocalOnceRuntime(this.funcs, { input: fnParams.input, metadata })
 
     // create task but no wait
     const task = async () => {
-      const data = await func.handler(frt)
+      await func.handler(frt)
     }
     task()
 

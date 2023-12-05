@@ -18,12 +18,22 @@ import (
   inputExamples = [
     {
       value = {
-        task = "adtCounter"
+        task = "durChain"
       }
     },
     {
       value = {
-        task = "adtList"
+        task = "durLoop"
+      }
+    },
+    {
+      value = {
+        task = "durParallel"
+      }
+    },
+    {
+      value = {
+        task = "durRecursive"
       }
     },
   ]

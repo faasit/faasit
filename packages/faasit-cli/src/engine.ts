@@ -428,6 +428,11 @@ export class Engine {
 
     // recursively transform
     if (typeof value === 'object' && value !== null) {
+      if (Array.isArray(value)) {
+        return value
+      }
+
+      // record
       let obj: Record<string, unknown> = {}
       for (const [key, val] of Object.entries(value)) {
         obj[key] = await this.transformInputValue(val)

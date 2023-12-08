@@ -28,6 +28,8 @@ const durChain = df.createDurable(async (frt) => {
   })
 })
 
+const durSwitch = {}
+
 const durLoop = df.createDurable(async (frt) => {
   const r1 = await frt.call('workerAdd', {
     input: { lhs: 2, rhs: 3 }

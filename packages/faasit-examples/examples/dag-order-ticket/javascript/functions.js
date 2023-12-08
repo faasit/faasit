@@ -3,9 +3,6 @@ const { txn, df } = require('@faasit/runtime')
 
 const BuyTrainTicket = createFunction(async (frt) => {
   const { control } = frt.input()
-  const client = df.getClient(frt)
-
-  client.set('train.order', { id: '123' })
 
   if (control.BuyTrainTicket == "ok") {
     return frt.output({ ok: true, value: 1 })

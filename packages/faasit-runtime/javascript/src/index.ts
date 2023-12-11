@@ -11,6 +11,7 @@ import * as utils from './utils'
 
 export * as txn from "./txn"
 export * as df from "./durable"
+export * as operators from "./operators"
 
 export type { FaasitRuntime };
 

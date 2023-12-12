@@ -1,268 +1,217 @@
 import { faas } from '@faasit/std'
-import FC_Open20210406, * as $FC_Open20210406 from '@alicloud/fc-open20210406';
-import OpenApi, * as $OpenApi from '@alicloud/openapi-client';
-import Util, * as $Util from '@alicloud/tea-util';
-import Admzip from 'adm-zip';
-import path from 'path';
-import dotenv from 'dotenv';
 import * as Trigger from "./utils/trigger";
 import axios, { Axios } from "axios";
-
+import { AliyunFunction, AliyunService, AliyunTrigger } from './utils'
+import dotenv from 'dotenv';
+import path from 'path';
 dotenv.config({ path: path.resolve(__dirname, "./.env") });
 
 
-function createClient(): FC_Open20210406 {
-	const accessKeyId = process.env.accessID;
-	const accessKeySecret = process.env.accessKey;
-	const accountID = process.env.accountID;
-	const region = process.env.region;
-	let config = new $OpenApi.Config({
-		accessKeyId: accessKeyId,
-		accessKeySecret: accessKeySecret
-	});
-	config.endpoint = `${accountID}.${region}.fc.aliyuncs.com`;
-	return new FC_Open20210406(config);
+interface DeployParams {
+	ctx: faas.ProviderPluginContext
+	input: faas.ProviderDeployInput
 }
 
-function createApiInfo(opts: {
-	method: string,
-	pathName: string,
-	action: string,
-}): $OpenApi.Params {
-	return new $OpenApi.Params({
-		action: opts.action,
-		version: "2021-04-06",
-		protocol: "HTTPS",
-		method: opts.method,
-		authType: "AK",
-		style: "FC",
-		pathname: opts.pathName,
-		reqBodyType: "json",
-		bodyType: "json"
-	})
+interface DeployFunctionParams {
+	workflowFuncType: string,
+	name: string,
+	codeDir: string
 }
 
-async function createService():
-	Promise<$FC_Open20210406.CreateServiceResponse | undefined> {
-	let client = createClient();
-	let createServiceHeaders = new $FC_Open20210406.CreateServiceHeaders({});
-	let createServiceRequest = new $FC_Open20210406.CreateServiceRequest({
-		serviceName: "faasit",
-	});
-	let runtime = new $Util.RuntimeOptions({});
-	try {
-		let resp = await client.createServiceWithOptions(
-			createServiceRequest,
-			createServiceHeaders,
-			runtime);
-		return resp;
-	} catch (error) {
-		throw error;
-	}
-}
+async function deployFunctions(p: DeployParams) {
+	const { app } = p.input
+	const { logger } = p.ctx
 
-async function getService():
-	Promise<$FC_Open20210406.GetServiceResponse | undefined> {
-	let client = createClient();
-	let getServiceHeaders = new $FC_Open20210406.GetServiceHeaders({});
-	let getServiceRequest = new $FC_Open20210406.GetServiceRequest({});
-	let runtime = new $Util.RuntimeOptions({});
-	try {
-		const resp = await client.getServiceWithOptions(
-			"faasit",
-			getServiceRequest,
-			getServiceHeaders,
-			runtime);
-		return resp;
-	} catch (error) {
-		if (error.code != 'ServiceNotFound') {
-			throw error;
+	logger.info('aliyun deploy')
+
+	for (const fnRef of app.output.functions) {
+		const fn = fnRef.value
+		logger.info(`deploy function ${fn.$ir.name}`)
+
+		let service = new AliyunService();
+		await service.get().then(getServiceResp => {
+			if (getServiceResp) {
+				logger.info("aliyun service faasit exists");
+				return;
+			} else {
+				logger.info("aliyun service faasit doesn't exist, it will be created...")
+				service.create().catch(err => {
+					logger.error(err);
+					return;
+				});
+			}
+		}).catch(err => {
+			logger.error(err);
+		});
+
+
+		let func = new AliyunFunction(
+			fn.$ir.name,
+			fn.output.codeDir,
+			fn.output.runtime,
+			fn.output.handler ? fn.output.handler : "index.handler",
+			undefined
+		)
+		await func.get().then(async getFunctionResp => {
+			if (getFunctionResp) {
+				logger.info(`aliyun function ${fn.$ir.name} exists, it will be updated!`);
+				logger.info('update function results: ');
+				await func.update()
+					.then(updateFunctionResp => {
+						if (updateFunctionResp) {
+							console.log(updateFunctionResp.body.toMap());
+						}
+					})
+					.catch(err => {
+						logger.error(err);
+					})
+			} else {
+				logger.info(`create aliyun function ${fn.$ir.name}...`);
+				logger.info('create function results: ');
+				await func.create()
+					.then(createFunctionResp => {
+						console.log(createFunctionResp?.body.toMap());
+					})
+					.catch(err => {
+						logger.error(err);
+					})
+			}
+		}).catch(err => {
+			logger.error(err);
+		})
+
+		for (let trigger of (fn.output.triggers || [])) {
+			const baseTrigger = await Trigger.getTrigger({
+				kind: trigger.kind,
+				name: trigger.name,
+				opts: {/**TODO */ }
+			})
+			let aliyunTrigger = new AliyunTrigger(
+				fn.$ir.name,
+				trigger.name,
+				trigger.kind,
+				{})
+			await aliyunTrigger.get().then(async getTriggerResp => {
+				if (getTriggerResp) {
+					logger.info(`aliyun trigger ${trigger.name} exists, it will be updated!`);
+					await aliyunTrigger.update()
+						.then(updateTriggerResp => {
+							if (updateTriggerResp) {
+								logger.info("update trigger results: ");
+								console.log(updateTriggerResp.body.toMap());
+							}
+						})
+				} else {
+					logger.info(`create trigger ${trigger.name}...`);
+					await aliyunTrigger.create()
+						.then(createTriggerResp => {
+							if (createTriggerResp) {
+								logger.info("create trigger results: ")
+								console.log(createTriggerResp.body.toMap());
+							}
+						})
+						.catch(err => {
+							logger.error(err);
+						});
+				}
+			}).catch(err => {
+				logger.error(err);
+			})
 		}
 	}
 }
 
-async function createFunction(fn: {
-	functionName: string,
-	codeDir: string,
-	runtime: string,
-	handler: string,
-}): Promise<$FC_Open20210406.CreateFunctionResponse | undefined> {
+async function deployWorkflowApp(p: DeployParams, app: faas.WorkflowApplication) {
+	const { ctx } = p;
+	const { logger } = ctx
 
-	let zipFolderAndEncode = (folderPath: string) => {
-		const zip = new Admzip();
-		zip.addLocalFolder(folderPath);
-		const zipBuffer = zip.toBuffer();
-		const base64 = zipBuffer.toString('base64');
-		return base64;
-	};
+	logger.info(`deploy workflow on Aliyun`)
+	const workflow = app.output.workflow.value.output
 
-	let client = createClient();
-	let code = new $FC_Open20210406.Code({
-		zipFile: zipFolderAndEncode(fn.codeDir),
+	const functionsToDeploy: DeployFunctionParams[] = []
+	for (const fnRef of workflow.functions) {
+		const fn = fnRef.value
+		const codeDir = fn.output.codeDir
+
+		functionsToDeploy.push({
+			workflowFuncType: 'func',
+			name: fnRef.value.$ir.name,
+			codeDir: codeDir || workflow.codeDir
+		})
+	}
+
+	functionsToDeploy.push({
+		workflowFuncType: 'executor',
+		name: 'executor',
+		codeDir: workflow.codeDir
 	})
-	let createFunctionHeaders = new $FC_Open20210406.CreateFunctionHeaders({});
-	let createFunctionRequests = new $FC_Open20210406.CreateFunctionRequest({
-		functionName: fn.functionName,
-		handler: fn.handler,
-		runtime: fn.runtime,
-		code: code
-	});
-	let runtime = new $Util.RuntimeOptions({});
-	try {
-		const resp = await client.createFunctionWithOptions(
-			"faasit",
-			createFunctionRequests,
-			createFunctionHeaders,
-			runtime);
-		return resp;
-	} catch (error) {
-		throw error;
-	}
-}
 
-async function getFunction(functionName: string): Promise<{ [key: string]: any } | undefined> {
-	let client = createClient();
-	let getFunctionRequests = new $FC_Open20210406.GetFunctionRequest({});
-	try {
-		const resp = await client.getFunction("faasit", functionName, getFunctionRequests);
-		return resp;
-	} catch (error) {
-		if (error.code != 'FunctionNotFound') {
-			throw error;
+	for (const func of functionsToDeploy) {
+		const functionName = func.name
+		const workflowFuncType = func.workflowFuncType
+		const codeDir = func.codeDir
+
+		let env = {
+			FAASIT_PROVIDER: 'aliyun',
+			FAASIT_APP_NAME: functionName,
+			FAASIT_WORKFLOW_FUNC_TYPE: workflowFuncType,
+			FAASIT_WORKFLOW_FUNC_NAME: functionName,
+			ALIBABA_CLOUD_ACCESS_KEY_ID: process.env.accessID,
+			ALIBABA_CLOUD_ACCESS_KEY_SECRET: process.env.accessKey,
+			ALIBABA_CLOUD_PRODUCT_CODE: process.env.accountID,
+			ALIBABA_CLOUD_REGION: process.env.region,
+			ALIBABA_CLOUD_SERVICE: 'faasit'
 		}
-	}
-}
 
-async function updateFunction(fn: {
-	functionName: string,
-	codeDir: string,
-	runtime: string,
-	handler: string,
-}): Promise<$FC_Open20210406.UpdateFunctionResponse | undefined> {
-	let zipFolderAndEncode = (folderPath: string) => {
-		const zip = new Admzip();
-		zip.addLocalFolder(folderPath);
-		const zipBuffer = zip.toBuffer();
-		const base64 = zipBuffer.toString('base64');
-		return base64;
-	};
-	let client = createClient();
-	let code = new $FC_Open20210406.Code({
-		zipFile: zipFolderAndEncode(fn.codeDir),
-	})
-	let headers = new $FC_Open20210406.UpdateFunctionHeaders({});
-	let requests = new $FC_Open20210406.UpdateFunctionRequest({
-		functionName: fn.functionName,
-		handler: fn.handler,
-		runtime: fn.runtime,
-		code: code
-	});
-	let runtime = new $Util.RuntimeOptions({});
-	try {
-		const resp = await client.updateFunctionWithOptions(
-			"faasit",
-			fn.functionName,
-			requests,
-			headers,
-			runtime);
-		return resp;
-	} catch (error) {
-		throw error;
-	}
-}
+		let service = new AliyunService();
+		await service.get().then(getServiceResp => {
+			if (getServiceResp) {
+				logger.info("aliyun service faasit exists");
+				return;
+			} else {
+				logger.info("aliyun service faasit doesn't exist, it will be created...")
+				service.create().catch(err => {
+					logger.error(err);
+					return;
+				});
+			}
+		}).catch(err => {
+			logger.error(err);
+		});
 
-async function invokeFunction(functionName: string)
-	: Promise<$FC_Open20210406.InvokeFunctionResponse | undefined> {
-	let client = createClient();
-	let invokeFunctionRequests = new $FC_Open20210406.InvokeFunctionRequest({});
-	try {
-		const resp = await client.invokeFunction("faasit", functionName, invokeFunctionRequests);
-		return resp;
-	} catch (error) {
-		throw error;
-	}
-}
-
-
-async function createTrigger(
-	functionName: string,
-	triggerOpts: {
-		triggerName: string,
-		triggerType: string,
-		triggerConfig: { [key: string]: any },
-	}
-): Promise<$FC_Open20210406.CreateTriggerResponse | undefined> {
-	let client = createClient();
-	let headers = new $FC_Open20210406.CreateTriggerHeaders({});
-	let requests = new $FC_Open20210406.CreateTriggerRequest({
-		triggerName: triggerOpts.triggerName,
-		triggerType: triggerOpts.triggerType,
-		triggerConfig: JSON.stringify(triggerOpts.triggerConfig)
-	});
-	let runtime = new $Util.RuntimeOptions({});
-	try {
-		const resp = await client.createTriggerWithOptions(
-			'faasit',
+		let aliyunFunc = new AliyunFunction(
 			functionName,
-			requests,
-			headers,
-			runtime
-		);
-		return resp;
-	} catch (error) {
-		throw error;
-	}
-}
-
-async function updateTrigger(
-	functionName: string,
-	triggerOpts: {
-		triggerName: string,
-		triggerType: string,
-		triggerConfig: { [key: string]: any },
-	}
-): Promise<$FC_Open20210406.UpdateTriggerResponse | undefined> {
-	let client = createClient();
-	let headers = new $FC_Open20210406.UpdateTriggerHeaders({});
-	let requests = new $FC_Open20210406.UpdateTriggerRequest({
-		triggerName: triggerOpts.triggerName,
-		triggerType: triggerOpts.triggerType,
-		triggerConfig: JSON.stringify(triggerOpts.triggerConfig)
-	});
-	let runtime = new $Util.RuntimeOptions({});
-	try {
-		const resp = await client.updateTriggerWithOptions(
-			'faasit',
-			functionName,
-			triggerOpts.triggerName,
-			requests,
-			headers,
-			runtime
-		);
-		return resp;
-	} catch (err) {
-		throw err;
-	}
-}
-
-async function getTrigger(functionName: string, triggerName: string)
-	: Promise<$FC_Open20210406.GetTriggerResponse | undefined> {
-	let client = createClient();
-	let headers = new $FC_Open20210406.GetTriggerHeaders({});
-	let runtime = new $Util.RuntimeOptions({});
-	try {
-		const resp = await client.getTriggerWithOptions(
-			'faasit',
-			functionName,
-			triggerName,
-			headers,
-			runtime
-		);
-		return resp;
-	} catch (error) {
-		if (error.code != 'TriggerNotFound') {
-			throw error;
-		}
+			codeDir,
+			'nodejs14',
+			"index.handler",
+			env);
+		await aliyunFunc.get().then(async getFunctionResp => {
+			if (getFunctionResp) {
+				logger.info(`aliyun function ${functionName} exists, it will be updated!`);
+				logger.info('update function results: ');
+				await aliyunFunc.update()
+					.then(updateFunctionResp => {
+						if (updateFunctionResp) {
+							console.log(updateFunctionResp.body.toMap());
+						}
+					})
+					.catch(err => {
+						logger.error(err);
+					})
+			} else {
+				logger.info(`create aliyun function ${functionName}...`);
+				logger.info('create function results: ');
+				await aliyunFunc.create()
+					.then(createFunctionResp => {
+						console.log(createFunctionResp?.body.toMap());
+					})
+					.catch(err => {
+						logger.error(err);
+					})
+			}
+		}).catch(err => {
+			logger.error(err);
+		})
 	}
 }
 
@@ -274,107 +223,10 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 			const { rt, logger } = ctx
 			const { app } = input
 
-			logger.info('aliyun deploy')
-
-			for (const fnRef of app.output.functions) {
-				const fn = fnRef.value
-				logger.info(`deploy function ${fn.$ir.name}`)
-
-				await getService().then(getServiceResp => {
-					if (getServiceResp) {
-						logger.info("aliyun service faasit exists");
-						return;
-					} else {
-						logger.info("aliyun service faasit doesn't exist, it will be created...")
-						createService().catch(err => {
-							logger.error(err);
-							return;
-						});
-					}
-				}).catch(err => {
-					logger.error(err);
-				});
-
-
-				await getFunction(fn.$ir.name).then(async getFunctionResp => {
-					if (getFunctionResp) {
-						logger.info(`aliyun function ${fn.$ir.name} exists, it will be updated!`);
-						logger.info('update function results: ');
-						await updateFunction({
-							functionName: fn.$ir.name,
-							codeDir: fn.output.codeDir,
-							runtime: fn.output.runtime,
-							handler: fn.output.handler ? fn.output.handler : "index.handler"
-						})
-							.then(updateFunctionResp => {
-								if (updateFunctionResp) {
-									console.log(updateFunctionResp.body.toMap());
-								}
-							})
-							.catch(err => {
-								logger.error(err);
-							})
-					} else {
-						logger.info(`create aliyun function ${fn.$ir.name}...`);
-						logger.info('create function results: ');
-						await createFunction({
-							functionName: fn.$ir.name,
-							codeDir: fn.output.codeDir,
-							runtime: fn.output.runtime,
-							handler: fn.output.handler ? fn.output.handler : "index.handler"
-						})
-							.then(createFunctionResp => {
-								console.log(createFunctionResp?.body.toMap());
-							})
-							.catch(err => {
-								logger.error(err);
-							})
-					}
-				}).catch(err => {
-					logger.error(err);
-				})
-
-				for (let trigger of (fn.output.triggers || [])) {
-					const baseTrigger = await Trigger.getTrigger({
-						kind: trigger.kind,
-						name: trigger.name,
-						opts: {/**TODO */ }
-					})
-					await getTrigger(fn.$ir.name, trigger.name).then(async getTriggerResp => {
-						if (getTriggerResp) {
-							logger.info(`aliyun trigger ${trigger.name} exists, it will be updated!`);
-							await updateTrigger(fn.$ir.name, {
-								triggerName: trigger.name,
-								triggerType: trigger.kind,
-								triggerConfig: baseTrigger.triggerConfig
-							})
-								.then(updateTriggerResp => {
-									if (updateTriggerResp) {
-										logger.info("update trigger results: ");
-										console.log(updateTriggerResp.body.toMap());
-									}
-								})
-						} else {
-							logger.info(`create trigger ${trigger.name}...`);
-							await createTrigger(fn.$ir.name, {
-								triggerName: trigger.name,
-								triggerType: trigger.kind,
-								triggerConfig: baseTrigger.triggerConfig
-							})
-								.then(createTriggerResp => {
-									if (createTriggerResp) {
-										logger.info("create trigger results: ")
-										console.log(createTriggerResp.body.toMap());
-									}
-								})
-								.catch(err => {
-									logger.error(err);
-								});
-						}
-					}).catch(err => {
-						logger.error(err);
-					})
-				}
+			if (faas.isWorkflowApplication(app)) {
+				return deployWorkflowApp({ ctx, input }, app)
+			} else {
+				return deployFunctions({ ctx, input })
 			}
 		},
 
@@ -383,11 +235,19 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 			const { app } = input;
 
 			for (const fnRef of app.output.functions) {
+
 				const fn = fnRef.value
 				logger.info(`invoke function ${fn.$ir.name}`);
 				const triggers = fn.output.triggers || []
+
 				if (triggers.length > 0 && triggers[0].kind == 'http') {
-					await getTrigger(fn.$ir.name, triggers[0].name)
+					let aliyunTrigger = new AliyunTrigger(
+						fn.$ir.name,
+						triggers[0].name,
+						'http',
+						{}
+					)
+					await aliyunTrigger.get()
 						.then(async triggerResp => {
 							const urlInternet = triggerResp?.body.urlInternet || "";
 							const urlWithoutHttp = urlInternet.replace(/^(http|https):\/\//, "");
@@ -402,15 +262,20 @@ export default function AliyunPlugin(): faas.ProviderPlugin {
 							logger.error(err);
 						})
 				} else {
-					await invokeFunction(fn.$ir.name).then(resp => {
+					let aliyunFunc = new AliyunFunction(
+						fn.$ir.name,
+						fn.output.codeDir,
+						fn.output.runtime,
+						fn.output.handler ? fn.output.handler : "index.handler",
+						undefined
+					)
+					await aliyunFunc.invoke().then(resp => {
 						if (resp) {
 							logger.info(resp.body.toString());
 						}
 					})
 				}
-
 			}
-
 		}
 	}
 }

@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+export FAASIT_SRC_HOME=$(realpath "$(dirname $0)/..")
+
+node $FAASIT_SRC_HOME/packages/faasit/bin/faasit.cjs "$@"

@@ -21,22 +21,17 @@ pnpm -r dev
 
 **配置 ft 命令行工具**
 
-命令行工具入口脚本位于 `packages/faasit/bin/faasit.cjs`
+命令行工具入口位于 `packages/faasit/bin/faasit.cjs`
 
-为了方便开发，我们需要新建脚本文件 `ft`，并将脚本放入位于 PATH 目录，比如 `/usr/bin`
+命令行工具脚本位于 `scripts/ft`
+
+为了方便开发，可将脚本 `scripts/ft` 路径添加到 PATH 变量中
+
+```sh
+export PATH=$PATH:"<faasit-src-dir>/scripts"
+```
 
 之后能够在任意位置使用 `ft` 命令
-
-脚本 `ft` 内容
-
-```bash
-#!/usr/bin/env bash
-
-# !! 修改此变量值为 Faasit 源代码目录
-export FAASIT_SRC_HOME=$HOME/projects-i2ec/faasit
-
-node $FAASIT_SRC_HOME/packages/faasit/bin/faasit.cjs "$@"
-```
 
 **运行 ft 命令行工具**
 

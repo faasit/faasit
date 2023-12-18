@@ -57,8 +57,6 @@ export async function treeJoin<T>(opt: {
 
   const { input, action, joinerSize = 2 } = opt;
 
-  console.log(`input`, input);
-
   if (input.length <= joinerSize) {
     return await action(input);
   }
@@ -81,11 +79,8 @@ export async function treeJoin<T>(opt: {
   }
 
   await Promise.all(promises);
-
-  console.log(`result`, result);
   
   const res = await action(result);
-  console.log(`res`, res);
 
   return res;
 }

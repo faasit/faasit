@@ -29,7 +29,7 @@ export async function forkjoin<T, R>(opt: {
   workerSize?: number
   joinerSize?: number
 }): Promise<R> {
-  const { workerSize = 2, joinerSize = 1 } = opt
+  const { workerSize = 2, joinerSize = 2 } = opt
 
   // fork workerSize to work
   const workerBatchSize = Math.ceil(opt.input.length / workerSize)
@@ -40,6 +40,52 @@ export async function forkjoin<T, R>(opt: {
   })
 
   // TODO: support tree parallelly join
-  const res = await opt.join(results1)
+  const res = await treeJoin({
+    input: results1,
+    joinerSize: joinerSize,
+    action: opt.join,
+  })
+
   return res
+}
+
+export async function treeJoin<T>(opt: {
+  input: T[],
+  action: (input: T[]) => Promise<T>,
+  joinerSize?: number
+}): Promise<T> {
+
+  const { input, action, joinerSize = 2 } = opt;
+
+  console.log(`input`, input);
+
+  if (input.length <= joinerSize) {
+    return await action(input);
+  }
+
+  const result: T[] = [];
+  const promises: Promise<void>[] = [];
+
+  for (let i = 0; i < input.length; i += joinerSize) {
+    const batch = input.slice(i, Math.min(i + joinerSize, input.length));
+
+    const task = treeJoin({
+      input: batch,
+      action,
+      joinerSize
+    }).then(r => {
+      result.push(r);
+    });
+
+    promises.push(task);
+  }
+
+  await Promise.all(promises);
+
+  console.log(`result`, result);
+  
+  const res = await action(result);
+  console.log(`res`, res);
+
+  return res;
 }

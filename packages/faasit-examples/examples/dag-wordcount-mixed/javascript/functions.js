@@ -11,7 +11,7 @@ const count = createFunction(async (frt) => {
   }
 
   return frt.output({
-    counter: Array.from(counter.entries())
+    counter: [Array.from(counter.entries())]
   })
 })
 
@@ -20,9 +20,11 @@ const sort = createFunction(async (frt) => {
 
   const counter = new Map()
 
-  for (const [word, cnt] of counterArray) {
-    const oldCnt = counter.get(word) || 0
-    counter.set(word, oldCnt + cnt)
+  for (const arr of counterArray) {
+    for (const [word, cnt] of arr) {
+      const oldCnt = counter.get(word) || 0
+      counter.set(word, oldCnt + cnt)
+    }
   }
 
   const reducedCounter = Array.from(counter.entries())
@@ -67,7 +69,7 @@ const executor = createFunction(async (frt) => {
       return result.output.counter
     },
     workerSize: batchSize,
-    joinerSize: 1
+    joinerSize: 2
   })
 
   return frt.output({

@@ -11,18 +11,17 @@ export function CreateTccTask<T, R>(item: {
   let tryResult: CoreResult<R> | undefined = undefined
 
   return {
-    async try(payload) {
+    async try(txnId, payload) {
       if (txnID) {
         throw new Error(`tcc already tried`)
       }
-
-      txnID = crypto.randomUUID()
+      txnID = txnId;
       tryResult = await item.tryFn({
         txnID, payload
       })
 
       // ok
-      return { ...tryResult, txnID }
+      return tryResult;
     },
 
     async confirm() {
@@ -70,8 +69,10 @@ export function WithTcc<Tasks extends Record<string, TccTask<any, any>>>(
       // TODO: exception handling
       const manager = new TccManager()
 
+      const txnID = manager.createTxnID();
+
       const executors = Object.fromEntries(Object.entries(tasks).map(([k, v]) => {
-        return [k, manager.addTask(v)]
+        return [k, manager.addTask(txnID, v)]
       })) as TccExecutors<Tasks>
 
       const tx: TccTransactionContext<Tasks> = {
@@ -90,7 +91,7 @@ export function WithTcc<Tasks extends Record<string, TccTask<any, any>>>(
 }
 
 export interface TccTask<T, R> {
-  try(payload: T): Promise<CoreResult<R> & { txnID: string }>
+  try(txnId: string, payload: T): Promise<CoreResult<R>>
   confirm(): Promise<void>
   cancel(): Promise<void>
 }
@@ -118,14 +119,18 @@ class TccManager {
 
   get hasError() { return this._hasError }
 
-  addTask<T, R>(task: TccTask<T, R>): TccExecutor<T, R> {
+  createTxnID(): string {
+    return crypto.randomUUID();
+  }
+
+  addTask<T, R>(txnID: string, task: TccTask<T, R>): TccExecutor<T, R> {
     return async (payload: T) => {
       // no need to try if one has error
       if (this._hasError) {
         return { ok: false, error: { code: "TCC_ERROR", detail: "previous task is already error" } }
       }
 
-      const res = await task.try(payload)
+      const res = await task.try(txnID, payload)
       this._triedTasks.push(task)
 
       if (res.error) {

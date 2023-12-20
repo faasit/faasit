@@ -52,7 +52,7 @@ class LocalOnceProvider implements faas.ProviderPlugin {
       logger.info(`running workflow locally`)
     }
     const output = await this.executeJsCode(ctx, '__executor', workflow.codeDir, inputData)
-    logger.info(`workflow executed, output=${JSON.stringify(output)}`)
+    logger.info(`workflow executed, output=${JSON.stringify(output, undefined, 2)}`)
   }
 
   async deployFunction(ctx: faas.ProviderPluginContext, inputData: unknown, fn: faas.Function) {

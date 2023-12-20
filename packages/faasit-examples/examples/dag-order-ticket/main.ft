@@ -6,7 +6,7 @@ import (
   runtime = "nodejs"
 }
 
-@workflow ParallelSVDFlow {
+@workflow OrderTicketFlow {
   functions = [BuyTrainTicket]
 
   // workflow spec runtime
@@ -14,8 +14,8 @@ import (
   codeDir = "./javascript"
 }
 
-@application ParallelSVD {
-  workflow = ParallelSVDFlow
+@application OrderTicket {
+  workflow = OrderTicketFlow
   defaultProvider = Knative
 
   // used by `ft run`

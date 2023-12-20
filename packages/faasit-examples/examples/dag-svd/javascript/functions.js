@@ -1,4 +1,4 @@
-const { createFunction } = require('@faasit/runtime')
+const { createFunction, operators, df } = require('@faasit/runtime')
 const numeric = require('numeric')
 
 const split = createFunction(async (frt) => {
@@ -19,13 +19,19 @@ const split = createFunction(async (frt) => {
 })
 
 const compute = createFunction(async (frt) => {
-  const { Xi } = frt.input()
+  const { Xis } = frt.input()
 
-  // Step 2: Perform SVD for each Xi & calculate Yi
-  const Xi_svd = numeric.svd(Xi)
-  const Yi = numeric.dot(numeric.diag(Xi_svd.S), Xi_svd.V)
+  const result = []
+  for (const Xi of Xis) {
+    // Step 2: Perform SVD for each Xi & calculate Yi
+    const Xi_svd = numeric.svd(Xi)
+    const Yi = numeric.dot(numeric.diag(Xi_svd.S), Xi_svd.V)
+    result.push({ Xi_svd, Yi })
+  }
+
+
   return {
-    result: { Xi_svd, Yi }
+    result
   }
 })
 
@@ -53,20 +59,58 @@ const executor = createFunction(async (frt) => {
     input: { X, numSplits }
   })
 
-  const tasks = subXs.map((Xi, i) => frt.call('compute', {
-    sequence: i,
-    input: { Xi }
-  }))
-  const compResults = (await Promise.all(tasks)).flatMap(o => o.output.result)
-
-  const finalResult = await frt.call('merge', {
-    input: { compResults }
+  const res = await operators.forkjoin({
+    input: subXs,
+    work: async (Xis, i) => {
+      const res = await frt.call('compute', {
+        sequence: i, input: { Xis }
+      })
+      return res.output.result
+    },
+    join: async (compResults) => {
+      const res = await frt.call('merge', {
+        input: { compResults }
+      })
+      return res.output
+    },
+    workerSize: numSplits,
+    joinerSize: 1,
   })
 
   return frt.output({
     message: 'ok',
-    data: finalResult
+    data: res
   })
 })
 
-module.exports = { split, merge, compute, executor }
+const durExecutor = df.createDurable(async (frt) => {
+  const { X, numSplits = 3 } = frt.input()
+  const { output: { subXs } } = await frt.call('split', {
+    input: { X, numSplits }
+  })
+
+  const res = await operators.forkjoin({
+    input: subXs,
+    work: async (Xis, i) => {
+      const res = await frt.call('compute', {
+        sequence: i, input: { Xis }
+      })
+      return res.output.result
+    },
+    join: async (compResults) => {
+      const res = await frt.call('merge', {
+        input: { compResults }
+      })
+      return res.output
+    },
+    workerSize: numSplits,
+    joinerSize: 1,
+  })
+
+  return frt.output({
+    message: 'ok',
+    data: res
+  })
+})
+
+module.exports = { split, merge, compute, executor, durExecutor }

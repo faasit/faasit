@@ -1,5 +1,5 @@
 import assert from "assert"
-import { CallParams, CallResult, DurableMetadata, FaasitRuntime, FaasitRuntimeMetadata, TellParams, TellResult } from "../FaasitRuntime"
+import { CallParams, CallResult, DurableMetadata, FaasitRuntime, FaasitRuntimeMetadata, InputType, TellParams, TellResult } from "../FaasitRuntime"
 import { DurableCallbackContext } from "./context/DurableCallbackContext"
 import { DurableFunctionState } from "./state/DurableFunctionState"
 
@@ -11,17 +11,24 @@ export class DurableYieldIRQ extends Error {
 }
 
 // Special faasit runtime with durable feature
-export class DurableFaasitRuntime {
+export class DurableFaasitRuntime implements FaasitRuntime {
     // program counter
     private _pc: number = 0
 
     private orchestratorMetadata: NonNullable<DurableMetadata['orchestrator']>
     constructor(private rt: FaasitRuntime, private _state: DurableFunctionState) {
+        if (rt instanceof DurableFaasitRuntime) {
+            throw new Error(`DurableFaasitRuntime can not be nested`)
+        }
         const orcheMetadata = rt.metadata().durable?.orchestrator
         if (!orcheMetadata) {
             throw new Error(`no durable.orchestrator definied in metadata`)
         }
         this.orchestratorMetadata = orcheMetadata
+    }
+
+    get name(): string {
+        return `durable-${this.rt.name}`
     }
 
     get state(): DurableFunctionState {
@@ -32,8 +39,8 @@ export class DurableFaasitRuntime {
         return this.orchestratorMetadata.initialData.metadata
     }
 
-    input(): object {
-        return this.orchestratorMetadata.initialData.input
+    input(): InputType {
+        return this.orchestratorMetadata.initialData.input as InputType
     }
 
     output(returnObject: any): object {

@@ -96,6 +96,9 @@ function transformWorkflowFunction(containerConf: FunctionContainerConfig, spec:
     case 'local-once':
       const metadata = createFaasitRuntimeMetadata({ funcName: containerConf.funcName })
       return (event: any) => {
+        const functions = spec.functions
+        // TODO: special handling for executor
+        functions.push({ name: '__executor', handler: spec.exeuctor.handler })
         const runtime = new LocalOnceRuntime(spec.functions, { input: event, metadata })
         return fn(runtime)
       }

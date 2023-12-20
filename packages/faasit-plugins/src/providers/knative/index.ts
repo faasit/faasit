@@ -13,7 +13,6 @@ interface DeployParams {
 }
 
 interface DeployFunctionParams {
-  workflowFuncType: string
   name: string
   codeDir: string
 }
@@ -61,7 +60,6 @@ class KnativeProvider implements faas.ProviderPlugin {
       const codeDir = fn.output.codeDir
 
       functionsToDeploy.push({
-        workflowFuncType: 'func',
         name: fnRef.value.$ir.name,
         // use workflow's codeDir if no codeDir provided by the function
         codeDir: codeDir || workflow.codeDir,
@@ -70,8 +68,7 @@ class KnativeProvider implements faas.ProviderPlugin {
 
     // deploy executor function
     functionsToDeploy.push({
-      workflowFuncType: 'executor',
-      name: 'executor',
+      name: '__executor',
       codeDir: workflow.codeDir
     })
 
@@ -96,7 +93,6 @@ class KnativeProvider implements faas.ProviderPlugin {
       }
 
       functionsToDeploy.push({
-        workflowFuncType: 'func',
         name: fnRef.value.$ir.name,
         codeDir: codeDir
       })
@@ -106,7 +102,6 @@ class KnativeProvider implements faas.ProviderPlugin {
   }
 
   async deployOneFunction(p: DeployParams, fnParams: {
-    workflowFuncType: string
     name: string
     codeDir: string
   }) {
@@ -142,10 +137,6 @@ class KnativeProvider implements faas.ProviderPlugin {
           {
             name: "FAASIT_APP_NAME",
             value: p.input.app.$ir.name
-          },
-          {
-            name: "FAASIT_WORKFLOW_FUNC_TYPE",
-            value: fnParams.workflowFuncType
           },
           {
             name: "FAASIT_WORKFLOW_FUNC_NAME",

@@ -51,7 +51,7 @@ class LocalOnceProvider implements faas.ProviderPlugin {
     } else {
       logger.info(`running workflow locally`)
     }
-    const output = await this.executeJsCode(ctx, 'executor', 'executor', workflow.codeDir, inputData)
+    const output = await this.executeJsCode(ctx, '__executor', workflow.codeDir, inputData)
     logger.info(`workflow executed, output=${JSON.stringify(output)}`)
   }
 
@@ -59,14 +59,13 @@ class LocalOnceProvider implements faas.ProviderPlugin {
     const { logger } = ctx
 
     logger.info(`run function locally, use input=${JSON.stringify(inputData)}`)
-    const output = await this.executeJsCode(ctx, 'func', fn.$ir.name, fn.output.codeDir, inputData)
+    const output = await this.executeJsCode(ctx, fn.$ir.name, fn.output.codeDir, inputData)
     logger.info(`function executed, output=${JSON.stringify(output)}`)
   }
 
-  async executeJsCode(ctx: faas.ProviderPluginContext, type: string, name: string, codeDir: string, inputData: unknown) {
+  async executeJsCode(ctx: faas.ProviderPluginContext, name: string, codeDir: string, inputData: unknown) {
     process.env.FAASIT_PROVIDER = 'local-once'
     process.env.FAASIT_FUNC_NAME = name
-    process.env.FAASIT_WORKFLOW_FUNC_TYPE = type
     process.env.FAASIT_WORKFLOW_FUNC_NAME = name
 
     const dir = path.resolve(process.cwd(), codeDir)

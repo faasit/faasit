@@ -13,7 +13,6 @@ interface DeployParams {
 }
 
 interface DeployFunctionParams {
-	workflowFuncType: string,
 	name: string,
 	codeDir: string
 }
@@ -134,27 +133,23 @@ async function deployWorkflowApp(p: DeployParams, app: faas.WorkflowApplication)
 		const codeDir = fn.output.codeDir
 
 		functionsToDeploy.push({
-			workflowFuncType: 'func',
 			name: fnRef.value.$ir.name,
 			codeDir: codeDir || workflow.codeDir
 		})
 	}
 
 	functionsToDeploy.push({
-		workflowFuncType: 'executor',
-		name: 'executor',
+		name: '__executor',
 		codeDir: workflow.codeDir
 	})
 
 	for (const func of functionsToDeploy) {
 		const functionName = func.name
-		const workflowFuncType = func.workflowFuncType
 		const codeDir = func.codeDir
 
 		let env = {
 			FAASIT_PROVIDER: 'aliyun',
 			FAASIT_APP_NAME: functionName,
-			FAASIT_WORKFLOW_FUNC_TYPE: workflowFuncType,
 			FAASIT_WORKFLOW_FUNC_NAME: functionName,
 			ALIBABA_CLOUD_ACCESS_KEY_ID: process.env.accessID,
 			ALIBABA_CLOUD_ACCESS_KEY_SECRET: process.env.accessKey,

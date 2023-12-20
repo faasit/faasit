@@ -60,6 +60,10 @@ class SimpleWorkflowBuilder implements WorkflowBuilder {
   constructor() { }
 
   func(name: string): WorkflowFuncBuilder {
+    if (name.startsWith('__')) {
+      throw new Error(`function name can not start with __, name=${name}`)
+    }
+
     const func: Partial<WorkflowFunc> = {
       name
     }
@@ -105,21 +109,21 @@ export class WorkflowContainerRunner {
   }
 
   run(frt: FaasitRuntime): unknown {
-    const { funcType, funcName } = this.containerConf.workflow
-    const func = this.route(funcType, funcName)
+    const { funcName } = this.containerConf.workflow
+    const func = this.route(funcName)
     return func(frt)
   }
 
-  route(type: string, name: string): HandlerType {
+  route(name: string): HandlerType {
     // run executor
-    if (type === 'executor') {
+    if (name === '__executor') {
       return this.spec.exeuctor.handler
     }
 
     const target = this.spec.functions.find(v => v.name === name)
 
     if (!target) {
-      throw new Error(`no such workflow target, name=${name}`)
+      throw new Error(`no such workflow target, name = ${name}`)
     }
 
     return target.handler

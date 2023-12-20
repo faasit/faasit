@@ -6,7 +6,7 @@ const workflow = createWorkflow((builder) => {
   builder.func('compute').set_handler(functions.compute)
   builder.func('merge').set_handler(functions.merge)
 
-  builder.executor().set_custom_handler(functions.executor)
+  builder.executor().set_custom_handler(functions.durExecutor)
 
   return builder.build()
 })

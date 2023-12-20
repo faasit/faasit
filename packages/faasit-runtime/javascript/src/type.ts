@@ -29,7 +29,6 @@ export const FunctionContainerConfigSchema = z.object({
     z.literal('local-once'),
   ]),
   workflow: z.object({
-    funcType: z.string().default(''),
     funcName: z.string().default('')
   })
 })
@@ -43,7 +42,6 @@ export function getFunctionContainerConfig() {
     funcName: env.FAASIT_FUNC_NAME,
     provider: env.FAASIT_PROVIDER as FunctionContainerConfig['provider'],
     workflow: {
-      funcType: env.FAASIT_WORKFLOW_FUNC_TYPE || '',
       funcName: env.FAASIT_WORKFLOW_FUNC_NAME || '',
     }
   }

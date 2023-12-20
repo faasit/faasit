@@ -138,6 +138,7 @@ export async function waitOrchestratorResult(frt: FaasitRuntime, orcheId: string
 }
 
 export * from "./client"
+export * from "./client/LowLevelDurableClient"
 export * from "./context"
 export * from "./scope/ScopeId"
 export * from "./state/DurableFunctionState"

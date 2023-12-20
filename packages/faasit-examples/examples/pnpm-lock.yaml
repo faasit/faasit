@@ -6,6 +6,16 @@ settings:
 
 importers:
 
+  annual-report-23/svd/javascript:
+    dependencies:
+      numeric:
+        specifier: ^1.2.6
+        version: 1.2.6
+    devDependencies:
+      '@faasit/runtime':
+        specifier: ../../../../../faasit-runtime/javascript
+        version: link:../../../../../faasit-runtime/javascript
+
   dag-object-detection/javascript:
     dependencies:
       '@tensorflow-models/coco-ssd':
@@ -34,8 +44,6 @@ importers:
       '@faasit/runtime':
         specifier: ../../../../faasit-runtime/javascript
         version: link:../../../../faasit-runtime/javascript
-
-  dag-wordcount: {}
 
   dag-wordcount-mixed/javascript:
     devDependencies:

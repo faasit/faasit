@@ -1,0 +1,43 @@
+import (
+  . "std/faas"
+)
+
+@function svd {
+  runtime = "nodejs"
+  codeDir = "./javascript"
+  triggers = [
+    {
+      name = "http"
+      kind = "http"
+      method = "post"
+      path = "/"
+    }
+  ]
+  resource = {
+    cpu = "1024m"
+    memory = "128Mi"
+  }
+  pubsub = {
+    events = []
+  }
+}
+
+@application SingleSVD {
+  functions = [svd]
+  defaultProvider = Knative
+  inputExamples = [
+    {
+      value = {
+        X = [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
+      }
+    }
+  ]
+}
+
+@provider Local {
+  kind = "local"
+}
+
+@provider Knative {
+  kind = "knative"
+}

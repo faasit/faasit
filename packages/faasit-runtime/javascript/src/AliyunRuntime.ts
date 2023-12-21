@@ -1,4 +1,4 @@
-import { BaseFaasitRuntime, CallResult, FaasitRuntime } from "./FaasitRuntime";
+import { BaseFaasitRuntime, CallResult, FaasitRuntime, FaasitRuntimeMetadata } from "./FaasitRuntime";
 import FC_Open20210406, * as $FC_Open20210406 from '@alicloud/fc-open20210406';
 import * as $OpenApi from '@alicloud/openapi-client';
 import Util, * as $Util from '@alicloud/tea-util';
@@ -8,15 +8,14 @@ export class AliyunRuntime extends BaseFaasitRuntime {
 
     name: string = "aliyun";
 
-    private event: Buffer;
-    private context: any;
-    private _callback: (error: any, data: object) => void;
-    constructor(event: Buffer, context: any, callback: any) {
+    constructor(private opt: { event: Buffer, context: any, callback: (error: any, data: object) => void, metadata: FaasitRuntimeMetadata }) {
         super()
-        this.event = event;
-        this.context = context;
-        this._callback = callback;
     }
+
+    metadata(): FaasitRuntimeMetadata {
+        return this.opt.metadata
+    }
+
     async call(fnName: string, fnParams?: {
         sequence?: number;
         input: object;
@@ -27,11 +26,11 @@ export class AliyunRuntime extends BaseFaasitRuntime {
     }
 
     input() {
-        return JSON.parse(this.event.toString())
+        return JSON.parse(this.opt.event.toString())
     }
 
     output(returnObject: any) {
-        this._callback(null, returnObject)
+        this.opt.callback(null, returnObject)
         return returnObject
     }
 

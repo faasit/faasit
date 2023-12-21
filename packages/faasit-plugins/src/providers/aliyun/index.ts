@@ -149,7 +149,8 @@ async function deployWorkflowApp(p: DeployParams, app: faas.WorkflowApplication)
 
 		let env = {
 			FAASIT_PROVIDER: 'aliyun',
-			FAASIT_APP_NAME: functionName,
+			FAASIT_APP_NAME: app.$ir.name,
+			FAASIT_FUNC_NAME: functionName,
 			FAASIT_WORKFLOW_FUNC_NAME: functionName,
 			ALIBABA_CLOUD_ACCESS_KEY_ID: process.env.accessID,
 			ALIBABA_CLOUD_ACCESS_KEY_SECRET: process.env.accessKey,

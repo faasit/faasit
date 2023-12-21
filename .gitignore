@@ -234,6 +234,7 @@ build/
 
 template/
 
+.ft/
 .func/
 func.yaml
 .vscode/sftp.json

@@ -2,7 +2,7 @@ import (
   . "std/faas"
 )
 
-@function svd {
+@function svd2 {
   runtime = "nodejs"
   codeDir = "./javascript"
   triggers = [
@@ -23,8 +23,9 @@ import (
 }
 
 @application SVD {
-  functions = [svd]
+  functions = [svd2]
   defaultProvider = knative
+  providers = [knative, aliyun, aws]
   inputExamples = [
     {
       value = {

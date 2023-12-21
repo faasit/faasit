@@ -1,15 +1,14 @@
 {
-  "name": "dag-wordcount-mixed",
+  "name": "svd-rt",
   "version": "1.0.0",
   "description": "",
-  "main": "workflow.js",
+  "main": "index.js",
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "devDependencies": {
-    "@faasit/runtime": "../../../../../faasit-runtime/javascript"
-  },
   "dependencies": {
+    "@faasit/runtime": "^1.1.0",
+    "faas-js-runtime": "^2.2.3",
     "numeric": "^1.2.6"
   }
 }

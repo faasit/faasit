@@ -16,11 +16,17 @@
 
 见 Faasit 项目 [Readme.md](https://github.com/brody715/faasit/tree/main)
 
-2. 配置环境变量
+2. 安装依赖
+
+进入 svd-rt/javascript 目录，执行 npm install
+
+如果 npm install 失败，需要删除 svd-rt/javascript/node_modules 后重新安装
+
+3. 配置环境变量
 
 复制 `env.template` 到 `.env`，并修改其中的配置
 
-3. 部署
+4. 部署
 
 ```bash
 ft deploy -p knative
@@ -28,7 +34,7 @@ ft deploy -p aws
 ft deploy --provider aliyun  # -p/--provider: specify the provider
 ```
 
-4. 调用
+5. 调用
 
 ```bash
 ft invoke -p aws

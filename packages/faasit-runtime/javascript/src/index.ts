@@ -78,12 +78,12 @@ function transformFunction(fn: HandlerType) {
       }
     case 'aliyun':
       return (event: any, context: any, callback: any) => {
-        const runtime = new AliyunRuntime(event, context, callback)
+        const runtime = new AliyunRuntime({ event, context, callback, metadata })
         return fn(runtime)
       }
     case 'knative':
       return (context: any, event: any) => {
-        const runtime = new KnativeRuntime(context, event)
+        const runtime = new KnativeRuntime({ context, event, metadata })
         return fn(runtime)
       }
     default:

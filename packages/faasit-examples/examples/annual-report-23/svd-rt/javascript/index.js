@@ -1,6 +1,7 @@
-const { createExports, createFunction } = require('@faasit/runtime')
-const numeric = require('numeric')
+// const { createExports, createFunction } = require('@faasit/runtime')
+// const numeric = require('numeric')
 
+/*
 // Copy from https://github.com/sloisel/numeric/blob/master/src/svd.js
 function svd (X) {
   var temp;
@@ -270,13 +271,35 @@ function svd (X) {
   }
 }
 
-const faasitSVD = createFunction(async (frt) => {
+const handler = createFunction(async (frt) => {
   const { X } = frt.input()
 
   const result = svd(X)
 
   return frt.output(result)
 })
+*/
 
-module.exports = createExports({ handler: faasitSVD })
+// const handler = createFunction(async (frt) => {
+//   return frt.output({ msg: 'hello' })
+// })
 
+const handle = async (context, body) => {
+  // YOUR CODE HERE
+  context.log.info("query", context.query);
+  context.log.info("body", body);
+
+  // If the request is an HTTP POST, the context will contain the request body
+  if (context.method === 'POST') {
+    return { body };
+  } else if (context.method === 'GET') {
+    // If the request is an HTTP GET, the context will include a query string, if it exists
+    return {
+      query: context.query,
+    }
+  } else {
+    return { statusCode: 405, statusMessage: 'Method not allowed' };
+  }
+}
+
+module.exports = { handle }

@@ -38,7 +38,7 @@ class KnativeProvider implements faas.ProviderPlugin {
 
     const url = `http://${svcName}.faasit.192.168.1.240.sslip.io`
 
-    const resp = await axios.get(url)
+    const resp = await axios.post(url, input.input)
 
     console.log(resp.data)
 
@@ -140,6 +140,10 @@ class KnativeProvider implements faas.ProviderPlugin {
           },
           {
             name: "FAASIT_WORKFLOW_FUNC_NAME",
+            value: fnParams.name
+          },
+          {
+            name: "FAASIT_FUNC_NAME",
             value: fnParams.name
           }
         ]

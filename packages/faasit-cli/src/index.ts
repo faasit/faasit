@@ -78,6 +78,7 @@ export async function main() {
     .command('invoke')
     .description('invoke serverless function')
     .option('-f, --func [string]', 'function name')
+    .option('-p, --provider [string]', 'deploy on given provider')
     .option('--example [int]', 'select example data', '0')
     .action(async (p) => {
       const config = resolveConfigPath('')

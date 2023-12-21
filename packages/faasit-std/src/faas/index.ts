@@ -39,6 +39,7 @@ export interface ProviderDeployInput {
 export interface ProviderInvokeInput {
   app: Application
   funcName: string
+  input: unknown
 }
 
 export interface ProviderPlugin {
@@ -97,6 +98,7 @@ const WorkflowSchema = ir.types.CustomBlockSchemaT(z.object({
 const ApplicationSchema = ir.types.CustomBlockSchemaT(z.object({
   name: z.string().optional(),
   defaultProvider: ir.types.ReferenceSchemaT(ProviderSchema),
+  providers: z.array(ir.types.ReferenceSchemaT(ProviderSchema)).default(() => []),
   functions: z.array(ir.types.ReferenceSchemaT(FunctionSchema)).default(() => []),
   workflow: ir.types.ReferenceSchemaT(WorkflowSchema).optional(),
   inputExamples: z.array(z.object({

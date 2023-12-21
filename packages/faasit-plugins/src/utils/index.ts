@@ -3,7 +3,7 @@ import * as fs from 'fs-extra'
 import ignore from 'ignore'
 
 export async function mkdir(path: string) {
-  await fs.mkdir(path)
+  await fs.mkdirp(path)
   return path
 }
 

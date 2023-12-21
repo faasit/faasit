@@ -108,13 +108,8 @@ export class Engine {
 
   async deploy(opts: { config: string; workingDir: string; provider?: string }) {
     const app = await this.resolveApplication(opts)
-    let provider = app.output.defaultProvider.value
-
-    if (opts.provider) {
-      throw new Error(`not implemented to select provider dynamically`)
-    }
-
-    const plugin = await getProviderPlugin(app.output.defaultProvider.value.output.kind)
+    const provider = await this.handleGetProvider({ app, provider: opts.provider })
+    const plugin = await getProviderPlugin(provider.output.kind)
 
     if (plugin.deploy) {
       await plugin.deploy({ app, provider }, this.getPluginRuntime(opts))
@@ -128,17 +123,12 @@ export class Engine {
     // use local-once provider to simulate run locally
     const providerKind = `local-once`
 
-    // use input examples as default
-    let value = app.output.inputExamples[opts.example]?.value
-    if (opts['input.value']) {
-      value = JSON.parse(opts['input.value'])
-    } else {
-      value = await this.transformInputValue(value)
-    }
-
-    if (value == undefined) {
-      rt.logger.warn(`no input value provided, use '--input.value' to specify the input value in json format`)
-    }
+    const value = await this.handleGetInputValue({
+      rt,
+      app,
+      inputValue: opts['input.value'],
+      example: opts.example
+    })
 
     const provider = {
       '$ir': {
@@ -165,10 +155,17 @@ export class Engine {
     }
   }
 
-  async invoke(opts: { config: string; workingDir: string; func?: string }) {
+  async invoke(opts: { config: string; workingDir: string; func?: string; provider?: string; example: number }) {
     const app = await this.resolveApplication(opts)
+    const provider = await this.handleGetProvider({ app, provider: opts.provider })
+    const plugin = await getProviderPlugin(provider.output.kind)
+    const rt = this.getPluginRuntime(opts)
 
-    const plugin = await getProviderPlugin(app.output.defaultProvider.value.output.kind)
+    const input = await this.handleGetInputValue({
+      rt,
+      app,
+      example: opts.example
+    })
 
     if (plugin.invoke) {
       let funcName = opts.func
@@ -176,7 +173,7 @@ export class Engine {
         // get first function
         funcName = app.output.functions[0].value.$ir.name
       }
-      await plugin.invoke({ app, funcName }, this.getPluginRuntime(opts))
+      await plugin.invoke({ app, funcName, input }, rt)
     }
   }
 
@@ -400,6 +397,35 @@ export class Engine {
     })
 
     await Promise.all(tasks)
+  }
+
+  async handleGetProvider(opt: { app: faas.Application, provider?: string }) {
+    let provider = opt.app.output.defaultProvider.value
+
+    if (opt.provider) {
+      const providerRef = opt.app.output.providers.find(v => v.value.$ir.name === opt.provider)
+      if (!providerRef) {
+        throw new Error(`no such provider=${opt.provider}`)
+      }
+      provider = providerRef.value
+    }
+    return provider
+  }
+
+  async handleGetInputValue(opts: { rt: faas.ProviderPluginContext, app: faas.Application, inputValue?: string, example: number }) {
+    // use input examples as default
+    let value = opts.app.output.inputExamples[opts.example]?.value
+    if (opts.inputValue) {
+      value = JSON.parse(opts.inputValue)
+    } else {
+      value = await this.transformInputValue(value)
+    }
+
+    // use input examples as default
+    if (value == undefined) {
+      opts.rt.logger.warn(`no input value provided, use '--input.value' to specify the input value in json format`)
+    }
+    return value
   }
 
 

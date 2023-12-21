@@ -1,19 +1,22 @@
-import { BaseFaasitRuntime, CallResult, FaasitRuntime } from "./FaasitRuntime";
+import { BaseFaasitRuntime, CallResult, FaasitRuntimeMetadata, InputType } from "./FaasitRuntime";
 import axios from "axios";
 
 // TODO: KnativeRuntime
 export class KnativeRuntime extends BaseFaasitRuntime {
-
     name: string = "knative";
 
-    private context: any
-    private event: any
-
-    constructor(context: any, event: any) {
+    constructor(private opt: {
+        context: unknown
+        event: unknown
+        metadata: FaasitRuntimeMetadata
+    }) {
         super()
-        this.context = context
-        this.event = event
     }
+
+    metadata(): FaasitRuntimeMetadata {
+        return this.opt.metadata
+    }
+
     async call(fnName: string, fnParams?: {
         sequence?: number;
         input: object;
@@ -24,11 +27,14 @@ export class KnativeRuntime extends BaseFaasitRuntime {
     }
 
     input() {
-        return this.event
+        return this.opt.event as InputType
     }
 
     output(returnObject: any) {
         return {
+            headers: {
+                "content-type": "application/json"
+            },
             body: returnObject
         }
     }

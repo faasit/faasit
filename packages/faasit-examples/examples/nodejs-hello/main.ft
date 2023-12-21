@@ -1,5 +1,5 @@
 import (
-  "github.com/faasit/restful"
+  . "std/faas"
 )
 
 @function hello {
@@ -22,9 +22,14 @@ import (
 @application {
   functions = [hello]
   defaultProvider = OpenFaasCluster1
+  providers = [knative]
 }
 
 @provider OpenFaasCluster1 {
   kind = "openfaas"
   gateway = "https://openfaas-ft.i2ec.top"
+}
+
+@provider knative {
+  kind = "knative"
 }

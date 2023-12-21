@@ -1,0 +1,9 @@
+services:
+  master:
+    image: master-runtime:latest
+    command:
+      - node
+      - /server/index.js
+    ports:
+      - '9000:9000'
+    container_name: master

@@ -3,11 +3,10 @@ import { createClient } from './client'
 import * as $Util from '@alicloud/tea-util'
 
 export class AliyunService {
-  serviceName: string
-  client: FC_Open20210406
-  constructor() {
-    this.client = createClient()
-    this.serviceName = 'faasit'
+  constructor(private opt: {
+    client: FC_Open20210406,
+    serviceName: string
+  }) {
   }
 
   async create(): Promise<
@@ -15,11 +14,11 @@ export class AliyunService {
     undefined> {
     let headers = new $FC_Open20210406.CreateServiceHeaders({});
     let request = new $FC_Open20210406.CreateServiceRequest({
-      serviceName: this.serviceName,
+      serviceName: this.opt.serviceName,
     })
     let runtime = new $Util.RuntimeOptions({});
     try {
-      let resp = await this.client.createServiceWithOptions(
+      let resp = await this.opt.client.createServiceWithOptions(
         request,
         headers,
         runtime);
@@ -34,7 +33,7 @@ export class AliyunService {
     let getServiceRequest = new $FC_Open20210406.GetServiceRequest({});
     let runtime = new $Util.RuntimeOptions({});
     try {
-      const resp = await this.client.getServiceWithOptions(
+      const resp = await this.opt.client.getServiceWithOptions(
         "faasit",
         getServiceRequest,
         getServiceHeaders,

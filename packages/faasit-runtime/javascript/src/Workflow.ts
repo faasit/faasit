@@ -1,4 +1,4 @@
-import { FaasitRuntime } from "./FaasitRuntime"
+import { FaasitRuntime } from "./runtime/FaasitRuntime"
 import { FunctionContainerConfig } from "./type"
 
 type HandlerType = (frt: FaasitRuntime) => unknown

@@ -1,4 +1,5 @@
 import { StreamReader } from '../runtime'
+import { ZodError, z } from 'zod'
 
 export type Result<T, E = Error> =
   | { ok: true; value: T }
@@ -8,6 +9,20 @@ export interface Logger {
   info(msg: string): void
   warn(msg: string): void
   error(msg: string, options?: { error?: Error | null }): void
+}
+
+export class ZodParseError extends Error {
+  constructor(err: ZodError<unknown>, msg: string) {
+    super(`${msg}, parsed error=${err.message}`)
+  }
+}
+
+export function parseZod<T extends z.ZodSchema>(schema: T, obj: unknown, msg?: string): z.infer<T> {
+  const res = schema.safeParse(obj)
+  if (!res.success) {
+    throw new ZodParseError(res.error, msg || '')
+  }
+  return res.data
 }
 
 export function readableToStream(r: {

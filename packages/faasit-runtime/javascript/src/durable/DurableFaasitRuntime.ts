@@ -1,5 +1,5 @@
 import assert from "assert"
-import { CallParams, CallResult, DurableMetadata, FaasitRuntime, FaasitRuntimeMetadata, InputType, TellParams, TellResult } from "../FaasitRuntime"
+import { CallParams, CallResult, DurableMetadata, FaasitRuntime, FaasitRuntimeMetadata, InputType, TellParams, TellResult } from "../runtime/FaasitRuntime"
 import { DurableCallbackContext } from "./context/DurableCallbackContext"
 import { DurableFunctionState } from "./state/DurableFunctionState"
 

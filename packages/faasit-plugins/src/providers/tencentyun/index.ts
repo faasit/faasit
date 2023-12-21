@@ -1,7 +1,6 @@
 import { faas } from '@faasit/std'
 import { scf } from 'tencentcloud-sdk-nodejs-scf'
 import path from 'path'
-import dotenv from 'dotenv'
 import {
   transformCreateFunctionParams,
   transformCreateTriggerParams,
@@ -9,7 +8,6 @@ import {
   transformUpdateFunctionParams,
 } from './transformer'
 
-dotenv.config({ path: path.resolve(__dirname, './.env') })
 const ScfClient = scf.v20180416.Client
 
 export default function TencentyunPlugin(): faas.ProviderPlugin {

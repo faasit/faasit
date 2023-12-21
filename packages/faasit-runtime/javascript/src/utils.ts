@@ -1,4 +1,4 @@
-import { FaasitRuntime, FaasitRuntimeMetadata, InputType } from "./FaasitRuntime";
+import { FaasitRuntime, FaasitRuntimeMetadata, InputType } from "./runtime/FaasitRuntime";
 
 
 // automatically callback when needed

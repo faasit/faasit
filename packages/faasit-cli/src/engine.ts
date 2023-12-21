@@ -26,6 +26,7 @@ async function getProviderPlugin(name: string): Promise<faas.ProviderPlugin> {
     aliyun: () => providers.aliyun.default(),
     tencentyun: () => providers.tencentyun.default(),
     knative: () => providers.knative.default(),
+    aws: () => providers.aws.default(),
     local: () => providers.local.default(),
     'local-once': () => providers.local_once.default(),
   } as const
@@ -249,6 +250,7 @@ export class Engine {
   private getPluginRuntime(opts: { workingDir: string }): faas.ProviderPluginContext {
     return {
       cwd: opts.workingDir,
+      env: process.env,
       rt: {
         runCommand(cmd, options) {
           const { args = [], ...rest } = options || {}

@@ -1,4 +1,4 @@
-import { OrchestratorMetadata } from "../../FaasitRuntime"
+import { OrchestratorMetadata } from "../../runtime/FaasitRuntime"
 
 // Pass data by callback context
 export type DurableCallbackContext = {

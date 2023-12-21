@@ -1,10 +1,10 @@
-import { LocalRuntime } from "./LocalRuntime";
-import { KnativeRuntime } from "./KnativeRuntime";
-import { AliyunRuntime } from "./AliyunRuntime";
-import { FaasitRuntime, createFaasitRuntimeMetadata } from "./FaasitRuntime";
+import { LocalRuntime } from "./runtime/LocalRuntime";
+import { KnativeRuntime } from "./runtime/KnativeRuntime";
+import { AliyunEventRuntime, AliyunHttpRuntime } from "./runtime/AliyunRuntime";
+import { FaasitRuntime, createFaasitRuntimeMetadata } from "./runtime/FaasitRuntime";
 import { WorkflowContainerRunner, WorkflowSpec } from './Workflow'
 import { FunctionContainerConfig, UnknownProvider, getFunctionContainerConfig } from "./type";
-import { LocalOnceRuntime } from "./LocalOnceRuntime";
+import { LocalOnceRuntime } from "./runtime/LocalOnceRuntime";
 export { createWorkflow } from './Workflow'
 
 import * as utils from './utils'
@@ -77,8 +77,14 @@ function transformFunction(fn: HandlerType) {
         return fn(runtime)
       }
     case 'aliyun':
-      return (event: any, context: any, callback: any) => {
-        const runtime = new AliyunRuntime({ event, context, callback, metadata })
+      return (arg0: any, arg1: any, arg2: any) => {
+        let runtime: FaasitRuntime
+        if (arg2 instanceof Function) {
+          runtime = new AliyunEventRuntime({ event: arg0, context: arg1, callback: arg2, metadata })
+        } else {
+          runtime = new AliyunHttpRuntime({ req: arg0, resp: arg1, context: arg2, metadata })
+        }
+
         return fn(runtime)
       }
     case 'knative':

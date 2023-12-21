@@ -1,6 +1,6 @@
 import { randomUUID } from "crypto";
 import { HandlerType } from "..";
-import { CallParams, CallResult, DurableMetadata, FaasitRuntime, FaasitRuntimeMetadata, InputType, OrchestratorMetadata, TellParams, TellResult } from "../FaasitRuntime";
+import { CallParams, CallResult, DurableMetadata, FaasitRuntime, FaasitRuntimeMetadata, InputType, OrchestratorMetadata, TellParams, TellResult } from "../runtime/FaasitRuntime";
 import assert from "assert";
 
 import * as utils from '../utils'

@@ -1,5 +1,5 @@
 import { randomUUID } from "crypto";
-import { LowLevelDurableClient } from "./durable";
+import { LowLevelDurableClient } from "../durable";
 
 export type InvocationMetadata = {
     id: string

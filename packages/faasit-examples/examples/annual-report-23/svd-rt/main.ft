@@ -3,7 +3,7 @@ import (
 )
 
 @function svd2 {
-  runtime = "nodejs"
+  runtime = "nodejs16"
   codeDir = "./javascript"
   triggers = [
     {

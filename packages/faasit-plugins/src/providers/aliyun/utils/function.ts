@@ -1,21 +1,22 @@
 import FC_Open20210406, * as $FC_Open20210406 from '@alicloud/fc-open20210406'
-import { createClient } from './client'
 import Admzip from 'adm-zip'
 import * as $Util from '@alicloud/tea-util'
 
 export class AliyunFunction {
-  client: FC_Open20210406
-  constructor(readonly functionName: string,
-    readonly codeDir: string,
-    readonly runtime: string,
-    readonly handler: string,
-    readonly env: { [key: string]: any } | undefined) {
-    this.client = createClient()
+  constructor(private opt: {
+    client: FC_Open20210406,
+    serviceName: string,
+    functionName: string,
+    codeDir: string,
+    runtime: string,
+    handler: string,
+    env?: { [key: string]: any }
+  }) {
   }
 
   private zipFolderAndEncode() {
     const zip = new Admzip();
-    zip.addLocalFolder(this.codeDir);
+    zip.addLocalFolder(this.opt.codeDir);
     const zipBuffer = zip.toBuffer();
     const base64 = zipBuffer.toString('base64');
     return base64;
@@ -27,16 +28,16 @@ export class AliyunFunction {
     })
     let createFunctionHeaders = new $FC_Open20210406.CreateFunctionHeaders({});
     let createFunctionRequests = new $FC_Open20210406.CreateFunctionRequest({
-      functionName: this.functionName,
-      handler: this.handler,
-      runtime: this.runtime,
+      functionName: this.opt.functionName,
+      handler: this.opt.handler,
+      runtime: this.opt.runtime,
       code: code,
-      environmentVariables: this.env
+      environmentVariables: this.opt.env
     });
     let runtime = new $Util.RuntimeOptions({});
     try {
-      const resp = await this.client.createFunctionWithOptions(
-        "faasit",
+      const resp = await this.opt.client.createFunctionWithOptions(
+        this.opt.serviceName,
         createFunctionRequests,
         createFunctionHeaders,
         runtime);
@@ -49,7 +50,7 @@ export class AliyunFunction {
   async get(): Promise<{ [key: string]: any } | undefined> {
     let getFunctionRequests = new $FC_Open20210406.GetFunctionRequest({});
     try {
-      const resp = await this.client.getFunction("faasit", this.functionName, getFunctionRequests);
+      const resp = await this.opt.client.getFunction(this.opt.serviceName, this.opt.functionName, getFunctionRequests);
       return resp;
     } catch (error) {
       if (error.code != 'FunctionNotFound') {
@@ -64,17 +65,17 @@ export class AliyunFunction {
     })
     let headers = new $FC_Open20210406.UpdateFunctionHeaders({});
     let requests = new $FC_Open20210406.UpdateFunctionRequest({
-      functionName: this.functionName,
-      handler: this.handler,
-      runtime: this.runtime,
+      functionName: this.opt.functionName,
+      handler: this.opt.handler,
+      runtime: this.opt.runtime,
       code: code,
-      environmentVariables: this.env
+      environmentVariables: this.opt.env
     });
     let runtime = new $Util.RuntimeOptions({});
     try {
-      const resp = await this.client.updateFunctionWithOptions(
-        "faasit",
-        this.functionName,
+      const resp = await this.opt.client.updateFunctionWithOptions(
+        this.opt.serviceName,
+        this.opt.functionName,
         requests,
         headers,
         runtime);
@@ -87,7 +88,7 @@ export class AliyunFunction {
   async invoke(): Promise<$FC_Open20210406.InvokeFunctionResponse | undefined> {
     let invokeFunctionRequests = new $FC_Open20210406.InvokeFunctionRequest({});
     try {
-      const resp = await this.client.invokeFunction("faasit", this.functionName, invokeFunctionRequests);
+      const resp = await this.opt.client.invokeFunction(this.opt.serviceName, this.opt.functionName, invokeFunctionRequests);
       return resp;
     } catch (error) {
       throw error;

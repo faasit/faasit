@@ -124,17 +124,20 @@ export function getTrigger(input: {
 }
 
 export class AliyunTrigger {
-  client: FC_Open20210406
   baseTrigger: BaseTrigger
-  constructor(readonly functionName: string,
-    readonly triggerName: string,
-    readonly triggerType: string,
-    readonly opts:{[key:string]:any}) { 
-      this.baseTrigger = getTrigger({
-        kind: triggerType,
-        name: triggerName,
-        opts: {}
-      })
+  constructor(private opt: {
+    client: FC_Open20210406,
+    serviceName: string,
+    functionName: string,
+    triggerName: string,
+    triggerType: string,
+    triggerOpts: { [key: string]: any }
+  }) {
+    this.baseTrigger = getTrigger({
+      kind: opt.triggerType,
+      name: opt.triggerName,
+      opts: {}
+    })
   }
 
   async create(): Promise<$FC_Open20210406.CreateTriggerResponse | undefined> {
@@ -146,9 +149,9 @@ export class AliyunTrigger {
     });
     let runtime = new $Util.RuntimeOptions({});
     try {
-      const resp = await this.client.createTriggerWithOptions(
-        'faasit',
-        this.functionName,
+      const resp = await this.opt.client.createTriggerWithOptions(
+        this.opt.serviceName,
+        this.opt.functionName,
         requests,
         headers,
         runtime
@@ -168,9 +171,9 @@ export class AliyunTrigger {
     });
     let runtime = new $Util.RuntimeOptions({});
     try {
-      const resp = await this.client.updateTriggerWithOptions(
-        'faasit',
-        this.functionName,
+      const resp = await this.opt.client.updateTriggerWithOptions(
+        this.opt.serviceName,
+        this.opt.functionName,
         this.baseTrigger.triggerName,
         requests,
         headers,
@@ -186,9 +189,9 @@ export class AliyunTrigger {
     let headers = new $FC_Open20210406.GetTriggerHeaders({});
     let runtime = new $Util.RuntimeOptions({});
     try {
-      const resp = await this.client.getTriggerWithOptions(
-        'faasit',
-        this.functionName,
+      const resp = await this.opt.client.getTriggerWithOptions(
+        this.opt.serviceName,
+        this.opt.functionName,
         this.baseTrigger.triggerName,
         headers,
         runtime

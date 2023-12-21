@@ -24,10 +24,13 @@ export interface GeneratorPlugin {
   ) => Promise<GenerationResult>
 }
 
+export type EnvironmentVars = Record<string, string | undefined>
+
 export interface ProviderPluginContext {
   cwd: string
   rt: runtime.PluginRuntime
   logger: runtime.PluginLogger
+  env: EnvironmentVars
 }
 
 export interface ProviderDeployInput {

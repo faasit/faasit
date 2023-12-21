@@ -1,6 +1,6 @@
 import { BaseFaasitRuntime, InputType, CallParams, CallResult, FaasitRuntime, TellParams, TellResult, FaasitRuntimeMetadata } from "./FaasitRuntime";
-import { WorkflowFunc } from "./Workflow"
-import { LowLevelDurableClient, IsDurableOrchestratorFlag, waitOrchestratorResult } from "./durable";
+import { WorkflowFunc } from "../Workflow"
+import { LowLevelDurableClient, IsDurableOrchestratorFlag, waitOrchestratorResult } from "../durable";
 
 // Run function in a local and unit scope
 export class LocalOnceRuntime extends BaseFaasitRuntime {

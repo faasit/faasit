@@ -1,5 +1,5 @@
 import { ScopedDurableClient } from "../client/ScopedDurableClient"
-import {CallResult} from '../../FaasitRuntime'
+import { CallResult } from '../../runtime/FaasitRuntime'
 
 // Serializable action
 type Action = {
@@ -11,9 +11,9 @@ type Action = {
 // Serializable state
 export class DurableFunctionState {
     private _actions: Action[] = []
-    constructor() {}
+    constructor() { }
 
-    static async load(client: ScopedDurableClient): Promise<{init: boolean,state: DurableFunctionState}> {
+    static async load(client: ScopedDurableClient): Promise<{ init: boolean, state: DurableFunctionState }> {
         const initialized = client.get('initialized', () => false)
 
         // init state
@@ -24,7 +24,7 @@ export class DurableFunctionState {
             await state.store(client)
             return { state, init: true }
         }
-    
+
         // load initialized state
         const state = new DurableFunctionState()
         state._actions = await client.get('actions', () => []) as Action[]

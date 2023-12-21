@@ -2,6 +2,7 @@ import { Command } from 'commander'
 import path from 'node:path'
 import fs from 'fs'
 import { Engine } from './engine'
+import dotenv from 'dotenv'
 
 export function resolveConfigPath(config?: string) {
   if (config) {
@@ -22,6 +23,11 @@ export async function main() {
   program.showHelpAfterError().showSuggestionAfterError()
 
   program.description('DSL toolchain for Serverless')
+
+  // load environment
+  dotenv.config({
+    path: path.join(process.cwd(), '.env')
+  })
 
   const engine = new Engine()
 

@@ -1,4 +1,4 @@
-import { FaasitRuntime } from "../../FaasitRuntime";
+import { FaasitRuntime } from "../../runtime/FaasitRuntime";
 import { DurableClient } from "./DurableClient";
 
 export function getClient(frt: FaasitRuntime): DurableClient {

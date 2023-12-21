@@ -57,16 +57,19 @@ export async function treeJoin<T>(opt: {
 
   const { input, action, joinerSize = 2 } = opt;
 
-  if (input.length <= joinerSize) {
+  if (input.length <= joinerSize || joinerSize === 1) {
     return await action(input);
   }
 
   const result: T[] = [];
   const promises: Promise<void>[] = [];
+  
+  const eachSize = Math.floor(input.length / joinerSize);
 
-  for (let i = 0; i < input.length; i += joinerSize) {
-    const batch = input.slice(i, Math.min(i + joinerSize, input.length));
-
+  for (let i = 0; i < joinerSize; i++) {
+    const batch = i === joinerSize - 1 ?
+      input.slice(i * eachSize, input.length) :
+      input.slice(i * eachSize, (i + 1) * eachSize);
     const task = treeJoin({
       input: batch,
       action,

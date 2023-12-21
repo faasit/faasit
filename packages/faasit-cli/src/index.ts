@@ -16,8 +16,6 @@ export function resolveConfigPath(config?: string) {
   return path.resolve(process.cwd(), 'main.yaml')
 }
 
-async function handleInit(opts: {}) { }
-
 export async function main() {
   const program = new Command('faasit')
 
@@ -48,7 +46,7 @@ export async function main() {
   program
     .command('deploy')
     .description('deploy serverless application')
-    .option('--provider [string]', 'deploy on given provider')
+    .option('-p, --provider [string]', 'deploy on given provider')
     .action(async (p) => {
       const config = resolveConfigPath('')
       await engine
@@ -80,10 +78,11 @@ export async function main() {
     .command('invoke')
     .description('invoke serverless function')
     .option('-f, --func [string]', 'function name')
+    .option('--example [int]', 'select example data', '0')
     .action(async (p) => {
       const config = resolveConfigPath('')
       await engine
-        .invoke({ config, workingDir: process.cwd(), func: p.func })
+        .invoke({ config, workingDir: process.cwd(), ...p })
         .catch(handleError)
     })
 

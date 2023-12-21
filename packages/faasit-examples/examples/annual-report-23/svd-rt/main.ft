@@ -22,22 +22,35 @@ import (
   }
 }
 
-@application SingleSVD {
+@application SVD {
   functions = [svd]
-  defaultProvider = Knative
+  defaultProvider = knative
   inputExamples = [
     {
       value = {
         X = [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]]
       }
+    },
+    {
+      value = {
+        X = [[1, 2], [3, 4]]
+      }
     }
   ]
 }
 
-@provider Local {
+@provider local {
   kind = "local"
 }
 
-@provider Knative {
+@provider knative {
   kind = "knative"
+}
+
+@provider aliyun {
+  kind = "aliyun"
+}
+
+@provider aws {
+  kind = "aws"
 }

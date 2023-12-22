@@ -6,13 +6,6 @@
   "engines": {
     "node": ">=12.0.0"
   },
-  "exports": {
-    ".": {
-      "require": "./dist/index.cjs",
-      "import": "./dist/index.mjs"
-    }
-  },
-  "types": "./dist/index.d.ts",
   "files": [
     "dist"
   ],
@@ -43,5 +36,47 @@
     "@types/dockerode": "^3.3.20",
     "@types/fs-extra": "^11.0.1",
     "@types/js-yaml": "^4.0.5"
+  },
+  "exports": {
+    "./providers/aliyun": {
+      "types": "./dist/providers/aliyun.d.ts",
+      "require": "./dist/providers/aliyun.cjs",
+      "import": "./dist/providers/aliyun.mjs"
+    },
+    "./providers/aws": {
+      "types": "./dist/providers/aws.d.ts",
+      "require": "./dist/providers/aws.cjs",
+      "import": "./dist/providers/aws.mjs"
+    },
+    "./providers/knative": {
+      "types": "./dist/providers/knative.d.ts",
+      "require": "./dist/providers/knative.cjs",
+      "import": "./dist/providers/knative.mjs"
+    },
+    "./providers/local": {
+      "types": "./dist/providers/local.d.ts",
+      "require": "./dist/providers/local.cjs",
+      "import": "./dist/providers/local.mjs"
+    },
+    "./providers/local-once": {
+      "types": "./dist/providers/local-once.d.ts",
+      "require": "./dist/providers/local-once.cjs",
+      "import": "./dist/providers/local-once.mjs"
+    },
+    "./providers/openfaas": {
+      "types": "./dist/providers/openfaas.d.ts",
+      "require": "./dist/providers/openfaas.cjs",
+      "import": "./dist/providers/openfaas.mjs"
+    },
+    "./providers/tencentyun": {
+      "types": "./dist/providers/tencentyun.d.ts",
+      "require": "./dist/providers/tencentyun.cjs",
+      "import": "./dist/providers/tencentyun.mjs"
+    },
+    "./generators/nodejs": {
+      "types": "./dist/generators/nodejs.d.ts",
+      "require": "./dist/generators/nodejs.cjs",
+      "import": "./dist/generators/nodejs.mjs"
+    }
   }
 }

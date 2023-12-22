@@ -1,7 +1,0 @@
-export * as openfaas from './openfaas'
-export * as aliyun from './aliyun'
-export * as tencentyun from './tencentyun'
-export * as knative from './knative'
-export * as aws from './aws'
-export * as local from './local'
-export * as local_once from './local-once'

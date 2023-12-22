@@ -20,44 +20,29 @@ const SCRIPT_DIR = path.normalize(path.dirname(fileURLToPath(import.meta.url)))
 const ASSETS_DIR = path.resolve(SCRIPT_DIR, '../assets')
 
 async function getProviderPlugin(name: string): Promise<faas.ProviderPlugin> {
-  const { providers } = await import('@faasit/plugins')
-  const plugins = {
-    openfaas: () => providers.openfaas.default(),
-    aliyun: () => providers.aliyun.default(),
-    tencentyun: () => providers.tencentyun.default(),
-    knative: () => providers.knative.default(),
-    aws: () => providers.aws.default(),
-    local: () => providers.local.default(),
-    'local-once': () => providers.local_once.default(),
-  } as const
+  const validProviders = ['aliyun', 'tencentyun', 'knative', 'aws', 'local', 'local-once']
 
-  const isPluginName = (name: string): name is keyof typeof plugins => {
-    return name in plugins
+  if (!validProviders.includes(name)) {
+    throw new AppError(`no provider plugin found, name=${name}`)
   }
 
-  if (isPluginName(name)) {
-    return plugins[name]()
-  }
+  const moduleId = `@faasit/plugins/providers/${name}`
 
-  throw new AppError(`no provider plugin found, name=${name}`)
+  const module = await import(moduleId)
+  return module.default()
 }
 
 async function getGeneratorPlugin(name: string): Promise<faas.GeneratorPlugin> {
-  const { generators } = await import('@faasit/plugins')
+  const validGenerators = ['nodejs']
 
-  const plugins = {
-    js: () => generators.JavascriptGeneratorPlugin(),
-  } as const
-
-  const isPluginName = (name: string): name is keyof typeof plugins => {
-    return name in plugins
+  if (!validGenerators.includes(name)) {
+    throw new AppError(`no generator plugin found, name=${name}`)
   }
 
-  if (isPluginName(name)) {
-    return plugins[name]()
-  }
+  const moduleId = `@faasit/plugins/generators/${name}`
 
-  throw new AppError(`no generator plugin found, name=${name}`)
+  const module = await import(moduleId)
+  return module.default()
 }
 
 async function isDirectory(path: string): Promise<boolean> {

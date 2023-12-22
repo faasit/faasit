@@ -8,6 +8,7 @@ import { LocalOnceRuntime } from "./runtime/LocalOnceRuntime";
 export { createWorkflow } from './Workflow'
 
 import * as utils from './utils'
+import { AwsRuntime } from "./runtime/AwsRuntime";
 
 export * as txn from "./txn"
 export * as df from "./durable"
@@ -92,6 +93,11 @@ function transformFunction(fn: HandlerType) {
         const runtime = new KnativeRuntime({ context, event, metadata })
         return fn(runtime)
       }
+    case 'aws':
+      return (event: any) => {
+        const runtime = new AwsRuntime({ event, metadata })
+        return fn(runtime)
+      }
     default:
       throw new UnknownProvider(containerConf.provider)
   }
@@ -111,6 +117,7 @@ function transformWorkflowFunction(containerConf: FunctionContainerConfig, spec:
     case 'local':
     case 'aliyun':
     case 'knative':
+    case 'aws':
       return transformFunction(fn)
     default:
       throw new UnknownProvider(containerConf.provider)
@@ -124,6 +131,7 @@ function transformHandlerExports(conf: FunctionContainerConfig, obj: { handler: 
     case 'local':
     case 'local-once':
     case 'aliyun':
+    case 'aws':
       return obj
     case 'knative':
       return {

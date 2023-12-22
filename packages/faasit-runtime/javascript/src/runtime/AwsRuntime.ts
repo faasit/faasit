@@ -16,20 +16,14 @@ export class AwsRuntime extends BaseFaasitRuntime {
   }
 
   input(): InputType {
-    const event = this.opt.event as Record<string, string>
-    if (!event.body) {
-      throw new Error(`ill-formed event, got ${event}`)
-    }
-
-    return JSON.parse(event.body)
+    // TODO: aws event may have many types, need to transform
+    // https://docs.aws.amazon.com/lambda/latest/dg/nodejs-handler.html
+    // Currently for invoke api, it's an object
+    return this.opt.event as InputType
   }
 
   output(returnObject: any): object {
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(returnObject)
-    }
+    return returnObject
   }
 
 }

@@ -7,8 +7,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@faasit/runtime": "^1.1.0",
-    "faas-js-runtime": "^2.2.3",
+    "@faasit/runtime": "^1.2.0",
     "numeric": "^1.2.6"
   }
 }

@@ -26,6 +26,7 @@ export const FunctionContainerConfigSchema = z.object({
     z.literal('local'),
     z.literal('aliyun'),
     z.literal('knative'),
+    z.literal('aws'),
     z.literal('local-once'),
   ]),
   workflow: z.object({

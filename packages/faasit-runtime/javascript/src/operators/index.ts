@@ -63,7 +63,7 @@ export async function treeJoin<T>(opt: {
 
   const result: T[] = [];
   const promises: Promise<void>[] = [];
-  
+
   const eachSize = Math.floor(input.length / joinerSize);
 
   for (let i = 0; i < joinerSize; i++) {
@@ -82,7 +82,7 @@ export async function treeJoin<T>(opt: {
   }
 
   await Promise.all(promises);
-  
+
   const res = await action(result);
 
   return res;

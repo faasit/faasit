@@ -3,10 +3,10 @@ const numeric = require('numeric')
 
 const split = createFunction(async (frt) => {
   // Step 1: Partition X by rows
-  const { X, numSplits } = frt.input()
+  const { X, numSplits } = frt.input();
 
-  const m = X.length
-  const rowSize = Math.floor(m / numSplits)
+  const m = X.length;
+  const rowSize = Math.floor(m / numSplits);
   const subXs = [];
 
   for (let i = 0; i < numSplits; i++) {
@@ -15,43 +15,60 @@ const split = createFunction(async (frt) => {
 
   return frt.output({
     subXs
-  })
-})
+  });
+});
 
 const compute = createFunction(async (frt) => {
-  const { Xis } = frt.input()
+  const { Xis } = frt.input();
 
-  const result = []
+  const result = [];
   for (const Xi of Xis) {
-    // Step 2: Perform SVD for each Xi & calculate Yi
-    const Xi_svd = numeric.svd(Xi)
-    const Yi = numeric.dot(numeric.diag(Xi_svd.S), Xi_svd.V)
-    result.push({ Xi_svd, Yi })
+    // Step 2: Perform SVD for each Xi
+    const Xi_svd = numeric.svd(Xi);
+    result.push(Xi_svd);
   }
-
 
   return {
     result
-  }
-})
+  };
+});
 
-function concatRows (matrices) {
-  return matrices.reduce((acc, curr) => acc.concat(curr), []);
+function blockMatrixConcat (U_matrices) {
+  // Concatenates matrices in a block diagonal fashion
+  let U1 = U_matrices[0];
+  for (let i = 1; i < U_matrices.length; i++) {
+    const U = U_matrices[i];
+    let subyup = numeric.rep([U1.length, U[0].length], 0);
+    let x1 = numeric.blockMatrix([[U1, subyup]]);
+    let subydown = numeric.rep([U.length, U1[0].length], 0);
+    let subydowncom = numeric.blockMatrix([[subydown, U]]);
+    U1 = numeric.blockMatrix([[x1], [subydowncom]]);
+  }
+  return U1;
 }
 
 const merge = createFunction(async (frt) => {
-  // Step 3: Create combined eigen-matrix Y and perform SVD
-  const { compResults } = frt.input()
-  const Y = concatRows(compResults.map(v => v.Yi))
-  const svdY = numeric.svd(Y)
+  // Step 3: Create combined U matrix and perform SVD on Y
+  const { Xi_svds } = frt.input();
+  const U_tilde = blockMatrixConcat(Xi_svds.map(v => v.U));
+
+  let Y = []
+  for (const Xi_svd of Xi_svds) {
+    const d = numeric.diag(Xi_svd.S)
+    const yi = numeric.dot(d, numeric.transpose(Xi_svd.V))
+    Y = Y.concat(yi)
+  }
+
+  const svdY = numeric.svd(Y);
 
   // Step 4: Output the result
-  const U_tilde = concatRows(compResults.map(v => v.Xi_svd.U))
   const U = numeric.dot(U_tilde, svdY.U);
   const S = svdY.S;
   const V = svdY.V;
-  return { S, V }
-})
+
+  return { U, S, V };
+});
+
 
 const executor = createFunction(async (frt) => {
   const { X, numSplits = 3 } = frt.input()
@@ -67,9 +84,9 @@ const executor = createFunction(async (frt) => {
       })
       return res.output.result
     },
-    join: async (compResults) => {
+    join: async (Xi_svds) => {
       const res = await frt.call('merge', {
-        input: { compResults }
+        input: { Xi_svds }
       })
       return res.output
     },
@@ -97,9 +114,9 @@ const durExecutor = df.createDurable(async (frt) => {
       })
       return res.output.result
     },
-    join: async (compResults) => {
+    join: async (Xi_svds) => {
       const res = await frt.call('merge', {
-        input: { compResults }
+        input: { Xi_svds }
       })
       return res.output
     },

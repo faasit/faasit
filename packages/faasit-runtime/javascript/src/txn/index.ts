@@ -80,7 +80,7 @@ export function WithTcc<Tasks extends Record<string, TccTask<any, any>>>(
       }
 
       const res = await fn(tx)
-      manager.finalize()
+      await manager.finalize()
 
       if (manager.hasError) {
         return { status: 'failed' }
@@ -142,11 +142,14 @@ class TccManager {
   }
 
   async finalize() {
-    // use promise.all
     if (this._hasError) {
-      await Promise.all(this._triedTasks.map(t => t.cancel()))
+      for (let i = this._triedTasks.length - 1; i >= 0; i--) {
+        await this._triedTasks[i].cancel();
+      }
     } else {
-      await Promise.all(this._triedTasks.map(t => t.confirm()))
+      for (let i = 0; i < this._triedTasks.length; i++) {
+        await this._triedTasks[i].confirm();
+      }
     }
   }
 }

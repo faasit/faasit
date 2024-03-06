@@ -12,5 +12,8 @@
     "**/node_modules": false,
     "**/.gradle": true
   },
-  "typescript.tsdk": "node_modules/typescript/lib"
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "markdown.copyFiles.destination": {
+    "e2e/e2e-2024-03/**/*.md": "${documentWorkspaceFolder}/e2e/e2e-2024-03/assets/${documentBaseName}.${fileExtName}"
+  },
 }

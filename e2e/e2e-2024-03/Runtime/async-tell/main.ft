@@ -1,0 +1,44 @@
+import (
+  . "std/faas"
+)
+
+@function split {
+  runtime = "nodejs"
+}
+
+@function sort {
+  runtime = "nodejs"
+}
+
+@function count {
+  runtime = "nodejs"
+}
+
+@workflow WordCountFlow {
+  // env.FAASIT_WORKFLOW_FUNC = split
+  functions = [split, sort, count]
+
+  // workflow spec runtime
+  runtime = "nodejs"
+  codeDir = "."
+}
+
+@application WordCount {
+  workflow = WordCountFlow
+  defaultProvider = Local
+
+  // used by `ft run`
+  inputExamples = [
+    {
+      value = {}
+    }
+  ]
+}
+
+@provider Local {
+  kind = "local"
+}
+
+@provider Knative {
+  kind = "knative"
+}

@@ -1,3 +1,3 @@
-from .index import function
+from .__main__ import function, create_handler
 
-__all__ = ["function"]
+__all__ = ["function","create_handler"]

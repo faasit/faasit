@@ -1,4 +1,4 @@
-from faasit_runtime import function 
+from faasit_runtime import function, create_handler
 from faasit_runtime.runtime import FaasitRuntime
 
 @function
@@ -7,7 +7,7 @@ def f(frt: FaasitRuntime):
     _out = {
         "hello":"world"
     }
-    print(frt.output(_out))
+    return frt.output(_out)
 
-
+handler = create_handler(f)
 

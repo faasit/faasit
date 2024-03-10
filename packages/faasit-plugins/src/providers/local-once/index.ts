@@ -83,11 +83,18 @@ class LocalOnceProvider implements faas.ProviderPlugin {
 
     const dir = path.resolve(process.cwd(), codeDir)
     let moduleId = dir
-    moduleId = path.resolve(dir, 'index.py')
+    moduleId = path.resolve(dir, 'index')
 
+    const pythonCode = `
+import json
+from index import handler;
+inputData = ${inputData ? JSON.stringify(inputData) : '{}'};
+output = handler(inputData);
+print(output)
+    `.trim()
     
     const output = await new Promise((resolve, reject) => {
-      const python = spawn('python', [moduleId, JSON.stringify(inputData)])  
+      const python = spawn('python', ["-c", pythonCode], {cwd: dir})  
 
       let data = ''
       python.stdout.on('data', (chunk) => {

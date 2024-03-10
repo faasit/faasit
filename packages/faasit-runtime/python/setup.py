@@ -5,6 +5,9 @@ setup(
     version='0.0.1',
     author='dydy',
     description='Faasit Runtime support for Python',
+    install_requires=[
+        'pydantic'
+    ],
     packages=find_packages(),
     python_requires='>=3.6',
 )

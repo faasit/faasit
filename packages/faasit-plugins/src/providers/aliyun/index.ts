@@ -106,6 +106,9 @@ class AliyunProvider implements faas.ProviderPlugin {
 				await service.create()
 			}
 
+			if (fn.output.runtime.includes('python')) {
+				fn.output.runtime = 'python3.10'
+			}
 			let func = new AliyunFunction({
 				client,
 				serviceName,

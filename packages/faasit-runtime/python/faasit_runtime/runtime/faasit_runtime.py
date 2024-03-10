@@ -1,4 +1,7 @@
 from abc import ABC, abstractclassmethod
+from typing import Any
+
+FaasitResult = Any
 
 class FaasitRuntime(ABC):
     def __init__(self) -> None:
@@ -10,7 +13,7 @@ class FaasitRuntime(ABC):
         pass
 
     @abstractclassmethod
-    def output(self):
+    def output(self) -> FaasitResult:
         pass
 
     @abstractclassmethod

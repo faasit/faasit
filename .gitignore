@@ -238,3 +238,7 @@ template/
 .func/
 func.yaml
 .vscode/sftp.json
+
+# python
+__pycache__
+*.egg-info

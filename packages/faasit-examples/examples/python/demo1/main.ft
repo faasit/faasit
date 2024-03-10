@@ -1,0 +1,21 @@
+@function hello {
+  runtime = "python"
+  codeDir = "./code"
+  triggers = []
+  resource = {
+    cpu = "1024m"
+    memory = "128Mi"
+  }
+  pubsub = {
+    events = []
+  }
+}
+
+@application {
+  functions = [hello]
+  defaultProvider = Local
+}
+
+@provider Local {
+  kind = "local-once"
+}

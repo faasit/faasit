@@ -2,6 +2,7 @@ import { ir } from "@faasit/core";
 import { faas } from "@faasit/std";
 import assert from "assert";
 import path from "path";
+import { spawn } from "child_process";
 import { z } from "zod";
 
 export const LocalOnceProviderSchema = ir.types.CustomBlockSchemaT(z.object({
@@ -59,8 +60,47 @@ class LocalOnceProvider implements faas.ProviderPlugin {
     const { logger } = ctx
 
     logger.info(`run function locally, use input=${JSON.stringify(inputData)}`)
-    const output = await this.executeJsCode(ctx, fn.$ir.name, fn.output.codeDir, inputData)
+    const output = await this.executeFunction(ctx, inputData, fn)
     logger.info(`function executed, output=${JSON.stringify(output)}`)
+  }
+
+  async executeFunction(ctx: faas.ProviderPluginContext, inputData: unknown, fn: faas.Function) {
+    
+    switch(fn.output.runtime) {
+      case 'nodejs':
+        return this.executeJsCode(ctx, fn.$ir.name, fn.output.codeDir, inputData)
+      case 'python':
+        return this.executePyCode(ctx, fn.$ir.name, fn.output.codeDir, inputData)
+      default:
+        throw new Error(`unsupported runtime: ${fn.output.runtime}`)
+    }
+  }
+
+  async executePyCode(ctx: faas.ProviderPluginContext, name:string,  codeDir: string, inputData: unknown) {
+    process.env.FAASIT_PROVIDER = 'local-once'
+    process.env.FAASIT_FUNC_NAME = name
+    process.env.FAASIT_WORKFLOW_FUNC_NAME = name
+
+    const dir = path.resolve(process.cwd(), codeDir)
+    let moduleId = dir
+    moduleId = path.resolve(dir, 'index.py')
+
+    
+    const output = await new Promise((resolve, reject) => {
+      const python = spawn('python', [moduleId, JSON.stringify(inputData)])  
+
+      let data = ''
+      python.stdout.on('data', (chunk) => {
+        data += chunk
+      })
+      python.stderr.on('data', (chunk) => {
+        reject(chunk.toString())
+      })
+      python.on('close', () => {
+        resolve(data)
+      })
+    })
+    return output
   }
 
   async executeJsCode(ctx: faas.ProviderPluginContext, name: string, codeDir: string, inputData: unknown) {

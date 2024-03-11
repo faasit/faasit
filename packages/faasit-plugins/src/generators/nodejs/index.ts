@@ -3,7 +3,7 @@ import { ir, ft_utils } from '@faasit/core'
 
 export { }
 
-export function JavascriptGeneratorPlugin(): faas.GeneratorPlugin {
+export default function JavascriptGeneratorPlugin(): faas.GeneratorPlugin {
   return {
     name: 'javascript',
     async generate(input, ctx) {

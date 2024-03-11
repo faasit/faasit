@@ -15,6 +15,7 @@ import { spawn } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { NodeFileSystemProvider } from './runtime'
+import { RunPerf } from './utils';
 
 const SCRIPT_DIR = path.normalize(path.dirname(fileURLToPath(import.meta.url)))
 const ASSETS_DIR = path.resolve(SCRIPT_DIR, '../assets')
@@ -54,6 +55,11 @@ async function isDirectory(path: string): Promise<boolean> {
   }
 }
 
+interface GlobalOptions {
+  workingDir: string
+  dev_perf: boolean
+}
+
 export class Engine {
   private logger: ft_utils.Logger
   constructor() {
@@ -70,7 +76,7 @@ export class Engine {
     }
   }
 
-  async init(opts: { workingDir: string; name: string; lang: string, template: string }) {
+  async init(opts: { name: string; lang: string, template: string } & GlobalOptions) {
     const srcTemplateDir = path.join(ASSETS_DIR, 'templates', opts.template, opts.lang)
 
     if (!(await isDirectory(srcTemplateDir))) {
@@ -92,7 +98,7 @@ export class Engine {
     this.logger.info(`create project ${projectDir}`)
   }
 
-  async deploy(opts: { config: string; workingDir: string; provider?: string }) {
+  async deploy(opts: { config: string; provider?: string } & GlobalOptions) {
     const app = await this.resolveApplication(opts)
     const provider = await this.handleGetProvider({ app, provider: opts.provider })
     const plugin = await getProviderPlugin(provider.output.kind)
@@ -102,7 +108,7 @@ export class Engine {
     }
   }
 
-  async run(opts: { config: string, workingDir: string, 'input.value': string, example: number }) {
+  async run(opts: { config: string, 'input.value': string, example: number } & GlobalOptions) {
     const rt = this.getPluginRuntime(opts)
     const app = await this.resolveApplication(opts)
 
@@ -141,7 +147,7 @@ export class Engine {
     }
   }
 
-  async invoke(opts: { config: string; workingDir: string; func?: string; provider?: string; example: number }) {
+  async invoke(opts: { config: string; func?: string; provider?: string; example: number } & GlobalOptions) {
     const app = await this.resolveApplication(opts)
     const provider = await this.handleGetProvider({ app, provider: opts.provider })
     const plugin = await getProviderPlugin(provider.output.kind)
@@ -163,16 +169,16 @@ export class Engine {
     }
   }
 
-  async eval(opts: { workingDir: string; file?: string; ir: boolean; check: boolean, lazy: boolean }) {
-    const irSpecRes = await this.handleCompile({ ...opts, config: opts.file || 'main.ft' })
+  async eval(opts: { config: string; ir: boolean; check: boolean, lazy: boolean } & GlobalOptions) {
+    const compileRes = await this.handleCompile({ ...opts })
 
-    if (!irSpecRes.ok) {
-      const diagErr = irSpecRes.error
+    if (!compileRes.ok) {
+      const diagErr = compileRes.error
       this.printCompileError(diagErr)
       return
     }
 
-    const irSpec = irSpecRes.value
+    const irSpec = compileRes.value.irSpec
     let yamlOpts: yaml.DumpOptions = {}
     if (opts.lazy) {
       yamlOpts = {
@@ -205,31 +211,123 @@ export class Engine {
     )
   }
 
-  async codegen(opts: { workingDir: string; file?: string; lang: string }) {
-    const irSpecRes = await this.handleCompile({ ...opts, config: opts.file || 'main.ft' })
+  async format(opts: { config: string } & GlobalOptions) {
+    const perfRes = await RunPerf(async () => {
+      const file = path.resolve(opts.workingDir, opts.config)
+      const fileUri = URI.file(file)
 
-    if (!irSpecRes.ok) {
-      this.printCompileError(irSpecRes.error)
+      const manager = new parser.LspManager({
+        fileSystemProvider: () => new NodeFileSystemProvider(),
+      })
+      const content = await manager.format({ file: fileUri })
+      console.log(content)
+      return {
+        content
+      }
+    }, {
+      runPerf: opts.dev_perf
+    })
+
+    if (opts.dev_perf) {
+      const speed = perfRes.result.content.length / perfRes.elapsed_secs
+      console.log(`[Perf] Finished format, elapsed=${perfRes.elapsed_ms} ms, speed=${speed} chars/s`)
+    }
+
+  }
+
+  async parse(opts: { config: string; ir: boolean; check: boolean } & GlobalOptions) {
+
+    const perfRes = await RunPerf(async () => {
+      const compileRes = await this.handleCompile(opts)
+
+      if (!compileRes.ok) {
+        const diagErr = compileRes.error
+        this.printCompileError(diagErr)
+        return
+      }
+      return compileRes.value
+    }, { runPerf: opts.dev_perf })
+
+    if (!perfRes.result) {
       return
     }
 
-    const irSpec = irSpecRes.value
-    const app = await faas.resolveApplicationFromIr({ ir: irSpec })
+    const ast = perfRes.result.ast
 
-    const generator = await getGeneratorPlugin(opts.lang)
-    if (generator.generate) {
-      const result = await generator.generate(
-        { app, irSpec },
-        this.getPluginRuntime(opts)
-      )
+    const yamlKeyBlockList = ['_nodeDescription', '_ref']
+    console.log(yaml.dump(
+      ast,
+      {
+        noRefs: false,
+        replacer(key, value) {
+          if (key.startsWith("$") && key !== '$type') {
+            return undefined
+          }
+          if (yamlKeyBlockList.includes(key)) {
+            return undefined
+          }
+          if (value instanceof RegExp) {
+            return value.source
+          }
+          return value
+        },
+      }
+    ))
 
-      this.logger.info(`Write the code generation results to the code/gen/`)
+    if (opts.dev_perf) {
+      const content = await fs.readFile(perfRes.result?.fileName)
 
-      await this.handleWriteGeneration({
-        workingDir: opts.workingDir,
-        generation: result,
-      })
+      const speed = content.length / perfRes.elapsed_secs
+      console.log(`[Perf] Finished parse, elapsed=${perfRes.elapsed_ms} ms, speed=${speed} chars/s`)
     }
+
+  }
+
+  async codegen(opts: { file?: string; lang: string } & GlobalOptions) {
+
+    const perfRes = await RunPerf(async () => {
+      const irSpecRes = await this.handleCompile({ ...opts, config: opts.file || 'main.ft' })
+
+      if (!irSpecRes.ok) {
+        this.printCompileError(irSpecRes.error)
+        return
+      }
+
+      const irSpec = irSpecRes.value.irSpec
+      const app = await faas.resolveApplicationFromIr({ ir: irSpec })
+
+      const generator = await getGeneratorPlugin(opts.lang)
+      if (generator.generate) {
+        const result = await generator.generate(
+          { app, irSpec },
+          this.getPluginRuntime(opts)
+        )
+
+        this.logger.info(`Write the code generation results to the code/gen/`)
+
+        return result
+
+      }
+    }, {
+      runPerf: opts.dev_perf
+    })
+
+    if (!perfRes.result) {
+      return
+    }
+
+    if (opts.dev_perf) {
+
+      const totalSize = perfRes.result.items.reduce((acc, item) => acc + item.content.length, 0)
+      const speed = totalSize / perfRes.elapsed_secs
+      console.log(`[Perf] Finished parse, elapsed=${perfRes.elapsed_ms} ms, speed=${speed} chars/s`)
+    }
+
+    await this.handleWriteGeneration({
+      workingDir: opts.workingDir,
+      generation: perfRes.result,
+    })
+
   }
 
   private getPluginRuntime(opts: { workingDir: string }): faas.ProviderPluginContext {
@@ -315,25 +413,32 @@ export class Engine {
     config: string
     workingDir: string
   }): Promise<faas.Application> {
-    const irResult = await this.handleCompile(opts)
+    const compileResult = await this.handleCompile(opts)
 
-    if (!irResult.ok) {
-      throw new AppError(`failed to compile, e`, { cause: irResult.error })
+    if (!compileResult.ok) {
+      throw new AppError(`failed to compile, e`, { cause: compileResult.error })
     }
-    return await faas.resolveApplicationFromIr({ ir: irResult.value })
+    return await faas.resolveApplicationFromIr({ ir: compileResult.value.irSpec })
   }
 
   async handleCompile(opts: {
     workingDir: string
     config: string
     check?: boolean
-  }): Promise<ft_utils.Result<ir.Spec, DiagnosticError>> {
+  }): Promise<ft_utils.Result<{
+    irSpec: ir.Spec,
+    ast: parser.ast.Instance,
+    fileName: string
+  }, DiagnosticError>> {
     const file = path.resolve(opts.workingDir, opts.config)
     const fileUri = URI.file(file)
 
-    const parseResult = await parser.parse({
-      file: fileUri,
+    const manager = new parser.LspManager({
       fileSystemProvider: () => new NodeFileSystemProvider(),
+    })
+
+    const parseResult = await manager.parse({
+      file: fileUri,
       check: opts.check || false
     })
 
@@ -347,7 +452,13 @@ export class Engine {
     const irSpec = await ir.convertFromAst({ mainInst: inst })
     ir.evaluateIR({ spec: irSpec })
 
-    return { ok: true, value: irSpec }
+    return {
+      ok: true, value: {
+        irSpec,
+        ast: inst,
+        fileName: file
+      }
+    }
   }
 
   async printCompileError(diagErr: DiagnosticError) {

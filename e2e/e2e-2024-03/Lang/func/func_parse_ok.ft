@@ -1,0 +1,28 @@
+import (
+  . "std/faas"
+)
+
+struct Page {
+  total = int
+  page = int
+  pageSize = int
+  data = [any]
+}
+
+// use custom blocks
+
+@function GetEmail {
+  inputs = {
+    name = string
+  }
+  outputs = {
+    items = Page
+  }
+  name = "Get Email"
+  codeUri = "./code"
+  handler = "index.handler"
+}
+
+@application A {
+  functions = [GetEmail]
+}

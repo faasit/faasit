@@ -1,0 +1,10 @@
+import (
+  . "std/faas
+)
+
+struc Page {
+  total = int
+  page = int
+  pageSize = int
+  data = [any
+}

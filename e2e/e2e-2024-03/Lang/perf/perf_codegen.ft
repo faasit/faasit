@@ -1,0 +1,29 @@
+@event Event1 {
+  type = "example.event1"
+  data = {}
+}
+
+@event Event2 {
+  type = "example.event2"
+  data = {}
+}
+
+@event Event3 {
+  type = "example.event3"
+  data = {}
+}
+
+@function CodegenFunc {
+  pubsub = {
+    events = [Event1]
+  }
+}
+
+@application Codegen {
+  functions = [CodegenFunc]
+  defaultProvider = Local
+}
+
+@provider Local {
+  kind = "local"
+}

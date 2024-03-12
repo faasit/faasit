@@ -1,0 +1,7 @@
+
+@function WordCount { }
+
+@application WordCount {functions = [] defaultProvider = Local
+}
+
+@provider Local {kind = "local"}

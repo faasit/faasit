@@ -1,4 +1,4 @@
-import { Command } from 'commander'
+import { Command, Option } from 'commander'
 import path from 'node:path'
 import fs from 'fs'
 import { Engine } from './engine'
@@ -15,6 +15,23 @@ export function resolveConfigPath(config?: string) {
   }
 
   return path.resolve(process.cwd(), 'main.yaml')
+}
+
+export interface SharedOptions {
+  flags: string,
+  description?: string,
+  default?: string | boolean | number | null,
+}
+
+function createSharedOptions<T extends Record<string, SharedOptions>>(options: T): {
+  [K in keyof T]: Option
+} {
+  const entries = Object.entries(options).map(([k, v]) => {
+    const opt = new Option(v.flags, v.description).default(v.default)
+    return [k, opt]
+  })
+
+  return Object.fromEntries(entries)
 }
 
 export async function main() {
@@ -36,6 +53,13 @@ export async function main() {
   const handleError = (e: unknown) => {
     console.error(e)
   }
+
+  const shared = createSharedOptions({
+    devPerf: {
+      flags: '--dev_perf',
+      description: 'enable perf mode for development',
+    }
+  })
 
   program
     .command('init')
@@ -94,6 +118,41 @@ export async function main() {
     })
 
   program
+    .command('parse')
+    .argument('[file]', 'input file')
+    .option('--no-ir', 'not print $ir for semantic object')
+    .option('--no-check', 'not validate faasit DSL')
+    .addOption(shared.devPerf)
+    .description('evaluate value and ir of faast DSL')
+    .action(async (file, opts) => {
+      const config = resolveConfigPath(file)
+      await engine
+        .parse({
+          workingDir: process.cwd(),
+          config,
+          ...opts,
+        })
+        .catch(handleError)
+    })
+
+  program
+    .command('fmt')
+    .argument('[file]', 'input file')
+    .option('-p', 'print into stdout')
+    .description('format faast DSL')
+    .addOption(shared.devPerf)
+    .action(async (file, opts) => {
+      const config = resolveConfigPath(file)
+      await engine
+        .format({
+          workingDir: process.cwd(),
+          config,
+          ...opts,
+        })
+        .catch(handleError)
+    })
+
+  program
     .command('eval')
     .argument('[file]', 'input file')
     .option('--no-ir', 'not print $ir for semantic object')
@@ -101,10 +160,11 @@ export async function main() {
     .option('--no-lazy', 'no lazy evaluation for reference')
     .description('evaluate value and ir of faast DSL')
     .action(async (file, opts) => {
+      const config = resolveConfigPath(file)
       await engine
         .eval({
           workingDir: process.cwd(),
-          file: file,
+          config,
           ...opts,
         })
         .catch(handleError)
@@ -112,7 +172,8 @@ export async function main() {
 
   program
     .command('codegen')
-    .option('--lang <lang>', 'language to generate', 'js')
+    .option('--lang <lang>', 'language to generate', 'nodejs')
+    .addOption(shared.devPerf)
     .argument('[file]', '')
     .action(async (file, opts) => {
       await engine.codegen({

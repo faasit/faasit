@@ -3,11 +3,13 @@ from faasit_runtime.runtime.aliyun_runtime import AliyunRuntime
 from faasit_runtime.runtime.local_runtime import LocalRuntime
 from faasit_runtime.runtime.local_once_runtime import LocalOnceRuntime
 from faasit_runtime.utils.config import get_function_container_config
+import faasit_runtime.workflow as rt_workflow
 from typing import Callable, Set
 
-Function = Callable[..., FaasitResult]
+type_Function = Callable[[FaasitRuntime], FaasitResult]
+type_WorkFlow = Callable[[rt_workflow.WorkFlowBuilder], rt_workflow.WorkFlow]
 
-def function(fn: Function):
+def function(fn: type_Function):
     # Read Config for different runtimes
     containerConf = get_function_container_config()
 
@@ -34,6 +36,42 @@ def function(fn: Function):
         case _:
             raise ValueError(f"Invalid provider {containerConf['provider']}")
 
-def create_handler(fn : Function):
-    containerConf = get_function_container_config()
-    return fn
+def workflow(fn: type_WorkFlow) -> rt_workflow.WorkFlow:
+    # Read Config for different runtimes
+    # containerConf = get_function_container_config()
+    builder = rt_workflow.WorkFlowBuilder()
+    workflow = fn(builder)
+    return workflow
+    # match containerConf['provider']:
+    #     case 'local-once':
+    #         def local_once_workflow(event):
+    #             builder = rt_workflow.WorkFlowBuilder()
+    #             return fn(builder)
+    #         return local_once_workflow
+    #     case 'local','aliyun','knative','aws':
+    #         deploy_func_name = containerConf['funcName']
+    #         if deploy_func_name == 'executor':
+    #             return function(workflow.executor.handler)
+    #         else:
+    #             for func in workflow.functions:
+    #                 if func.name == deploy_func_name:
+    #                     return function(func.handler)
+    #             raise ValueError(f"Function {deploy_func_name} not found in workflow")
+    #     case _:
+    #         raise ValueError(f"Invalid provider {containerConf['provider']}")
+        
+
+def create_handler(fn : type_Function | type_WorkFlow):
+    if type(fn) == type_Function:
+        return fn
+    if type(fn) == type_WorkFlow:
+        builder = rt_workflow.WorkFlowBuilder()
+        workflow = fn(builder)
+        runner = rt_workflow.WorkFlowRunner(workflow)
+
+        @function
+        def handler(frt):
+            return runner.run(frt)
+        return handler
+    
+    raise ValueError(f"Invalid function type {type(fn)}")

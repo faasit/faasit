@@ -2,7 +2,7 @@ from faasit_runtime.runtime.faasit_runtime import FaasitRuntime
 
 
 class LocalOnceRuntime(FaasitRuntime):
-    name: str = 'local'
+    name: str = 'local-once'
     def __init__(self, data) -> None:
         super().__init__()
         self._input = data

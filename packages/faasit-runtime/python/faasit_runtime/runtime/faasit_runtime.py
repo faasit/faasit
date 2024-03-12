@@ -1,5 +1,5 @@
 from abc import ABC, abstractclassmethod
-from typing import Any
+from typing import Any, Tuple
 
 FaasitResult = Any
 
@@ -17,9 +17,9 @@ class FaasitRuntime(ABC):
         pass
 
     @abstractclassmethod
-    def call(self):
+    def call(self) -> FaasitResult:
         pass
 
     @abstractclassmethod
-    def tell(self):
+    async def tell(self):
         pass

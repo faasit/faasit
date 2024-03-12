@@ -1,3 +1,3 @@
-from .__main__ import function, create_handler
+from .__main__ import function, workflow, create_handler
 
-__all__ = ["function","create_handler"]
+__all__ = ["function","workflow","create_handler"]

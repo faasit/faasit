@@ -26,7 +26,7 @@ export default defineBuildConfig([
       output: { exports: "named" }
     },
     outDir: './dist/providers',
-    declaration: true,
+    declaration: false,
   }, {
     entries: ['nodejs'].map(v => GeneratorEntry(v)),
     rollup: {
@@ -34,6 +34,6 @@ export default defineBuildConfig([
       output: { exports: "named" }
     },
     outDir: './dist/generators',
-    declaration: true,
+    declaration: false,
   },
 ])

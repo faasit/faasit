@@ -14,9 +14,11 @@ export default defineBuildConfig(
       LibEntry('faas'),
       LibEntry('rest'),
     ],
+    externals: ['@faasit/core'],
     rollup: {
       emitCJS: true,
     },
     outDir: './dist',
-    declaration: true,
+    // TODO: enable declaration when fixed
+    declaration: false,
   })

@@ -1,4 +1,4 @@
-import { URI } from "vscode-uri"
+import { URI } from '../utils/uri'
 
 export const FsProto = "faasit-fs"
 

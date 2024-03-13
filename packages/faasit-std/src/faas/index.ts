@@ -2,7 +2,8 @@ import { ir } from '@faasit/core'
 import { z } from 'zod'
 import { runtime } from '@faasit/core'
 
-type ObjectValue = ir.Types.ObjectValue;
+export type ObjectValue = ir.Types.ObjectValue;
+export type TypeCallValue = ir.Types.TypeCallValue;
 
 export interface GeneratorPluginContext { }
 

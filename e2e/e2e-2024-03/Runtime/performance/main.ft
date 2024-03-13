@@ -2,12 +2,13 @@ import (
   . "std/faas"
 )
 
-@function count {
+@function split {
   runtime = "nodejs"
 }
 
 @workflow WordCountFlow {
-  functions = [count]
+  // env.FAASIT_WORKFLOW_FUNC = split
+  functions = [split]
 
   // workflow spec runtime
   runtime = "nodejs"
@@ -22,16 +23,7 @@ import (
   inputExamples = [
     {
       value = {
-        words = [
-          "Hello",
-          "world",
-          "this",
-          "is",
-          "a",
-          "happy",
-          "day"
-        ]
-        batchSize = 3
+        filename = "text.txt"
       }
     }
   ]

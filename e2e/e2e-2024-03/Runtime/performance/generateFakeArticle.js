@@ -15,6 +15,6 @@ fs.writeFile(file_path, text, (err) => {
     if (err) {
         console.error('error:', err);
     } else {
-        console.log('text.txt saved.');
+        console.log('Mock data(about 14M): text.txt saved.');
     }
 });

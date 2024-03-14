@@ -108,16 +108,14 @@ cd dag-wordcount && ft run && cd ..
 1. 函数声明模块
 
 ```sh
-cd performance && node generateFakeArticle.js && ft run && cd ..
+cd performance-declaration && node generateFakeArticle.js && ft run && cd ..
 ```
 
 2. 函数通信模块
 
-
-
-3. 函数编排模块
-
-
+```sh
+cd performance-invoke && ft run && cd ..
+```
 
 ## 部分测试结果截图
 

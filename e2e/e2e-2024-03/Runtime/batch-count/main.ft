@@ -40,7 +40,3 @@ import (
 @provider Local {
   kind = "local"
 }
-
-@provider Knative {
-  kind = "knative"
-}

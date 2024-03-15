@@ -2,10 +2,18 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Python 调试程序: 当前文件",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${file}",
+      "console": "integratedTerminal",
+      "cwd": "${fileDirname}",
+    },
+    {
       "name": "Faasit deploy",
       "program": "${workspaceFolder}/packages/faasit/bin/faasit.cjs",
       "request": "launch",
-      "cwd" : "${workspaceFolder}/packages/faasit-examples/examples/dag-wordcount",
+      "cwd": "${workspaceFolder}/packages/faasit-examples/examples/dag-wordcount",
       "skipFiles": [
         "<node_internals>/**"
       ],
@@ -18,7 +26,7 @@
       "name": "Faasit invoke",
       "program": "${workspaceFolder}/packages/faasit/bin/faasit.cjs",
       "request": "launch",
-      "cwd" : "${workspaceFolder}/packages/faasit-examples/examples/demo1/aliyun",
+      "cwd": "${workspaceFolder}/packages/faasit-examples/examples/demo1/aliyun",
       "skipFiles": [
         "<node_internals>/**"
       ],

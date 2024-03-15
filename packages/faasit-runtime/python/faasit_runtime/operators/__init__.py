@@ -11,7 +11,7 @@ async def batchParallel (
     promises : list[Awaitable[Any]]= []
     for i in range(0, len(input), batch_size):
         batch = input[i:i+batch_size]
-        task = asyncio.create_task(action(batch,i))
+        task = asyncio.create_task(action(batch))
         task.add_done_callback(lambda t: result.extend(t.result()))
         promises.append(task)
     await asyncio.gather(*promises)
@@ -34,7 +34,10 @@ async def tree_join(
 
         task = asyncio.create_task(tree_join(batch, action, joiner_size))
 
-        task.add_done_callback(lambda t: result.append(t.result()))
+        def callback(res):
+            for f in res.result():
+                result.append(f)
+        task.add_done_callback(callback)
         promise.append(task)
 
     await asyncio.gather(*promise)

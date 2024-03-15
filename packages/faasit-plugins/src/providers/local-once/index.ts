@@ -44,7 +44,7 @@ class LocalOnceProvider implements faas.ProviderPlugin {
   async deployWorkflow(ctx: faas.ProviderPluginContext, inputData: unknown, workflowBlk: faas.Workflow) {
     const { logger } = ctx
     const workflow = workflowBlk.output
-    assert(workflow.runtime === 'nodejs')
+    // assert(workflow.runtime === 'nodejs')
 
     const inputJSON = JSON.stringify(inputData)
     if (inputJSON.length < 100) {
@@ -52,7 +52,7 @@ class LocalOnceProvider implements faas.ProviderPlugin {
     } else {
       logger.info(`running workflow locally`)
     }
-    const output = await this.executeJsCode(ctx, '__executor', workflow.codeDir, inputData)
+    const output = await this.executeFunction(ctx, '__executor', workflow.codeDir, inputData, workflow.runtime)
     logger.info(`workflow executed, output=${JSON.stringify(output, undefined, 2)}`)
   }
 
@@ -60,19 +60,19 @@ class LocalOnceProvider implements faas.ProviderPlugin {
     const { logger } = ctx
 
     logger.info(`run function locally, use input=${JSON.stringify(inputData)}`)
-    const output = await this.executeFunction(ctx, inputData, fn)
+    const output = await this.executeFunction(ctx, fn.$ir.name, fn.output.codeDir, inputData, fn.output.runtime)
     logger.info(`function executed, output=${JSON.stringify(output)}`)
   }
 
-  async executeFunction(ctx: faas.ProviderPluginContext, inputData: unknown, fn: faas.Function) {
+  async executeFunction(ctx: faas.ProviderPluginContext, name:string, codeDir:string, inputData: unknown, runtime: string) {
     
-    switch(fn.output.runtime) {
+    switch(runtime) {
       case 'nodejs':
-        return this.executeJsCode(ctx, fn.$ir.name, fn.output.codeDir, inputData)
+        return this.executeJsCode(ctx, name, codeDir, inputData)
       case 'python':
-        return this.executePyCode(ctx, fn.$ir.name, fn.output.codeDir, inputData)
+        return this.executePyCode(ctx, name, codeDir, inputData)
       default:
-        throw new Error(`unsupported runtime: ${fn.output.runtime}`)
+        throw new Error(`unsupported runtime: ${runtime}`)
     }
   }
 
@@ -88,10 +88,17 @@ class LocalOnceProvider implements faas.ProviderPlugin {
     const pythonCode = `
 import json
 from index import handler;
+import asyncio
 inputData = ${inputData ? JSON.stringify(inputData) : '{}'};
-output = handler(inputData);
-print(output)
+async def main():
+    output = await handler(inputData);
+    output = json.dumps(output)
+    print(json.loads(output))
+loop = asyncio.get_event_loop()
+loop.run_until_complete(main())
+loop.close()
     `.trim()
+    // console.log(pythonCode)
     
     const output = await new Promise((resolve, reject) => {
       const python = spawn('python', ["-c", pythonCode], {cwd: dir})  
@@ -101,6 +108,7 @@ print(output)
         data += chunk
       })
       python.stderr.on('data', (chunk) => {
+        console.log(chunk.toString())
         reject(chunk.toString())
       })
       python.on('close', () => {

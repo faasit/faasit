@@ -4,9 +4,9 @@ from faasit_runtime.runtime.local_runtime import LocalRuntime
 from faasit_runtime.runtime.local_once_runtime import LocalOnceRuntime
 from faasit_runtime.utils.config import get_function_container_config
 import faasit_runtime.workflow as rt_workflow
-from typing import Callable, Set
+from typing import Callable, Set, Any
 
-type_Function = Callable[[FaasitRuntime], FaasitResult]
+type_Function = Callable[[Any], FaasitResult]
 type_WorkFlow = Callable[[rt_workflow.WorkFlowBuilder], rt_workflow.WorkFlow]
 
 def function(fn: type_Function):
@@ -29,8 +29,8 @@ def function(fn: type_Function):
         case 'aws':
             frt = FaasitRuntime(containerConf)
         case 'local-once':
-            def local_function(event):
-                frt = LocalOnceRuntime(event)
+            def local_function(event, workflow_runner = None):
+                frt = LocalOnceRuntime(event, workflow_runner)
                 return fn(frt)
             return local_function
         case _:
@@ -61,17 +61,20 @@ def workflow(fn: type_WorkFlow) -> rt_workflow.WorkFlow:
     #         raise ValueError(f"Invalid provider {containerConf['provider']}")
         
 
-def create_handler(fn : type_Function | type_WorkFlow):
-    if type(fn) == type_Function:
-        return fn
-    if type(fn) == type_WorkFlow:
-        builder = rt_workflow.WorkFlowBuilder()
-        workflow = fn(builder)
-        runner = rt_workflow.WorkFlowRunner(workflow)
-
-        @function
-        def handler(frt):
-            return runner.run(frt)
+def create_handler(fn : type_Function | rt_workflow.WorkFlow):
+    if type(fn) == rt_workflow.WorkFlow:
+        runner = rt_workflow.WorkFlowRunner(fn)
+        container_conf = get_function_container_config()
+        match container_conf['provider']:
+            case 'aliyun', 'aws', 'knative', 'local':
+                async def handler(frt):
+                    nonlocal runner
+                    return await runner.run(frt)
+            case 'local-once':
+                async def handler(event: dict):
+                    nonlocal runner
+                    return await runner.run(event, runner)
         return handler
+    else: #type(fn) == type_Function:
+        return fn
     
-    raise ValueError(f"Invalid function type {type(fn)}")

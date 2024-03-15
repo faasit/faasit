@@ -34,7 +34,7 @@ def sort(frt: FaasitRuntime):
     reducedCounter.sort(key=lambda x: x[1], reverse=True)
 
     return frt.output({
-        "sorted": reducedCounter
+        "counter": reducedCounter
     })
 
 @function
@@ -61,10 +61,10 @@ async def executor(frt: FaasitRuntime):
     words = frt.call('split', {'text': text})['words']
 
     async def work(words):
-        result = await frt.call('count', {'words': words})
+        result = frt.call('count', {'words': words})
         return result['counter']
     async def join(counter):
-        return await frt.call('sort', {'counter': counter})['counter']
+        return frt.call('sort', {'counter': counter})['counter']
     result = await forkjoin(
         input=words,
         work=work,

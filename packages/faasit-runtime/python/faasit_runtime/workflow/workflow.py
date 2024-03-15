@@ -49,7 +49,8 @@ class WorkFlowBuilder:
     # add an executor to the workflow
     def executor(self) -> WorkFlowExecutor:
         exe_func = WorkFlowFunc('__executor')
-        self.funcs.append(exe_func)
+        # self.funcs.append(exe_func)
+        self.executor_func = exe_func
         return exe_func
 
     # build the workflow
@@ -64,10 +65,10 @@ class WorkFlowRunner:
         self.workflow = workflow
         pass
 
-    def run(self, frt: FaasitRuntime) -> FaasitResult:
+    def run(self, frt: FaasitRuntime, *args) -> FaasitResult:
         funcName = self.conf['funcName']
         fn = self.route(funcName)
-        return fn(frt)
+        return fn(frt, *args)
     
     def route(self, name: str) -> Callable[[FaasitRuntime], FaasitResult]:
         if name == '__executor':

@@ -1,0 +1,47 @@
+import (
+  . "std/faas"
+)
+
+@function split {
+  runtime = "nodejs"
+}
+
+@function sort {
+  runtime = "nodejs"
+}
+
+@function count {
+  runtime = "nodejs"
+}
+
+@workflow WordCountFlow {
+  // env.FAASIT_WORKFLOW_FUNC = split
+  functions = [split, sort, count]
+
+  // workflow spec runtime
+  runtime = "nodejs"
+  codeDir = "./javascript"
+}
+
+@application WordCount {
+  workflow = WordCountFlow
+  defaultProvider = Aliyun
+  providers = [Local,Aliyun]
+  // used by `ft run`
+  inputExamples = [
+    {
+      value = {
+        text = "Hello world this is a happy day"
+        batchSize = 3
+      }
+    }
+  ]
+}
+
+@provider Local {
+  kind = "local"
+}
+
+@provider Aliyun {
+  kind = "aliyun"
+}

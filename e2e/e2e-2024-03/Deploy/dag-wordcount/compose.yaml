@@ -1,0 +1,56 @@
+services:
+  master:
+    image: master-runtime:latest
+    volumes:
+      - ./config.json:/server/config.json
+    command:
+      - node
+      - /server/index.js
+    ports:
+      - '9000:9000'
+    container_name: master
+  __executor:
+    image: nodejs-runtime:latest
+    volumes:
+      - ./javascript:/code
+    command:
+      - node
+      - /nodejs14/src/server.js
+    container_name: executor
+    environment:
+      FAASIT_FUNC_NAME: __executor
+      FAASIT_PROVIDER: local
+      FAASIT_WORKFLOW_FUNC_NAME: __executor
+  split:
+    image: nodejs-runtime:latest
+    volumes:
+      - ./javascript:/code
+    command:
+      - node
+      - /nodejs14/src/server.js
+    container_name: split
+    environment:
+      FAASIT_FUNC_NAME: split
+      FAASIT_PROVIDER: local
+  sort:
+    image: nodejs-runtime:latest
+    volumes:
+      - ./javascript:/code
+    command:
+      - node
+      - /nodejs14/src/server.js
+    container_name: sort
+    environment:
+      FAASIT_FUNC_NAME: sort
+      FAASIT_PROVIDER: local
+  count:
+    image: nodejs-runtime:latest
+    volumes:
+      - ./javascript:/code
+    command:
+      - node
+      - /nodejs14/src/server.js
+    container_name: count
+    environment:
+      FAASIT_FUNC_NAME: count
+      FAASIT_PROVIDER: local

@@ -1,0 +1,26 @@
+@function hello {
+  runtime = "nodejs"
+  codeDir = "./javascript"
+  triggers = [
+  ]
+  resource = {
+    cpu = "1024m"
+    memory = "128Mi"
+  }
+  pubsub = {
+    events = []
+  }
+}
+
+@application {
+  functions = [hello]
+  defaultProvider = Aliyun
+  providers = [Aliyun, Local]
+}
+
+@provider Aliyun {
+  kind = "aliyun"
+}
+@provider Local {
+  kind = "local"
+}

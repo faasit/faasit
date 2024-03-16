@@ -39,50 +39,75 @@ class AliyunProvider implements faas.ProviderPlugin {
 		const client = createClient({ secret })
 		const serviceName = this.getServiceName(input.app)
 
-		for (const fnRef of app.output.functions) {
-
-			const fn = fnRef.value
-			logger.info(`invoke function ${fn.$ir.name}`);
-			const triggers = fn.output.triggers || []
-
-			if (triggers.length > 0 && triggers[0].kind == 'http') {
-				let aliyunTrigger = new AliyunTrigger(
-					{
-						client,
-						serviceName,
-						functionName: fn.$ir.name,
-						triggerName: triggers[0].name,
-						triggerType: 'http',
-						triggerOpts: {},
-					}
-				)
-
-				const triggerResp = await aliyunTrigger.get()
-				const urlInternet = triggerResp?.body.urlInternet || "";
-				const urlWithoutHttp = urlInternet.replace(/^(http|https):\/\//, "");
-
-				const invokeResp = await axios.post(urlInternet, input.input)
-				logger.info("function invoke results:");
-				console.log(invokeResp.data);
-
-			} else {
-				let aliyunFunc = new AliyunFunction(
-					{
-						client,
-						serviceName,
-						functionName: fn.$ir.name,
-						codeDir: fn.output.codeDir,
-						runtime: fn.output.runtime,
-						handler: fn.output.handler ? fn.output.handler : "index.handler",
-					}
-				)
-				await aliyunFunc.invoke().then(resp => {
-					if (resp) {
-						logger.info(resp.body.toString());
-					}
-				})
+		const fnName = app.output.workflow ? '__executor' : input.funcName
+		const aliyunFunc = new AliyunFunction({
+			client,
+			serviceName,
+			functionName: fnName,
+			codeDir: "",
+			runtime: 'nodejs14',
+			handler: "index.handler",
+			env: {
+				FAASIT_PROVIDER: 'aliyun',
+				FAASIT_APP_NAME: app.$ir.name,
+				FAASIT_FUNC_NAME: fnName,
+				FAASIT_WORKFLOW_FUNC_NAME: fnName,
+				// use for commnuication between functions
+				ALIBABA_CLOUD_ACCESS_KEY_ID: secret.accessKeyId,
+				ALIBABA_CLOUD_ACCESS_KEY_SECRET: secret.accessKeySecret,
+				ALIBABA_CLOUD_PRODUCT_CODE: secret.accountId,
+				ALIBABA_CLOUD_REGION: secret.region,
+				ALIBABA_CLOUD_SERVICE: serviceName
 			}
-		}
+		})
+		const resp = await aliyunFunc.invoke(input.input)
+		logger.info("function invoke results:");
+		console.log(resp?.body.toString());
+		// const functions = app.output.workflow? : app
+		// for (const fnRef of app.output.functions) {
+
+		// 	const fn = fnRef.value
+		// 	logger.info(`invoke function ${fn.$ir.name}`);
+		// 	const triggers = fn.output.triggers || []
+
+		// 	if (triggers.length > 0 && triggers[0].kind == 'http') {
+		// 		let aliyunTrigger = new AliyunTrigger(
+		// 			{
+		// 				client,
+		// 				serviceName,
+		// 				functionName: fn.$ir.name,
+		// 				triggerName: triggers[0].name,
+		// 				triggerType: 'http',
+		// 				triggerOpts: {},
+		// 			}
+		// 		)
+
+		// 		const triggerResp = await aliyunTrigger.get()
+		// 		const urlInternet = triggerResp?.body.urlInternet || "";
+		// 		const urlWithoutHttp = urlInternet.replace(/^(http|https):\/\//, "");
+
+		// 		const invokeResp = await axios.post(urlInternet, input.input)
+		// 		logger.info("function invoke results:");
+		// 		console.log(invokeResp.data);
+
+		// 	} else {
+		// 		let aliyunFunc = new AliyunFunction(
+		// 			{
+		// 				client,
+		// 				serviceName,
+		// 				functionName: fn.$ir.name,
+		// 				codeDir: fn.output.codeDir,
+		// 				runtime: fn.output.runtime,
+		// 				handler: fn.output.handler ? fn.output.handler : "index.handler",
+		// 			}
+		// 		)
+		// 		await aliyunFunc.invoke(input.input).then(resp => {
+		// 			if (resp) {
+		// 				logger.info(resp.body.toString());
+		// 			}
+		// 		})
+		// 	}
+		// }
 	}
 
 	async deployFunctions(p: DeployParams) {
@@ -108,6 +133,9 @@ class AliyunProvider implements faas.ProviderPlugin {
 
 			if (fn.output.runtime.includes('python')) {
 				fn.output.runtime = 'python3.10'
+			}
+			if (fn.output.runtime.includes('nodejs')) {
+				fn.output.runtime = 'nodejs16'
 			}
 			let func = new AliyunFunction({
 				client,

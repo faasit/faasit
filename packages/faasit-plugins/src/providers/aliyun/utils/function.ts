@@ -1,6 +1,6 @@
 import FC_Open20210406, * as $FC_Open20210406 from '@alicloud/fc-open20210406'
 import Admzip from 'adm-zip'
-import * as $Util from '@alicloud/tea-util'
+import Util, * as $Util from '@alicloud/tea-util'
 
 export class AliyunFunction {
   constructor(private opt: {
@@ -85,8 +85,10 @@ export class AliyunFunction {
     }
   }
 
-  async invoke(): Promise<$FC_Open20210406.InvokeFunctionResponse | undefined> {
-    let invokeFunctionRequests = new $FC_Open20210406.InvokeFunctionRequest({});
+  async invoke(event: any): Promise<$FC_Open20210406.InvokeFunctionResponse | undefined> {
+    let invokeFunctionRequests = new $FC_Open20210406.InvokeFunctionRequest({
+      body: event ? Util.toBytes(JSON.stringify(event)) : ''
+    });
     try {
       const resp = await this.opt.client.invokeFunction(this.opt.serviceName, this.opt.functionName, invokeFunctionRequests);
       return resp;

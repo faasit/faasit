@@ -1,5 +1,5 @@
 import axios from "axios";
-import { BaseFaasitRuntime, CallResult } from "./FaasitRuntime";
+import { BaseFaasitRuntime, CallResult, FaasitRuntimeMetadata } from "./FaasitRuntime";
 
 export class LocalRuntime extends BaseFaasitRuntime {
 
@@ -9,6 +9,20 @@ export class LocalRuntime extends BaseFaasitRuntime {
     constructor(event: any) {
         super()
         this.event = event;
+    }
+    metadata(): FaasitRuntimeMetadata {
+        return {
+            funcName: "local",
+            invocation: {
+                id: "local",
+                caller: {
+                    funcName: "local",
+                    invocationId: "local"
+                },
+                kind: "call"
+            }
+        
+        }
     }
     async call(fnName: string, fnParams: {
         sequence?: number;

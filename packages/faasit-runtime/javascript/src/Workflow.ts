@@ -110,8 +110,14 @@ export class WorkflowContainerRunner {
 
   run(frt: FaasitRuntime): unknown {
     const { funcName } = this.containerConf.workflow
-    const func = this.route(funcName)
-    return func(frt)
+    if (funcName != '') {
+      const func = this.route(funcName)
+      return func(frt)
+    } else {
+      const {funcName} = this.containerConf
+      const func = this.route(funcName)
+      return func(frt)
+    }
   }
 
   route(name: string): HandlerType {

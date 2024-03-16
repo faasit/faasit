@@ -1,0 +1,22 @@
+services:
+  master:
+    image: master-runtime:latest
+    volumes:
+      - ./config.json:/server/config.json
+    command:
+      - node
+      - /server/index.js
+    ports:
+      - '9000:9000'
+    container_name: master
+  hello:
+    image: nodejs-runtime:latest
+    volumes:
+      - ./javascript:/code
+    command:
+      - node
+      - /nodejs14/src/server.js
+    container_name: hello
+    environment:
+      FAASIT_FUNC_NAME: hello
+      FAASIT_PROVIDER: local

@@ -76,5 +76,7 @@ def create_handler(fn : type_Function | rt_workflow.WorkFlow):
                     return await runner.run(event, runner)
         return handler
     else: #type(fn) == type_Function:
-        return fn
+        async def handler(event: dict):
+            return await fn(event)
+        return handler
     

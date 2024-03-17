@@ -26,7 +26,7 @@ import (
 @application WordCount {
   workflow = WordCountFlow
   defaultProvider = Aliyun
-  providers = [Local,Aliyun]
+  providers = [Local,Aliyun,aws]
   // used by `ft run`
   inputExamples = [
     {
@@ -44,4 +44,7 @@ import (
 
 @provider Aliyun {
   kind = "aliyun"
+}
+@provider aws {
+  kind = "aws"
 }

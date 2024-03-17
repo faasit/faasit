@@ -15,7 +15,7 @@
 @application {
   functions = [hello]
   defaultProvider = Aliyun
-  providers = [Aliyun, Local]
+  providers = [Aliyun, Local, aws]
 }
 
 @provider Aliyun {
@@ -23,4 +23,7 @@
 }
 @provider Local {
   kind = "local"
+}
+@provider aws {
+  kind = "aws"
 }

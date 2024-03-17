@@ -24,6 +24,37 @@ cd func && ft invoke -p Aliyun
 
 ![alt text](../assets/Deploy/image-6.png)
 
+- AWS 函数部署
+
+```bash
+cd func && ft deploy -p aws
+```
+
+![alt text](../assets/Deploy/image-14.png)
+
+- AWS 函数更新
+
+```bash
+cd func && ft deploy -p aws
+```
+
+![alt text](../assets/Deploy/image-14.png)
+
+
+- AWS 函数调用
+
+```bash
+cd func && ft invoke -p aws
+```
+
+![alt text](../assets/Deploy/image-15.png)
+
+
+- AWS 函数流部署
+
+```bash
+cd dag-wordcount && ft deploy -p aws
+```
 
 - 阿里云函数流部署
 
@@ -101,8 +132,24 @@ cd trigger && ft deploy
 ![alt text](../assets/Deploy/image-11.png)
 
 
+- 本地`javascript`函数运行
 
-- 本地函数运行
+```bash
+cd func && ft run
+```
+
+![alt text](../assets/Deploy/image-16.png)
+
+
+- 本地`javascript`函数流运行
+
+```bash
+cd dag-wordcount && ft run
+```
+
+![alt text](../assets/Deploy/image-17.png)
+
+- 本地`python`函数运行
 
 ```bash
 cd python/demo1 && ft run
@@ -111,7 +158,7 @@ cd python/demo1 && ft run
 ![alt text](../assets/Deploy/image-12.png)
 
 
-- 本地函数流执行
+- 本地`python`函数流执行
 
 ```bash
 cd python/demo2 && ft run

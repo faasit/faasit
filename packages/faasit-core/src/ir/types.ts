@@ -106,12 +106,12 @@ export type Package = {
 }
 
 export type Symbol = {
-  kind: 's_ref'
+  kind: 's_external'
   id: string
 } | {
-  kind: 's_inline'
+  kind: 's_internal'
   id: string
-  value: BaseEirNode
+  ref: Reference<BaseEirNode>
 }
 
 export type Property = { key: string; value: Value }
@@ -331,16 +331,16 @@ export const LibrarySchema: z.ZodType<Library> = z.object({
 })
 
 export const SymbolSchema: z.ZodType<Symbol> = z.union([z.object({
-  kind: z.literal('s_ref'),
+  kind: z.literal('s_external'),
   id: z.string(),
 }), z.object({
-  kind: z.literal('s_inline'),
+  kind: z.literal('s_internal'),
   id: z.string(),
-  value: z.object({
+  ref: ReferenceSchemaT(z.object({
     '$ir': z.object({
       kind: z.string()
     })
-  })
+  }))
 })])
 
 const PackageSchema: z.ZodType<Package> = z.object({

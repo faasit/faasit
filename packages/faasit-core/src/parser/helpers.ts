@@ -1,12 +1,13 @@
-import { createFaasitServices } from '../services'
+import type { AstNode, LangiumDocument } from 'langium'
+import { TextEdit } from 'vscode-languageserver-types'
 import type { URI } from 'vscode-uri'
 import { ast } from '.'
-import { FileSystemProvider } from '../runtime'
-import { Result } from '../utils'
-import { DiagnosticError } from '../errors'
 import { builtins, ft_utils } from '..'
-import type { LangiumDocument, AstNode } from 'langium'
-import { TextEdit } from 'vscode-languageserver-types'
+import { CheckOptions } from '../common'
+import { DiagnosticError } from '../errors'
+import { FileSystemProvider } from '../runtime'
+import { createFaasitServices } from '../services'
+import { Result } from '../utils'
 
 export type ParseResult<T> = Result<T, DiagnosticError>
 
@@ -35,12 +36,15 @@ export class LspManager {
 
   async parse(opts: {
     file: URI
-    check?: boolean
+    check: CheckOptions
   }): Promise<ft_utils.Result<ast.Instance, DiagnosticError>> {
+
+    const { checkParse = false } = opts.check
+
     const document =
       this.services.shared.workspace.LangiumDocuments.getOrCreateDocument(opts.file)
     await this.services.shared.workspace.DocumentBuilder.build([this.builtinDoc, document], {
-      validation: opts.check ? true : false,
+      validation: checkParse,
     })
     const errors = (document.diagnostics ?? []).filter((e) => e.severity === 1)
 

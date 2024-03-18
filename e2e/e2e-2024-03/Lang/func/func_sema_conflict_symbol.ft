@@ -1,0 +1,10 @@
+
+@function A {
+    props = {
+        a = {}
+    }
+}
+
+@function A {
+    props = {}
+}

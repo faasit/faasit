@@ -1,7 +1,7 @@
 import { AstNode } from 'langium'
-import * as types from './types'
-import { AppError, InternalError } from '../errors'
+import { InternalError } from '../errors'
 import { ast } from '../parser'
+import * as types from './types'
 
 export async function convertFromAst(opts: {
   mainInst: ast.Instance
@@ -19,6 +19,8 @@ class AstToIrConverter {
 
   convert(): types.Spec {
     const { mainInst } = this.ctx
+
+    const symbols: types.Symbol[] = []
 
     const mainLib: types.Library = {
       kind: 'p_lib',
@@ -39,11 +41,24 @@ class AstToIrConverter {
     }
 
     for (const block of mainInst.blocks) {
-
       let irBlock = this.symbolCache.get(block) as types.Block | undefined
       if (!irBlock) {
         irBlock = this.handleBlock(block)
-        irBlock && this.symbolCache.set(block, irBlock)
+        if (irBlock) {
+          this.symbolCache.set(block, irBlock)
+          const id = irBlock.$ir.name
+          symbols.push({
+            kind: 's_internal',
+            id: irBlock.$ir.name,
+            ref: {
+              $ir: {
+                kind: "r_ref",
+                id
+              },
+              value: irBlock
+            }
+          })
+        }
       }
 
       if (irBlock) {
@@ -51,7 +66,7 @@ class AstToIrConverter {
       }
     }
 
-    return { version: types.CUR_VERSION, packages: [mainPackage], libs: [mainLib], symbols: [] }
+    return { version: types.CUR_VERSION, packages: [mainPackage], libs: [mainLib], symbols }
   }
 
   handleNamedElement(node: ast.NamedElement): unknown {

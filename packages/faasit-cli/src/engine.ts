@@ -1,20 +1,21 @@
 import {
   AppError,
+  CheckOptions,
   DiagnosticError,
   URI,
   ft_utils,
   ir,
   parser,
-} from '@faasit/core'
-import { faas } from '@faasit/std'
-import chalk from 'chalk'
-import yaml from 'js-yaml'
+} from '@faasit/core';
+import { faas } from '@faasit/std';
+import chalk from 'chalk';
 import fs from 'fs-extra';
-import S2A from 'stream-to-async-iterator'
-import { spawn } from 'node:child_process'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-import { NodeFileSystemProvider } from './runtime'
+import yaml from 'js-yaml';
+import { spawn } from 'node:child_process';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+import S2A from 'stream-to-async-iterator';
+import { NodeFileSystemProvider } from './runtime';
 import { RunPerf } from './utils';
 
 const SCRIPT_DIR = path.normalize(path.dirname(fileURLToPath(import.meta.url)))
@@ -169,8 +170,32 @@ export class Engine {
     }
   }
 
-  async eval(opts: { config: string; ir: boolean; check: boolean, lazy: boolean } & GlobalOptions) {
-    const compileRes = await this.handleCompile({ ...opts })
+  async devView(opts: { config: string, symbolTable: boolean } & GlobalOptions) {
+    const compileRes = await this.handleCompile({
+      ...opts
+    })
+
+    if (!compileRes.ok) {
+      const diagErr = compileRes.error
+      this.printCompileError(diagErr)
+      return
+    }
+
+    const irSpec = compileRes.value.irSpec
+    if (opts.symbolTable) {
+      console.log(irSpec.symbols)
+    }
+  }
+
+  async convert(opts: {} & GlobalOptions) { }
+
+  async eval(opts: { config: string; ir: boolean; checkParse: boolean, checkSymbols: boolean, lazy: boolean } & GlobalOptions) {
+    const compileRes = await this.handleCompile({
+      ...opts, check: {
+        checkParse: opts.checkParse,
+        checkSymbols: opts.checkSymbols,
+      }
+    })
 
     if (!compileRes.ok) {
       const diagErr = compileRes.error
@@ -235,10 +260,16 @@ export class Engine {
 
   }
 
-  async parse(opts: { config: string; ir: boolean; check: boolean } & GlobalOptions) {
+  async parse(opts: { config: string; ir: boolean; checkParse: boolean } & GlobalOptions) {
 
     const perfRes = await RunPerf(async () => {
-      const compileRes = await this.handleCompile(opts)
+      const compileRes = await this.handleCompile({
+        ...opts,
+        check: {
+          checkParse: opts.checkParse,
+          checkSymbols: false
+        }
+      })
 
       if (!compileRes.ok) {
         const diagErr = compileRes.error
@@ -424,12 +455,17 @@ export class Engine {
   async handleCompile(opts: {
     workingDir: string
     config: string
-    check?: boolean
+    check?: CheckOptions
   }): Promise<ft_utils.Result<{
     irSpec: ir.Spec,
     ast: parser.ast.Instance,
     fileName: string
   }, DiagnosticError>> {
+
+    const checkOpts = opts.check || {
+      checkParse: false,
+      checkSymbols: false
+    }
     const file = path.resolve(opts.workingDir, opts.config)
     const fileUri = URI.file(file)
 
@@ -439,7 +475,7 @@ export class Engine {
 
     const parseResult = await manager.parse({
       file: fileUri,
-      check: opts.check || false
+      check: checkOpts
     })
 
     if (!parseResult.ok) {
@@ -450,6 +486,17 @@ export class Engine {
 
     // just print as ir currently
     const irSpec = await ir.convertFromAst({ mainInst: inst })
+
+    if (checkOpts.checkSymbols) {
+      const idSet = new Set()
+      for (const symbol of irSpec.symbols) {
+        if (idSet.has(symbol.id)) {
+          throw Error(`conflict symbol: ${symbol.id}`)
+        }
+        idSet.add(symbol.id)
+      }
+    }
+
     ir.evaluateIR({ spec: irSpec })
 
     return {

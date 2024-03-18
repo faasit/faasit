@@ -1,8 +1,8 @@
 import { Command, Option } from 'commander'
-import path from 'node:path'
-import fs from 'fs'
-import { Engine } from './engine'
 import dotenv from 'dotenv'
+import fs from 'fs'
+import path from 'node:path'
+import { Engine } from './engine'
 
 export function resolveConfigPath(config?: string) {
   if (config) {
@@ -120,8 +120,7 @@ export async function main() {
   program
     .command('parse')
     .argument('[file]', 'input file')
-    .option('--no-ir', 'not print $ir for semantic object')
-    .option('--no-check', 'not validate faasit DSL')
+    .option('--no-check-parse', 'not validate faasit DSL')
     .addOption(shared.devPerf)
     .description('evaluate value and ir of faast DSL')
     .action(async (file, opts) => {
@@ -152,11 +151,37 @@ export async function main() {
         .catch(handleError)
     })
 
+  program.command('convert').argument('[file]', 'input file').description('convert ir to ft code')
+    .action(async (file, opts) => {
+      const config = resolveConfigPath(file)
+      await engine
+        .convert({
+          workingDir: process.cwd(),
+          config,
+          ...opts,
+        })
+        .catch(handleError)
+    })
+
+  program.command('dev-view').argument('[file]', 'input file').description('display info for DSL')
+    .option('--symbol-table')
+    .action(async (file, opts) => {
+      const config = resolveConfigPath(file)
+      await engine
+        .devView({
+          workingDir: process.cwd(),
+          config,
+          ...opts,
+        })
+        .catch(handleError)
+    })
+
   program
     .command('eval')
     .argument('[file]', 'input file')
-    .option('--no-ir', 'not print $ir for semantic object')
-    .option('--no-check', 'not validate faasit DSL')
+    .option('--ir', 'print $ir for semantic object')
+    .option('--no-check-parse', 'not validate faasit DSL')
+    .option('--check-symbols', 'validate symbols for faasit DSL')
     .option('--no-lazy', 'no lazy evaluation for reference')
     .description('evaluate value and ir of faast DSL')
     .action(async (file, opts) => {

@@ -1,0 +1,152 @@
+version: 0.1.0
+packages:
+  - kind: p_entry
+    id: __main__
+    blocks:
+      - $ir:
+          kind: b_struct
+          name: Page
+          props:
+            - key: total
+              value:
+                $ir:
+                  kind: r_ref
+                  id: int
+                value: <lazy_evaluation>
+            - key: page
+              value:
+                $ir:
+                  kind: r_ref
+                  id: int
+                value: <lazy_evaluation>
+            - key: pageSize
+              value:
+                $ir:
+                  kind: r_ref
+                  id: int
+                value: <lazy_evaluation>
+            - key: data
+              value:
+                $ir:
+                  kind: v_list
+                  items:
+                    - $ir:
+                        kind: r_ref
+                        id: any
+                      value: <lazy_evaluation>
+      - $ir:
+          kind: b_custom
+          block_type:
+            $ir:
+              kind: r_ref
+              id: function
+            value: <lazy_evaluation>
+          name: GetEmail
+          props:
+            - key: inputs
+              value:
+                $ir:
+                  kind: v_object
+                  props:
+                    - key: name
+                      value:
+                        $ir:
+                          kind: r_ref
+                          id: string
+                        value: <lazy_evaluation>
+            - key: outputs
+              value:
+                $ir:
+                  kind: v_object
+                  props:
+                    - key: items
+                      value:
+                        $ir:
+                          kind: r_ref
+                          id: Page
+                        value: <lazy_evaluation>
+            - key: name
+              value:
+                $ir:
+                  kind: v_string
+                  value: Get Email
+            - key: codeUri
+              value:
+                $ir:
+                  kind: v_string
+                  value: ./code
+            - key: handler
+              value:
+                $ir:
+                  kind: v_string
+                  value: index.handler
+        output:
+          inputs:
+            name:
+              $ir:
+                kind: r_ref
+                id: string
+              value: <lazy_evaluation>
+          outputs:
+            items:
+              $ir:
+                kind: r_ref
+                id: Page
+              value: <lazy_evaluation>
+          name: Get Email
+          codeUri: ./code
+          handler: index.handler
+      - $ir:
+          kind: b_custom
+          block_type:
+            $ir:
+              kind: r_ref
+              id: application
+            value: <lazy_evaluation>
+          name: A
+          props:
+            - key: functions
+              value:
+                $ir:
+                  kind: v_list
+                  items:
+                    - $ir:
+                        kind: r_ref
+                        id: GetEmail
+                      value: <lazy_evaluation>
+        output:
+          functions:
+            - $ir:
+                kind: r_ref
+                id: GetEmail
+              value: <lazy_evaluation>
+    lib:
+      $ir:
+        kind: r_ref
+        id: __main__
+      value: <lazy_evaluation>
+libs:
+  - kind: p_lib
+    id: __main__
+symbols:
+  - kind: s_internal
+    id: Page
+    ref:
+      $ir:
+        kind: r_ref
+        id: Page
+      value: <lazy_evaluation>
+  - kind: s_internal
+    id: GetEmail
+    ref:
+      $ir:
+        kind: r_ref
+        id: GetEmail
+      value: <lazy_evaluation>
+  - kind: s_internal
+    id: A
+    ref:
+      $ir:
+        kind: r_ref
+        id: A
+      value: <lazy_evaluation>

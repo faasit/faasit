@@ -180,6 +180,7 @@ export async function main() {
     .command('eval')
     .argument('[file]', 'input file')
     .option('--ir', 'print $ir for semantic object')
+    .option('-o, --output <outputFile>', 'output file')
     .option('--no-check-parse', 'not validate faasit DSL')
     .option('--check-symbols', 'validate symbols for faasit DSL')
     .option('--no-lazy', 'no lazy evaluation for reference')

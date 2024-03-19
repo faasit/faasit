@@ -189,13 +189,15 @@ export class Engine {
 
   async convert(opts: {} & GlobalOptions) { }
 
-  async eval(opts: { config: string; ir: boolean; checkParse: boolean, checkSymbols: boolean, lazy: boolean } & GlobalOptions) {
+  async eval(opts: { config: string; ir: boolean; output: string; checkParse: boolean, checkSymbols: boolean, lazy: boolean } & GlobalOptions) {
     const compileRes = await this.handleCompile({
       ...opts, check: {
         checkParse: opts.checkParse,
         checkSymbols: opts.checkSymbols,
       }
     })
+
+    const dir = path.dirname(path.resolve(opts.workingDir, opts.config))
 
     if (!compileRes.ok) {
       const diagErr = compileRes.error
@@ -234,6 +236,17 @@ export class Engine {
         yamlOpts
       )
     )
+
+    if (opts.output) {
+      fs.writeFile(`${dir}/${opts.output}`, yaml.dump(
+        irSpec,
+        yamlOpts
+      ), 'utf8', (err) => {
+        if (err) {
+          console.error('write error', err)
+        }
+      });
+    }
   }
 
   async format(opts: { config: string } & GlobalOptions) {

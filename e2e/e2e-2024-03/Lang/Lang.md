@@ -18,9 +18,11 @@ ft parse func/func_parse_failed.ft
 ft eval --ir func/func_eval_ir.ft
 ```
 
-4. JS IR 对象还原为Faasit对象
+4. 解析Faasit代码为JS IR 对象并保存到文件
 
-
+```sh
+ft eval --ir func/func_eval_ir.ft -o func_eval_ir.yaml
+```
 
 5. 解析Faasit代码为Value API对象
 
@@ -28,27 +30,28 @@ ft eval --ir func/func_eval_ir.ft
 ft eval func/func_eval.ft
 ```
 
-6. 添加变量/函数等存储在符号表中
+6. 解析Faasit代码为Value API对象并保存到文件
+
+```sh
+ft eval func/func_eval.ft -o func_eval.yaml
+```
+
+7. 添加变量/函数等存储在符号表中
 
 ```sh
 ft dev-view --symbol-table func_dev-view_symbol-table.ft
 ```
 
-7. 尝试重复定义相同的符号，符号表能够正确地检测到重复定义
+8. 尝试重复定义相同的符号，符号表能够正确地检测到重复定义
 
 ```sh
 ft eval --check-symbols func_sema_conflict_symbol.ft
 ```
 
-8. 自定义类型
+9. 自定义类型
 
 ```sh
 ft eval func_eval.ft
-```
-
-9. 自动检测不兼容的变量
-
-```sh
 ```
 
 10. Javascript 事件定义代码生成

@@ -1,0 +1,37 @@
+version: 0.1.0
+packages:
+  - kind: p_entry
+    id: __main__
+    blocks:
+      - {}
+      - output:
+          inputs:
+            name:
+              value: <lazy_evaluation>
+          outputs:
+            items:
+              value: <lazy_evaluation>
+          name: Get Email
+          codeUri: ./code
+          handler: index.handler
+      - output:
+          functions:
+            - value: <lazy_evaluation>
+    lib:
+      value: <lazy_evaluation>
+libs:
+  - kind: p_lib
+    id: __main__
+symbols:
+  - kind: s_internal
+    id: Page
+    ref:
+      value: <lazy_evaluation>
+  - kind: s_internal
+    id: GetEmail
+    ref:
+      value: <lazy_evaluation>
+  - kind: s_internal
+    id: A
+    ref:
+      value: <lazy_evaluation>

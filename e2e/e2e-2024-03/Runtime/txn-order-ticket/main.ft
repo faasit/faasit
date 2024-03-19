@@ -1,0 +1,41 @@
+import (
+  . "std/faas"
+)
+
+@function BuyTrainTicket {
+  runtime = "nodejs"
+}
+
+@workflow OrderTicketFlow {
+  functions = [BuyTrainTicket]
+
+  // workflow spec runtime
+  runtime = "nodejs"
+  codeDir = "./javascript"
+}
+
+@application OrderTicket {
+  workflow = OrderTicketFlow
+  defaultProvider = Knative
+
+  // used by `ft run`
+  inputExamples = [
+    {
+      value = {
+        control = {
+          BuyTrainTicket = "ok"
+          ReserveFlight = "ok"
+          ReserveHotel = "ok"
+        }
+      }
+    }
+  ]
+}
+
+@provider Local {
+  kind = "local"
+}
+
+@provider Knative {
+  kind = "knative"
+}

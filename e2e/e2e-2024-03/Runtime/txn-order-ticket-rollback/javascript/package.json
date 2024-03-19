@@ -1,0 +1,13 @@
+{
+  "name": "txn-order-ticket-rollback",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@faasit/runtime": "../../../../../packages/faasit-runtime/javascript"
+  },
+  "dependencies": {}
+}

@@ -75,33 +75,75 @@ cd dag-wordcount && ft run && cd ..
 ```
 
 
-12. 分布式事务任务定义
+12. 分布式事务任务定义及管理
 
-    
+```sh
+cd txn-order-ticket
+cd javascript
+npm i
+cd ..
+ft run
+```
 
-13. 分布式事务管理
+13. 分布式事务运行成功并提交
 
-    
+```sh
+cd txn-order-ticket
+cd javascript
+npm i
+cd ..
+ft run
+```
 
-14. 分布式事务运行
+14. 分布式事务运行失败并回滚
 
-    
+```sh
+cd txn-order-ticket-rollback
+cd javascript
+npm i
+cd ..
+ft run
+```
 
 15. 持久化链式任务函数执行
 
-    
+```sh
+cd durable-chain
+cd javascript
+npm i
+cd ..
+ft run
+```
 
 16. 持久化循环任务函数执行
 
-    
+```sh
+cd durable-loop
+cd javascript
+npm i
+cd ..
+ft run
+```
 
 17. 持久化并行任务函数执行
 
-    
+```sh
+cd durable-parallel
+cd javascript
+npm i
+cd ..
+ft run
+```
 
 18. 持久化递归任务函数执行
 
-    
+```sh
+cd durable-recursive
+cd javascript
+npm i
+cd ..
+ft run
+```
 
 # 性能测试
 
@@ -121,21 +163,55 @@ cd performance-invoke && ft run && cd ..
 
 dag-wordcount
 
-![dag-wordcount](../assets/dag-wordcount.png)
+![dag-wordcount](../assets/Runtime/dag-wordcount.png)
 
 ---------------------------
 
 
 batch-count
 
-![batch-count](../assets/batch-count.png)
+![batch-count](../assets/Runtime/batch-count.png)
 
 -------------------
 
 async-tell
 
-![async-tell](../assets/async-tell.png)
+![async-tell](../assets/Runtime/async-tell.png)
 
 -------------------
 
+
+txn-order-ticket
+
+![txn-order-ticket](../assets/Runtime/txn-order-ticket.png)
+
+---------------------------
+
+txn-order-ticket-rollback
+
+![txn-order-ticket-rollback](../assets/Runtime/txn-order-ticket-rollback.png)
+
+---------------------------
+
+durable-chain
+
+![durable-chain](../assets/Runtime/durable-chain.png)
+
+---------------------------
+
+durable-loop
+
+![durable-loop](../assets/Runtime/durable-loop.png)
+
+---------------------------
+
+durable-parallel
+
+![durable-parallel](../assets/Runtime/durable-parallel.png)
+
+---------------------------
+
+durable-recursive
+
+![durable-recursive](../assets/Runtime/durable-recursive.png)
 

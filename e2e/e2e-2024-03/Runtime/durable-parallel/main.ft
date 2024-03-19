@@ -1,0 +1,33 @@
+import (
+  . "std/faas"
+)
+
+@workflow Flow {
+  functions = []
+
+  // workflow spec runtime
+  runtime = "nodejs"
+  codeDir = "./javascript"
+}
+
+@application App {
+  workflow = Flow
+  defaultProvider = Knative
+
+  // used by `ft run`
+  inputExamples = [
+    {
+      value = {
+        task = "durParallel"
+      }
+    },
+  ]
+}
+
+@provider Local {
+  kind = "local"
+}
+
+@provider Knative {
+  kind = "knative"
+}

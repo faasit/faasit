@@ -1,0 +1,136 @@
+@event Event1 {
+  type = "example.event1"
+  data = {}
+}
+
+@event Event2 {
+  type = "example.event2"
+  data = {}
+}
+
+@event Event3 {
+  type = "example.event3"
+  data = {}
+}
+
+@event Event4 {
+  type = "example.event4"
+  data = {}
+}
+
+@event Event5 {
+  type = "example.event5"
+  data = {}
+}
+
+@event Event6 {
+  type = "example.event6"
+  data = {}
+}
+
+@event Event7 {
+  type = "example.event7"
+  data = {}
+}
+
+@event Event8 {
+  type = "example.event8"
+  data = {}
+}
+
+@event Event9 {
+  type = "example.event9"
+  data = {}
+}
+
+@event Event10 {
+  type = "example.event10"
+  data = {}
+}
+
+@event Event11 {
+  type = "example.event11"
+  data = {}
+}
+
+@event Event12 {
+  type = "example.event12"
+  data = {}
+}
+
+@event Event13 {
+  type = "example.event13"
+  data = {}
+}
+
+@event Event14 {
+  type = "example.event14"
+  data = {}
+}
+
+@event Event15 {
+  type = "example.event15"
+  data = {}
+}
+
+@event Event16 {
+  type = "example.event16"
+  data = {}
+}
+
+@event Event17 {
+  type = "example.event17"
+  data = {}
+}
+
+@event Event18 {
+  type = "example.event18"
+  data = {}
+}
+
+@event Event19 {
+  type = "example.event19"
+  data = {}
+}
+
+@event Event20 {
+  type = "example.event20"
+  data = {}
+}
+
+@function CodegenFunc {
+  runtime = "nodejs:16"
+  pubsub = {
+    events = [
+      Event1,
+      Event2,
+      Event3,
+      Event4,
+      Event5,
+      Event6,
+      Event7,
+      Event8,
+      Event9,
+      Event10,
+      Event11,
+      Event12,
+      Event13,
+      Event14,
+      Event15,
+      Event16,
+      Event17,
+      Event18,
+      Event19,
+      Event20
+    ]
+  }
+}
+
+@application Codegen {
+  functions = [CodegenFunc]
+  defaultProvider = Local
+}
+
+@provider Local {
+  kind = "local"
+}

@@ -5,7 +5,7 @@
  ******************************************************************************/
 
 import { ValidationChecks, ValidationRegistry } from 'langium'
-import { ast } from '..'
+import * as ast from '../parser/gen/ast'
 import type { FaasitServices } from './module'
 
 export class FaasitValidationRegistry extends ValidationRegistry {

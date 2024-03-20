@@ -120,6 +120,7 @@ export async function main() {
   program
     .command('parse')
     .argument('[file]', 'input file')
+    .option("--no-stdout", "disable printing into stdout")
     .option('--no-check-parse', 'not validate faasit DSL')
     .addOption(shared.devPerf)
     .description('evaluate value and ir of faast DSL')
@@ -137,7 +138,7 @@ export async function main() {
   program
     .command('fmt')
     .argument('[file]', 'input file')
-    .option('-p', 'print into stdout')
+    .option('-p, --print', 'print into stdout')
     .description('format faast DSL')
     .addOption(shared.devPerf)
     .action(async (file, opts) => {

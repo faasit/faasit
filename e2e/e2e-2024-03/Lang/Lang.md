@@ -101,18 +101,23 @@ code func/func_hover_hint.ft
 1. 编译器语法分析模块
 
 ```sh
-ft parse --dev_perf perf/perf_parse.ft
+ft parse --dev_perf --no-stdout perf/perf_code.ft
 ```
+
+![alt text](../assets/Lang/perf_parse.png)
 
 2. 编译器代码生成模块
 
 ```sh
-ft codegen --dev_perf perf/perf_codegen.ft
+ft codegen --dev_perf perf/perf_code.ft
 ```
+
+![alt text](../assets/Lang/perf_codegen.png)
 
 3. 语言服务模块
 
 ```sh
-ft fmt --dev_perf perf/perf_fmt.ft
+ft fmt --dev_perf perf/perf_code.ft
 ```
 
+![alt text](../assets/Lang/perf_fmt.png)

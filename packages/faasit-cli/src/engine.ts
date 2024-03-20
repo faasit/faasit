@@ -249,7 +249,7 @@ export class Engine {
     }
   }
 
-  async format(opts: { config: string } & GlobalOptions) {
+  async format(opts: { config: string, print: string } & GlobalOptions) {
     const perfRes = await RunPerf(async () => {
       const file = path.resolve(opts.workingDir, opts.config)
       const fileUri = URI.file(file)
@@ -258,7 +258,10 @@ export class Engine {
         fileSystemProvider: () => new NodeFileSystemProvider(),
       })
       const content = await manager.format({ file: fileUri })
-      console.log(content)
+
+      if (opts.print) {
+        console.log(content)
+      }
       return {
         content
       }
@@ -273,7 +276,7 @@ export class Engine {
 
   }
 
-  async parse(opts: { config: string; ir: boolean; checkParse: boolean } & GlobalOptions) {
+  async parse(opts: { config: string; ir: boolean; checkParse: boolean; stdout: boolean } & GlobalOptions) {
 
     const perfRes = await RunPerf(async () => {
       const compileRes = await this.handleCompile({
@@ -299,24 +302,26 @@ export class Engine {
     const ast = perfRes.result.ast
 
     const yamlKeyBlockList = ['_nodeDescription', '_ref']
-    console.log(yaml.dump(
-      ast,
-      {
-        noRefs: false,
-        replacer(key, value) {
-          if (key.startsWith("$") && key !== '$type') {
-            return undefined
-          }
-          if (yamlKeyBlockList.includes(key)) {
-            return undefined
-          }
-          if (value instanceof RegExp) {
-            return value.source
-          }
-          return value
-        },
-      }
-    ))
+    if (opts.stdout) {
+      console.log(yaml.dump(
+        ast,
+        {
+          noRefs: false,
+          replacer(key, value) {
+            if (key.startsWith("$") && key !== '$type') {
+              return undefined
+            }
+            if (yamlKeyBlockList.includes(key)) {
+              return undefined
+            }
+            if (value instanceof RegExp) {
+              return value.source
+            }
+            return value
+          },
+        }
+      ))
+    }
 
     if (opts.dev_perf) {
       const content = await fs.readFile(perfRes.result?.fileName)

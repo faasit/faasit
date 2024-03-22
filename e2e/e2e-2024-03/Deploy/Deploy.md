@@ -1,5 +1,7 @@
 ## 功能测试
 
+> 测试后记得删掉原来的测试环境
+
 - 阿里云函数部署
 
 ```bash
@@ -50,11 +52,6 @@ cd func && ft invoke -p aws
 ![alt text](../assets/Deploy/image-15.png)
 
 
-- AWS 函数流部署
-
-```bash
-cd dag-wordcount && ft deploy -p aws
-```
 
 - 阿里云函数流部署
 
@@ -83,7 +80,7 @@ cd dag-wordcount && ft invoke -p Aliyun -f __executor
 - 本地函数部署
 
 ```bash
-cd func && ft deploy
+cd func && ft deploy -p Local
 ```
 
 ![alt text](../assets/Deploy/image-2.png)
@@ -92,7 +89,7 @@ cd func && ft deploy
 
 
 ```bash
-cd func && ft invoke
+cd func && ft invoke -p Local
 ```
 
 ![alt text](../assets/Deploy/image-3.png)
@@ -100,7 +97,7 @@ cd func && ft invoke
 - 本地函数流部署
 
 ```bash
-cd dag-wordcount && ft deploy
+cd dag-wordcount && ft deploy -p Local
 ```
 
 ![alt text](../assets/Deploy/image-4.png)

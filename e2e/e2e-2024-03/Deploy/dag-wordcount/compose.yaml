@@ -9,7 +9,7 @@ services:
     ports:
       - '9000:9000'
     container_name: master
-  __executor:
+  executor:
     image: nodejs-runtime:latest
     volumes:
       - ./javascript:/code

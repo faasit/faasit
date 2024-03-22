@@ -14,6 +14,7 @@
 @application {
   functions = [hello]
   defaultProvider = Local
+  providers = [Aliyun, Local]
   inputExamples = [
     {
       value = {
@@ -24,6 +25,10 @@
   ]
 }
 
+
+@provider Aliyun {
+  kind = "aliyun"
+}
 @provider Local {
   kind = "local-once"
 }

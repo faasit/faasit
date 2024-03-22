@@ -37,28 +37,9 @@ def function(fn: type_Function):
             raise ValueError(f"Invalid provider {containerConf['provider']}")
 
 def workflow(fn: type_WorkFlow) -> rt_workflow.WorkFlow:
-    # Read Config for different runtimes
-    # containerConf = get_function_container_config()
     builder = rt_workflow.WorkFlowBuilder()
     workflow = fn(builder)
     return workflow
-    # match containerConf['provider']:
-    #     case 'local-once':
-    #         def local_once_workflow(event):
-    #             builder = rt_workflow.WorkFlowBuilder()
-    #             return fn(builder)
-    #         return local_once_workflow
-    #     case 'local','aliyun','knative','aws':
-    #         deploy_func_name = containerConf['funcName']
-    #         if deploy_func_name == 'executor':
-    #             return function(workflow.executor.handler)
-    #         else:
-    #             for func in workflow.functions:
-    #                 if func.name == deploy_func_name:
-    #                     return function(func.handler)
-    #             raise ValueError(f"Function {deploy_func_name} not found in workflow")
-    #     case _:
-    #         raise ValueError(f"Invalid provider {containerConf['provider']}")
         
 
 def create_handler(fn : type_Function | rt_workflow.WorkFlow):
@@ -76,7 +57,7 @@ def create_handler(fn : type_Function | rt_workflow.WorkFlow):
                     return await runner.run(event, runner)
         return handler
     else: #type(fn) == type_Function:
-        async def handler(event: dict):
-            return await fn(event)
+        async def handler(event: dict, *args):
+            return await fn(event, *args)
         return handler
     

@@ -1,0 +1,29 @@
+@function hello {
+  runtime = "python"
+  codeDir = "./code"
+  triggers = []
+  resource = {
+    cpu = "1024m"
+    memory = "128Mi"
+  }
+  pubsub = {
+    events = []
+  }
+}
+
+@application {
+  functions = [hello]
+  defaultProvider = Local
+  inputExamples = [
+    {
+      value = {
+        text = "Hello world this is a happy day"
+        batchSize = 3
+      }
+    }
+  ]
+}
+
+@provider Local {
+  kind = "local-once"
+}

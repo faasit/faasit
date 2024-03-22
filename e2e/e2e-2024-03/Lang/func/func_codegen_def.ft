@@ -14,6 +14,7 @@
 }
 
 @function CodegenFunc {
+  runtime = "node:16"
   pubsub = {
     events = [Event1]
   }

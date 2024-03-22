@@ -2,16 +2,15 @@
   type = "example.event1"
   data = {
     status = string
-    payload = {
-      user = string
-      gender = string
-      age = int
-    }
+    user = string
+    gender = string
+    age = int
   }
 }
 
 
 @function CodegenFunc {
+  runtime = "node:16"
   pubsub = {
     events = [Event1]
   }

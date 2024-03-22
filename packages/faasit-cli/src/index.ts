@@ -3,6 +3,8 @@ import dotenv from 'dotenv'
 import fs from 'fs'
 import path from 'node:path'
 import { Engine } from './engine'
+import { AppError, DiagnosticError } from '@faasit/core'
+import chalk from 'chalk'
 
 export function resolveConfigPath(config?: string) {
   if (config) {
@@ -34,6 +36,28 @@ function createSharedOptions<T extends Record<string, SharedOptions>>(options: T
   return Object.fromEntries(entries)
 }
 
+function handleError(e: unknown) {
+  if (e instanceof DiagnosticError) {
+    console.error(`failed to compile`)
+    for (const error of e.diags) {
+      console.error(
+        chalk.red(
+          `line ${error.range.start.line}: ${error.message
+          } [${e.textDocument.getText(error.range)}]`
+        )
+      )
+    }
+    return
+  }
+
+  if (e instanceof AppError) {
+    console.error(chalk.red(e.message))
+    return
+  }
+
+  console.error(e)
+}
+
 export async function main() {
   const program = new Command('faasit')
 
@@ -49,11 +73,6 @@ export async function main() {
   const engine = new Engine()
 
   // console.debug(`working dir = ${process.cwd()}`)
-
-  const handleError = (e: unknown) => {
-    console.error(e)
-  }
-
   const shared = createSharedOptions({
     devPerf: {
       flags: '--dev_perf',

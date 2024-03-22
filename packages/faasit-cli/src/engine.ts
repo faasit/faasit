@@ -176,9 +176,7 @@ export class Engine {
     })
 
     if (!compileRes.ok) {
-      const diagErr = compileRes.error
-      this.printCompileError(diagErr)
-      return
+      throw compileRes.error
     }
 
     const irSpec = compileRes.value.irSpec
@@ -200,9 +198,7 @@ export class Engine {
     const dir = path.dirname(path.resolve(opts.workingDir, opts.config))
 
     if (!compileRes.ok) {
-      const diagErr = compileRes.error
-      this.printCompileError(diagErr)
-      return
+      throw compileRes.error
     }
 
     const irSpec = compileRes.value.irSpec
@@ -238,7 +234,13 @@ export class Engine {
     )
 
     if (opts.output) {
-      fs.writeFile(`${dir}/${opts.output}`, yaml.dump(
+
+      let outputDir = opts.output
+      if (!path.isAbsolute(outputDir)) {
+        outputDir = path.join(opts.workingDir, outputDir)
+      }
+
+      fs.writeFile(outputDir, yaml.dump(
         irSpec,
         yamlOpts
       ), 'utf8', (err) => {
@@ -288,9 +290,7 @@ export class Engine {
       })
 
       if (!compileRes.ok) {
-        const diagErr = compileRes.error
-        this.printCompileError(diagErr)
-        return
+        throw compileRes.error
       }
       return compileRes.value
     }, { runPerf: opts.dev_perf })
@@ -338,8 +338,7 @@ export class Engine {
       const irSpecRes = await this.handleCompile({ ...opts, config: opts.file || 'main.ft' })
 
       if (!irSpecRes.ok) {
-        this.printCompileError(irSpecRes.error)
-        return
+        throw irSpecRes.error
       }
 
       const irSpec = irSpecRes.value.irSpec
@@ -509,7 +508,7 @@ export class Engine {
       const idSet = new Set()
       for (const symbol of irSpec.symbols) {
         if (idSet.has(symbol.id)) {
-          throw Error(`conflict symbol: ${symbol.id}`)
+          throw new AppError(`conflict symbol: ${symbol.id}`)
         }
         idSet.add(symbol.id)
       }
@@ -524,19 +523,6 @@ export class Engine {
         fileName: file
       }
     }
-  }
-
-  async printCompileError(diagErr: DiagnosticError) {
-    console.error(`failed to compile`)
-    for (const error of diagErr.diags) {
-      console.error(
-        chalk.red(
-          `line ${error.range.start.line}: ${error.message
-          } [${diagErr.textDocument.getText(error.range)}]`
-        )
-      )
-    }
-    return
   }
 
   async handleWriteGeneration(opts: {
@@ -568,7 +554,7 @@ export class Engine {
     if (opt.provider) {
       const providerRef = opt.app.output.providers.find(v => v.value.$ir.name === opt.provider)
       if (!providerRef) {
-        throw new Error(`no such provider=${opt.provider}`)
+        throw new AppError(`no such provider=${opt.provider}`)
       }
       provider = providerRef.value
     }

@@ -16,15 +16,24 @@ cd func && ft deploy -p Aliyun
 cd func && ft deploy -p Aliyun
 ```
 
-![alt text](../assets/Deploy/image-1.png)
-
-- 阿里云函数调用
+- 阿里云函数流部署
 
 ```bash
-cd func && ft invoke -p Aliyun
+cd dag-wordcount && ft deploy -p Aliyun
 ```
 
-![alt text](../assets/Deploy/image-6.png)
+![alt text](../assets/Deploy/image-9.png)
+
+- 阿里云函数流更新
+
+```bash
+cd dag-wordcount && ft deploy -p Aliyun
+```
+
+![alt text](../assets/Deploy/image.png)
+
+![alt text](../assets/Deploy/image-1.png)
+
 
 - AWS 函数部署
 
@@ -43,6 +52,41 @@ cd func && ft deploy -p aws
 ![alt text](../assets/Deploy/image-14.png)
 
 
+- 本地函数部署
+
+```bash
+cd func && ft deploy -p Local
+```
+
+![alt text](../assets/Deploy/image-2.png)
+
+- 本地函数流部署
+
+```bash
+cd dag-wordcount && ft deploy -p Local
+```
+
+![alt text](../assets/Deploy/image-4.png)
+
+
+---
+
+- 阿里云函数调用
+
+```bash
+cd func && ft invoke -p Aliyun
+```
+
+- 阿里云函数流调用
+
+```bash
+cd dag-wordcount && ft invoke -p Aliyun -f __executor
+```
+
+![alt text](../assets/Deploy/image-7.png)
+
+![alt text](../assets/Deploy/image-6.png)
+
 - AWS 函数调用
 
 ```bash
@@ -53,37 +97,11 @@ cd func && ft invoke -p aws
 
 
 
-- 阿里云函数流部署
 
-```bash
-cd dag-wordcount && ft deploy -p Aliyun
-```
 
-![alt text](../assets/Deploy/image-9.png)
 
-- 阿里云函数流更新
 
-```bash
-cd dag-wordcount && ft deploy -p Aliyun
-```
 
-![alt text](../assets/Deploy/image.png)
-
-- 阿里云函数流调用
-
-```bash
-cd dag-wordcount && ft invoke -p Aliyun -f __executor
-```
-
-![alt text](../assets/Deploy/image-7.png)
-
-- 本地函数部署
-
-```bash
-cd func && ft deploy -p Local
-```
-
-![alt text](../assets/Deploy/image-2.png)
 
 - 本地函数调用
 
@@ -94,13 +112,6 @@ cd func && ft invoke -p Local
 
 ![alt text](../assets/Deploy/image-3.png)
 
-- 本地函数流部署
-
-```bash
-cd dag-wordcount && ft deploy -p Local
-```
-
-![alt text](../assets/Deploy/image-4.png)
 
 - 本地函数流调用
 
@@ -110,8 +121,8 @@ ft invoke -p Local -f executor
 
 ![alt text](../assets/Deploy/image-5.png)
 
-
-- 触发器创建
+---
+- 触发器部署
 
 ```bash
 cd trigger && ft deploy
@@ -128,6 +139,7 @@ cd trigger && ft deploy
 
 ![alt text](../assets/Deploy/image-11.png)
 
+---
 
 - 本地`javascript`函数运行
 

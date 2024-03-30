@@ -1,7 +1,12 @@
-from faasit_runtime.runtime.faasit_runtime import FaasitRuntime, FaasitResult
-from faasit_runtime.runtime.aliyun_runtime import AliyunRuntime
-from faasit_runtime.runtime.local_runtime import LocalRuntime
-from faasit_runtime.runtime.local_once_runtime import LocalOnceRuntime
+from faasit_runtime.runtime import (
+    FaasitRuntime, 
+    FaasitResult,
+    AliyunRuntime,
+    LocalOnceRuntime,
+    LocalRuntime,
+    createFaasitRuntimeMetadata,
+    FaasitRuntimeMetadata
+)
 from faasit_runtime.utils.config import get_function_container_config
 import faasit_runtime.workflow as rt_workflow
 from typing import Callable, Set, Any
@@ -29,9 +34,18 @@ def function(fn: type_Function):
         case 'aws':
             frt = FaasitRuntime(containerConf)
         case 'local-once':
-            def local_function(event, workflow_runner = None):
-                frt = LocalOnceRuntime(event, workflow_runner)
-                return fn(frt)
+            async def local_function(event, 
+                               workflow_runner = None,
+                               metadata: FaasitRuntimeMetadata = None
+                               ):
+                # metadata = createFaasitRuntimeMetadata(containerConf['funcName'])
+                frt = LocalOnceRuntime(event, workflow_runner, metadata)
+                result = await fn(frt)
+                # if metadata.invocation.kind == 'tell':
+                #     if metadata.invocation.callback.fn:
+                #         metadata.invocation.response.responseCtx = result
+                #         return metadata.invocation.callback.fn(metadata)
+                return result
             return local_function
         case _:
             raise ValueError(f"Invalid provider {containerConf['provider']}")
@@ -54,7 +68,7 @@ def create_handler(fn : type_Function | rt_workflow.WorkFlow):
             case 'local-once':
                 async def handler(event: dict):
                     nonlocal runner
-                    return await runner.run(event, runner)
+                    return await runner.run(event, runner, createFaasitRuntimeMetadata(container_conf['funcName']))
         return handler
     else: #type(fn) == type_Function:
         async def handler(event: dict, *args):

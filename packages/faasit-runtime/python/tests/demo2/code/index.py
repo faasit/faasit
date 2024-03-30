@@ -5,7 +5,7 @@ from faasit_runtime.operators import forkjoin
 import re
 
 @function
-def count(frt: FaasitRuntime):
+async def count(frt: FaasitRuntime):
     _in = frt.input()
     words = _in["words"]
     
@@ -20,7 +20,7 @@ def count(frt: FaasitRuntime):
     })
 
 @function
-def sort(frt: FaasitRuntime):
+async def sort(frt: FaasitRuntime):
     _in = frt.input()
     counterArray = _in["counter"]
 
@@ -38,7 +38,7 @@ def sort(frt: FaasitRuntime):
     })
 
 @function
-def split(frt: FaasitRuntime):
+async def split(frt: FaasitRuntime):
     _in = frt.input()
     text: str = _in["text"]
 
@@ -58,13 +58,13 @@ async def executor(frt: FaasitRuntime):
     except KeyError:
         batchSize = 10
     
-    words = frt.call('split', {'text': text})['words']
+    words = (await frt.call('split', {'text': text}))['words']
 
     async def work(words):
-        result = frt.call('count', {'words': words})
+        result = await frt.call('count', {'words': words})
         return result['counter']
     async def join(counter):
-        return frt.call('sort', {'counter': counter})['counter']
+        return (await frt.call('sort', {'counter': counter}))['counter']
     result = await forkjoin(
         input=words,
         work=work,

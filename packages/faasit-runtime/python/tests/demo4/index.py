@@ -12,21 +12,24 @@ async def workeradd(frt: FaasitRuntime):
     })
 
 @durable
-async def durChain(frt: FaasitRuntime):
-    r1 = await frt.call('workeradd', {"lhs": 1, "rhs": 2})
-    r2 = await frt.call('workeradd', {"lhs": r1['res'], "rhs": 3})
-    r3 = await frt.call('workeradd', {"lhs": r2['res'], "rhs": 4})
-    return frt.output(r3)
+async def durLoop(frt: FaasitRuntime):
+    r1 = await frt.call('workeradd', {"lhs": 2, "rhs": 3})
+
+    vals = []
+    for i in range(r1['res']):
+        r2 = await frt.call('workeradd', {"lhs": i, "rhs": i})
+        vals.append(r2['res'])
+    return frt.output({'res':vals})
 
 @function
 async def exetutor(frt: FaasitRuntime):
-    r = await frt.call('durChain',{})
+    r = await frt.call('durLoop',{})
     return r
 
 @workflow
 def workflow(builder: WorkFlowBuilder):
     builder.func('workeradd').set_handler(workeradd)
-    builder.func('durChain').set_handler(durChain)
+    builder.func('durLoop').set_handler(durLoop)
     builder.executor().set_handler(exetutor)
     return builder.build()
 

@@ -65,8 +65,11 @@ class WorkFlowRunner:
         self.workflow = workflow
         pass
 
+    def get_funcName(self) -> str:
+        return self.conf['funcName']
+
     def run(self, frt: FaasitRuntime, *args) -> FaasitResult:
-        funcName = self.conf['funcName']
+        funcName = self.get_funcName()
         fn = self.route(funcName)
         return fn(frt, *args)
     

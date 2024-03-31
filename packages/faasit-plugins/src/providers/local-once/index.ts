@@ -47,13 +47,13 @@ class LocalOnceProvider implements faas.ProviderPlugin {
     // assert(workflow.runtime === 'nodejs')
 
     const inputJSON = JSON.stringify(inputData)
-    if (inputJSON.length < 100) {
-      logger.info(`running workflow locally, use input=${inputJSON}`)
-    } else {
-      logger.info(`running workflow locally`)
-    }
+    // if (inputJSON.length < 100) {
+    //   logger.info(`running workflow locally, use input=${inputJSON}`)
+    // } else {
+    //   logger.info(`running workflow locally`)
+    // }
     const output = await this.executeFunction(ctx, '__executor', workflow.codeDir, inputData, workflow.runtime)
-    logger.info(`workflow executed, output=${JSON.stringify(output, undefined, 2)}`)
+    logger.info(`workflow executed, output=${output}`)
   }
 
   async deployFunction(ctx: faas.ProviderPluginContext, inputData: unknown, fn: faas.Function) {
@@ -100,12 +100,14 @@ loop.close()
     `.trim()
     // console.log(pythonCode)
     
-    const output = await new Promise((resolve, reject) => {
+    let result:string = ''
+    const output:any = await new Promise((resolve, reject) => {
       const python = spawn('python', ["-c", pythonCode], {cwd: dir})  
 
       let data = ''
       python.stdout.on('data', (chunk) => {
         data += chunk
+        result = data.replace(/\\n/g, '\n')
       })
       python.stderr.on('data', (chunk) => {
         console.log(chunk.toString())
@@ -115,7 +117,8 @@ loop.close()
         resolve(data)
       })
     })
-    return output
+    // console.log(result)
+    return result
   }
 
   async executeJsCode(ctx: faas.ProviderPluginContext, name: string, codeDir: string, inputData: unknown) {

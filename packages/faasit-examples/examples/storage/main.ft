@@ -1,0 +1,37 @@
+import (
+  . "std/faas"
+)
+
+@function putAfter1s {
+  runtime = "nodejs"
+}
+
+@workflow StorageTestFlow {
+  functions = [putAfter1s]
+
+  // workflow spec runtime
+  runtime = "nodejs"
+  codeDir = "."
+}
+
+@application WordCount {
+  workflow = StorageTestFlow
+  defaultProvider = Local
+
+  // used by `ft run`
+  inputExamples = [
+    {
+      value = {
+        fileName = 'storage_test_file'
+      }
+    }
+  ]
+}
+
+@provider Local {
+  kind = "local"
+}
+
+@provider Knative {
+  kind = "knative"
+}

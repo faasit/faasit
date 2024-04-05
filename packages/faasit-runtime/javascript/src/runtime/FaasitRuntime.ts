@@ -72,8 +72,19 @@ export type TellParams = {
 
 export type TellResult = {}
 
+export interface StorageMethods {
+    put(filename: string, data: Uint8Array): void;
+    get(filename: string, timeout?: number): Promise<Uint8Array | null>;
+    list(): Promise<string[]>;
+    exists(filename: string): Promise<boolean>;
+    del(filename: string): void;
+}
+
+
 export interface FaasitRuntime {
     name: string
+
+    storage: StorageMethods;
 
     metadata(): FaasitRuntimeMetadata;
 
@@ -96,6 +107,9 @@ export interface FaasitRuntime {
 
 export abstract class BaseFaasitRuntime implements FaasitRuntime {
     name: string;
+
+    storage: StorageMethods;
+
     metadata(): FaasitRuntimeMetadata {
         throw new Error(`Method not implemented.`)
     }

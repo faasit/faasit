@@ -1,11 +1,24 @@
-import { BaseFaasitRuntime, InputType, CallParams, CallResult, FaasitRuntime, TellParams, TellResult, FaasitRuntimeMetadata } from "./FaasitRuntime";
+import { BaseFaasitRuntime, InputType, CallParams, CallResult, StorageMethods, TellParams, TellResult, FaasitRuntimeMetadata } from "./FaasitRuntime";
 import { WorkflowFunc } from "../Workflow"
 import { LowLevelDurableClient, IsDurableOrchestratorFlag, waitOrchestratorResult } from "../durable";
+import * as fs from 'fs';
+import { promisify } from 'util';
+import * as path from 'path';
+
+const writeFileAsync = promisify(fs.writeFile);
+const readFileAsync = promisify(fs.readFile);
+const unlinkAsync = promisify(fs.unlink);
+const readdirAsync = promisify(fs.readdir);
+const existsAsync = (filePath: string): Promise<boolean> =>
+  new Promise(resolve => {
+    fs.access(filePath, fs.constants.F_OK, err => resolve(!err));
+  });
 
 // Run function in a local and unit scope
 export class LocalOnceRuntime extends BaseFaasitRuntime {
 
   name: string = "local-once";
+  private storagePath = './local_storage/';
 
   funcMap: Map<string, WorkflowFunc> = new Map()
   constructor(private funcs: WorkflowFunc[], private data: { input: InputType, metadata: FaasitRuntimeMetadata }) {
@@ -68,6 +81,55 @@ export class LocalOnceRuntime extends BaseFaasitRuntime {
 
     // return directly
     return {}
+  }
+
+  storage: StorageMethods = {
+    put: async (filename: string, data: Uint8Array): Promise<void> => {
+      await this.ensureStoragePathExists();
+      const filePath = path.join(this.storagePath, filename);
+      await writeFileAsync(filePath, data);
+    },
+
+    get: async (filename: string, timeout = -1): Promise<Uint8Array | null> => {
+      const filePath = path.join(this.storagePath, filename);
+      const startT = Date.now();
+      
+      while (!(await existsAsync(filePath))) {
+        await new Promise(resolve => setTimeout(resolve, 1));
+        if (timeout > 0 && Date.now() - startT > timeout) return null;
+      }
+      while (true) {
+        const data = await readFileAsync(filePath);
+        if (data.length === 0) {
+          console.log("Local runtime: read error, retry ...");
+          await new Promise(resolve => setTimeout(resolve, 1));
+          continue;
+        }
+        return data;
+      }
+    },
+
+    list: async (): Promise<string[]> => {
+      return readdirAsync(this.storagePath);
+    },
+
+    exists: async (filename: string): Promise<boolean> => {
+      const filePath = path.join(this.storagePath, filename);
+      return existsAsync(filePath);
+    },
+
+    del: async (filename: string): Promise<void> => {
+      const filePath = path.join(this.storagePath, filename);
+      if (await existsAsync(filePath)) {
+        await unlinkAsync(filePath);
+      }
+    }
+  };
+
+  private async ensureStoragePathExists(): Promise<void> {
+    if (!await existsAsync(this.storagePath)) {
+      fs.mkdirSync(this.storagePath, { recursive: true });
+    }
   }
 
   get extendedFeatures() {

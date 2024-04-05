@@ -85,7 +85,9 @@ export class LocalOnceRuntime extends BaseFaasitRuntime {
 
   storage: StorageMethods = {
     put: async (filename: string, data: Uint8Array): Promise<void> => {
-      await this.ensureStoragePathExists();
+      if (!await existsAsync(this.storagePath)) {
+        await fs.mkdirSync(this.storagePath, { recursive: true });
+      }
       const filePath = path.join(this.storagePath, filename);
       await writeFileAsync(filePath, data);
     },
@@ -125,12 +127,6 @@ export class LocalOnceRuntime extends BaseFaasitRuntime {
       }
     }
   };
-
-  private async ensureStoragePathExists(): Promise<void> {
-    if (!await existsAsync(this.storagePath)) {
-      fs.mkdirSync(this.storagePath, { recursive: true });
-    }
-  }
 
   get extendedFeatures() {
     return LocalOnceRuntime.extendedFeaturesStatic

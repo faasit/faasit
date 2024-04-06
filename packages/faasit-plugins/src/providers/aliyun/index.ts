@@ -57,7 +57,10 @@ class AliyunProvider implements faas.ProviderPlugin {
 				ALIBABA_CLOUD_ACCESS_KEY_SECRET: secret.accessKeySecret,
 				ALIBABA_CLOUD_PRODUCT_CODE: secret.accountId,
 				ALIBABA_CLOUD_REGION: secret.region,
-				ALIBABA_CLOUD_SERVICE: serviceName
+				ALIBABA_CLOUD_SERVICE: serviceName,
+				// OSS
+				ALIBABA_CLOUD_OSS_BUCKET_NAME: process.env.ALIBABA_CLOUD_OSS_BUCKET_NAME, // faasit
+				ALIBABA_CLOUD_OSS_REGION: process.env.ALIBABA_CLOUD_OSS_REGION, // oss-cn-hangzhou
 			}
 		})
 		const resp = await aliyunFunc.invoke(input.input)
@@ -149,6 +152,9 @@ class AliyunProvider implements faas.ProviderPlugin {
 					FAASIT_APP_NAME: app.$ir.name,
 					FAASIT_FUNC_NAME: functionName,
 					FAASIT_WORKFLOW_FUNC_NAME: functionName,
+					// OSS
+					ALIBABA_CLOUD_OSS_BUCKET_NAME: process.env.ALIBABA_CLOUD_OSS_BUCKET_NAME, // faasit
+					ALIBABA_CLOUD_OSS_REGION: process.env.ALIBABA_CLOUD_OSS_REGION, // oss-cn-hangzhou
 				}
 			})
 
@@ -238,7 +244,10 @@ class AliyunProvider implements faas.ProviderPlugin {
 				ALIBABA_CLOUD_ACCESS_KEY_SECRET: p.secret.accessKeySecret,
 				ALIBABA_CLOUD_PRODUCT_CODE: p.secret.accountId,
 				ALIBABA_CLOUD_REGION: p.secret.region,
-				ALIBABA_CLOUD_SERVICE: serviceName
+				ALIBABA_CLOUD_SERVICE: serviceName,
+				// OSS
+				ALIBABA_CLOUD_OSS_BUCKET_NAME: process.env.ALIBABA_CLOUD_OSS_BUCKET_NAME, // faasit
+				ALIBABA_CLOUD_OSS_REGION: process.env.ALIBABA_CLOUD_OSS_REGION, // oss-cn-hangzhou
 			}
 
 			let service = new AliyunService({ client, serviceName });

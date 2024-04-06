@@ -8,14 +8,12 @@ const putAfter1s = createFunction(async (frt) => {
 })
 
 const executor = createFunction(async (frt) => {
-  const encoder = new TextEncoder();
-  const decoder = new TextDecoder();
   const { fileName } = frt.input();
 
   // put -> get -> list -> del
-  frt.storage.put(fileName, encoder.encode('123'))
+  frt.storage.put(fileName, new Buffer.from('123'))
   const res1 = await frt.storage.get(fileName);
-  console.log(decoder.decode(res1)); // '123'
+  console.log(res1.toString()); // '123'
   console.log(await frt.storage.list()); // [fileName]
   await frt.storage.del(fileName)
 
@@ -28,11 +26,11 @@ const executor = createFunction(async (frt) => {
   frt.tell('putAfter1s', {
     input: {
       fileName: fileName,
-      content: encoder.encode('abc')
+      content: new Buffer.from('abc')
     }
   })
   const res2 = await frt.storage.get(fileName);
-  console.log(decoder.decode(res2)); // 'abc' (after 1s)
+  console.log(res2.toString()); // 'abc' (after 1s)
 
   frt.storage.del(fileName)
 })

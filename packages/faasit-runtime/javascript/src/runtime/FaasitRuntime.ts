@@ -73,8 +73,8 @@ export type TellParams = {
 export type TellResult = {}
 
 export interface StorageMethods {
-    put(filename: string, data: Uint8Array): void;
-    get(filename: string, timeout?: number): Promise<Uint8Array | null>;
+    put(filename: string, data: Buffer): void;
+    get(filename: string, timeout?: number): Promise<Buffer | null>;
     list(): Promise<string[]>;
     exists(filename: string): Promise<boolean>;
     del(filename: string): void;

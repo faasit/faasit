@@ -84,15 +84,16 @@ export class LocalOnceRuntime extends BaseFaasitRuntime {
   }
 
   storage: StorageMethods = {
-    put: async (filename: string, data: Uint8Array): Promise<void> => {
+    put: async (filename: string, data: Buffer): Promise<void> => {
       if (!await existsAsync(this.storagePath)) {
         await fs.mkdirSync(this.storagePath, { recursive: true });
       }
       const filePath = path.join(this.storagePath, filename);
       await writeFileAsync(filePath, data);
+      console.log(`[Info] Put data into ${filePath} successfully.`);
     },
 
-    get: async (filename: string, timeout = -1): Promise<Uint8Array | null> => {
+    get: async (filename: string, timeout = -1): Promise<Buffer | null> => {
       const filePath = path.join(this.storagePath, filename);
       const startT = Date.now();
       
@@ -125,6 +126,7 @@ export class LocalOnceRuntime extends BaseFaasitRuntime {
       if (await existsAsync(filePath)) {
         await unlinkAsync(filePath);
       }
+      console.log(`[Info] Delete ${filePath} successfully.`);
     }
   };
 

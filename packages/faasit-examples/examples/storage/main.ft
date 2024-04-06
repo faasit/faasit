@@ -14,7 +14,7 @@ import (
   codeDir = "."
 }
 
-@application WordCount {
+@application StorageTestApp {
   workflow = StorageTestFlow
   defaultProvider = Local
 
@@ -32,6 +32,6 @@ import (
   kind = "local"
 }
 
-@provider Knative {
-  kind = "knative"
+@provider Aliyun {
+  kind = "aliyun"
 }

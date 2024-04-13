@@ -121,7 +121,7 @@ export class LocalOnceRuntime extends BaseFaasitRuntime {
       return existsAsync(filePath);
     },
 
-    del: async (filename: string): Promise<void> => {
+    delete: async (filename: string): Promise<void> => {
       const filePath = path.join(this.storagePath, filename);
       if (await existsAsync(filePath)) {
         await unlinkAsync(filePath);

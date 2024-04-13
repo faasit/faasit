@@ -77,7 +77,7 @@ export interface StorageMethods {
     get(filename: string, timeout?: number): Promise<Buffer | null>;
     list(): Promise<string[]>;
     exists(filename: string): Promise<boolean>;
-    del(filename: string): void;
+    delete(filename: string): void;
 }
 
 

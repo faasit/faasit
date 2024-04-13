@@ -121,7 +121,7 @@ export class AliyunHttpRuntime extends BaseFaasitRuntime {
             return false;
         },
 
-        del: async (filename: string): Promise<void> => {
+        delete: async (filename: string): Promise<void> => {
             try {
                 const result = await this.bucket.delete(filename);
                 if (result.res.status >= 200 && result.res.status < 300) {
@@ -218,7 +218,7 @@ export class AliyunEventRuntime extends BaseFaasitRuntime {
             return false;
         },
 
-        del: async (filename: string): Promise<void> => {
+        delete: async (filename: string): Promise<void> => {
             try {
                 const result = await this.bucket.delete(filename);
                 if (result.res.status >= 200 && result.res.status < 300) {

@@ -10,12 +10,12 @@ const putAfter1s = createFunction(async (frt) => {
 const executor = createFunction(async (frt) => {
   const { fileName } = frt.input();
 
-  // put -> get -> list -> del
+  // put -> get -> list -> delete
   frt.storage.put(fileName, new Buffer.from('123'))
   const res1 = await frt.storage.get(fileName);
   console.log(res1.toString()); // '123'
   console.log(await frt.storage.list()); // [fileName]
-  await frt.storage.del(fileName)
+  await frt.storage.delete(fileName)
 
   // list, exists, get when file is not exist
   console.log(await frt.storage.list()); // []
@@ -32,7 +32,7 @@ const executor = createFunction(async (frt) => {
   const res2 = await frt.storage.get(fileName);
   console.log(res2.toString()); // 'abc' (after 1s)
 
-  frt.storage.del(fileName)
+  frt.storage.delete(fileName)
 })
 
 module.exports = { putAfter1s, executor }

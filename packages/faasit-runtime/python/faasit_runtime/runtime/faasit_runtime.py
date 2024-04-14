@@ -1,5 +1,5 @@
 from abc import ABC, abstractclassmethod
-from typing import Any, Tuple, Awaitable, Union, Callable
+from typing import Any, Tuple, Awaitable, Union, Callable, List
 from pydantic import BaseModel, validator, ValidationError
 import uuid
 
@@ -65,6 +65,22 @@ def createFaasitRuntimeMetadata(fnName:str) -> FaasitRuntimeMetadata:
     )
     return FaasitRuntimeMetadata(funcName=fnName, invocation=invocation)
 
+class StorageInterface(ABC):
+    def put(self, filename: str, data: bytes) -> None:
+        pass
+
+    def get(self, filename: str, timeout = -1) -> bytes:
+        pass
+
+    def list(self) -> List:
+        pass
+
+    def exists(self, filename: str) -> bool:
+        pass
+
+    def delete(self, filename: str) -> None:
+        pass
+
 class FaasitRuntime(ABC):
     def __init__(self) -> None:
         super().__init__()
@@ -86,6 +102,10 @@ class FaasitRuntime(ABC):
 
     @abstractclassmethod
     async def tell(self, fnName:str, fnParams: TellParams) -> Awaitable[TellResult]:
+        pass
+
+    @property
+    def storage(self) -> StorageInterface:
         pass
 
     async def waitResults(self, tasks: list[Awaitable[CallResult]]):

@@ -65,7 +65,7 @@ def createFaasitRuntimeMetadata(fnName:str) -> FaasitRuntimeMetadata:
     )
     return FaasitRuntimeMetadata(funcName=fnName, invocation=invocation)
 
-class StorageInterface(ABC):
+class StorageMethods(ABC):
     def put(self, filename: str, data: bytes) -> None:
         pass
 
@@ -105,7 +105,7 @@ class FaasitRuntime(ABC):
         pass
 
     @property
-    def storage(self) -> StorageInterface:
+    def storage(self) -> StorageMethods:
         pass
 
     async def waitResults(self, tasks: list[Awaitable[CallResult]]):

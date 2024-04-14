@@ -3,7 +3,7 @@ import time
 from faasit_runtime.runtime.faasit_runtime import (
     FaasitRuntime,
     CallParams,
-    StorageInterface,
+    StorageMethods,
     TellParams,
     CallResult,
     InputType,
@@ -92,10 +92,10 @@ class LocalOnceRuntime(FaasitRuntime):
         return task
     
     @property
-    def storage(self) -> StorageInterface:
+    def storage(self) -> StorageMethods:
         return self._storage
     
-    class LocalStorage(StorageInterface):
+    class LocalStorage(StorageMethods):
         def __init__(self):
             self.storage_path = "./local_storage/"
             if not os.path.exists(self.storage_path):

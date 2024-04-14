@@ -9,7 +9,7 @@ from typing import Any, List
 import os
 import json
 from dotenv import load_dotenv,find_dotenv
-from faasit_runtime.runtime.faasit_runtime import StorageInterface
+from faasit_runtime.runtime.faasit_runtime import StorageMethods
 import oss2
 
 # 获取用户进程中的环境变量文件
@@ -49,7 +49,7 @@ class AliyunRuntime(FaasitRuntime):
     async def tell(self):
         pass
 
-    class AliyunStorage(StorageInterface):
+    class AliyunStorage(StorageMethods):
         def __init__(self):
             auth = oss2.Auth(os.environ['ALIBABA_CLOUD_ACCESS_KEY_ID'], 
                             os.environ['ALIBABA_CLOUD_ACCESS_KEY_SECRET'])

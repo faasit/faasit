@@ -109,24 +109,17 @@ class KnativeProvider implements faas.ProviderPlugin {
 
     logger.info(`  > deploy function ${fnParams.name}`)
 
-    const imageName = `${p.input.app.$ir.name}-${fnParams.name}`.toLowerCase()
-    const registry = 'reg.i2ec.top'
-
+    const imageName = `${p.input.app.$ir.name}${fnParams.name}`.toLowerCase()
+    // const registry = 'reg.i2ec.top'
+    const registry = 'index.docker.io'
     const funcObj = {
-      specVersion: "0.35.0",
+      specVersion: "0.36.0",
       name: imageName,
       runtime: "node",
-      registry: `${registry}/cdd1037`,
-      image: `${registry}/cdd1037/${imageName}:latest`,
+      registry: `${registry}`,
+      image: `${registry}/xdydy/${imageName}`,
       build: {
-        builder: "pack",
-        pvcSize: "256Mi",
-        builderImages: {
-          // pack: "reg.i2ec.top/library/ubuntu:20.04"
-          // pack: "reg.i2ec.top/knative/builder-jammy-base:latest"
-          // pack: "reg.i2ec.top/knative/builder-base-1:latest"
-          pack: "reg.i2ec.top/builder/i2ec-builder2:latest"
-        }
+        builder: "pack"
       },
       run: {
         envs: [
@@ -149,14 +142,15 @@ class KnativeProvider implements faas.ProviderPlugin {
         ]
       },
       deploy: {
-        namespace: "faasit"
-      }
+        namespace: "default"
+      },
+      created: `2024-04-09T14:34:47.426998481+08:00`
     }
 
     const funcFile = `${fnParams.codeDir}/func.yaml`
     await rt.writeFile(funcFile, yaml.dump(funcObj))
 
-    const proc = rt.runCommand(`kn func deploy -n faasit`, {
+    const proc = rt.runCommand(`kn func deploy -v`, {
       cwd: fnParams.codeDir,
       shell: true,
       stdio: 'inherit'

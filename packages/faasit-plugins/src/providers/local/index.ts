@@ -6,6 +6,25 @@ import { spawn } from 'child_process'
 class LocalProvider implements faas.ProviderPlugin {
     name: string = "local"
 
+    getImageType(runtime: string): string {
+        if (runtime == 'nodejs' || runtime == 'nodejs16') {
+            return "nodejs-runtime:latest"
+        } else if (runtime == 'python') {
+            return "faasit-python:latest"
+        }
+        return ""
+    }
+    getCommands(images_type: string): string[] {
+        let command = []
+        if (images_type == 'nodejs-runtime:latest') {
+            command.push("node")
+            command.push("/nodejs14/src/server.js")
+        } else if (images_type == 'faasit-python:latest') {
+            command.push("python")
+            command.push("/app/server.py")
+        }
+        return command
+    }
 
     async deployWorkflow(input: faas.ProviderDeployInput, ctx: faas.ProviderPluginContext) {
         const { rt, logger } = ctx
@@ -20,24 +39,32 @@ class LocalProvider implements faas.ProviderPlugin {
                 "volumes": [`./config.json:/server/config.json`],
                 "command": ["node", "/server/index.js"],
                 "ports": ["9000:9000"],
-                "container_name": "master"
+                "container_name": "master",
+                "networks": [`${workflow.$ir.name.toLowerCase()}`]
             }
+
 
             logger.info(`deploy executor`)
             
             let config: Record<string, any> = {}
             let currentPort = 9001
             const codeDir = workflow.output.codeDir
+            
+            const workflowRuntime = workflow.output.runtime
+            const images_type = this.getImageType(workflowRuntime)
+            const commands = this.getCommands(images_type)
+
             services['executor'] = {
-                "image": "nodejs-runtime:latest",
+                "image": `${images_type}`,
                 "volumes": [`${codeDir}:/code`],
-                "command": ["node", "/nodejs14/src/server.js"],
+                "command": commands,
                 "container_name": "executor",
                 "environment": {
                     "FAASIT_FUNC_NAME": "__executor",
                     "FAASIT_PROVIDER": "local",
                     "FAASIT_WORKFLOW_FUNC_NAME": "__executor"
-                }
+                },
+                "networks": [`${workflow.$ir.name.toLowerCase()}`]
             }
             config['executor'] = currentPort++
             for (const fnRef of workflow.output.functions) {
@@ -51,6 +78,10 @@ class LocalProvider implements faas.ProviderPlugin {
                     images_type = "nodejs-runtime:latest"
                     command.push("node")
                     command.push("/nodejs14/src/server.js")
+                } else if (runtime == 'python') {
+                    images_type = "faasit-python:latest"
+                    command.push("python")
+                    command.push("/app/server.py")
                 }
                 let service = {
                     "image": images_type,
@@ -60,14 +91,23 @@ class LocalProvider implements faas.ProviderPlugin {
                     "environment": {
                         "FAASIT_FUNC_NAME": funcName,
                         "FAASIT_PROVIDER": "local",
-                    }
+                    },
+                    "networks": [`${workflow.$ir.name.toLowerCase()}`]
                 }
                 services[funcName] = service
                 config[funcName] = currentPort++
             }
 
+
+            let networks:Record<string,any> = {
+            }
+
+            networks[`${workflow.$ir.name.toLowerCase()}`] = {
+                "driver": "bridge"
+            }
             const docker_compose_obj = {
-                "services": services
+                "services": services,
+                "networks": networks
             }
             config = {
                 'service': config
@@ -76,7 +116,7 @@ class LocalProvider implements faas.ProviderPlugin {
             await rt.writeFile("compose.yaml", yaml.dump(docker_compose_obj))
 
             const output = await new Promise((resolve, reject) => {
-                const docker_compose = spawn('docker-compose', ['up', '-d'], { cwd: process.cwd() })
+                const docker_compose = spawn('docker-compose', ['-p','faasit','up', '-d'], { cwd: process.cwd() })
                 let data = ''
                 docker_compose.stdout.on('data', (chunk) => {
                     data += chunk
@@ -99,13 +139,13 @@ class LocalProvider implements faas.ProviderPlugin {
 
         logger.info(`local function deploy`)
         let services: Record<string, any> = {}
-        services.master = {
-            "image": "master-runtime:latest",
-            "volumes": [`./config.json:/server/config.json`],
-            "command": ["node", "/server/index.js"],
-            "ports": ["9000:9000"],
-            "container_name": "master"
-        }
+        // services.master = {
+        //     "image": "master-runtime:latest",
+        //     "volumes": [`./config.json:/server/config.json`],
+        //     "command": ["node", "/server/index.js"],
+        //     "ports": ["9000:9000"],
+        //     "container_name": "master"
+        // }
         let config: Record<string, any> = {}
         let currentPort = 9001
         for (const fnRef of app.output.functions) {
@@ -120,23 +160,34 @@ class LocalProvider implements faas.ProviderPlugin {
                 images_type = "nodejs-runtime:latest"
                 command.push("node")
                 command.push("/nodejs14/src/server.js")
+            } else if (runtime == 'python') {
+                images_type = "faasit-python:latest"
+                command.push("python")
+                command.push("/app/server.py")
             }
             let service = {
                 "image": images_type,
                 "volumes": [`${codeDir}:/code`],
                 "command": command,
                 "container_name": funcName,
+                "ports": [`${currentPort}:8080`],
                 "environment": {
                     "FAASIT_FUNC_NAME": funcName,
                     "FAASIT_PROVIDER": "local",
-                }
+                },
+                "networks": ["func"]
             }
             services[funcName] = service
             config[funcName] = currentPort++
         }
 
+        let networks: Record<string,any> = {}
+        networks["func"] = {
+            "driver": "bridge"
+        }
         const docker_compose_obj = {
-            "services": services
+            "services": services,
+            "networks": networks
         }
         config = {
             'service': config
@@ -145,7 +196,7 @@ class LocalProvider implements faas.ProviderPlugin {
         await rt.writeFile("compose.yaml", yaml.dump(docker_compose_obj))
 
         const output = await new Promise((resolve, reject) => {
-            const docker_compose = spawn('docker-compose', ['up', '-d'], { cwd: process.cwd() })
+            const docker_compose = spawn('docker-compose', ['-p','faasit','up', '-d'], { cwd: process.cwd() })
             let data = ''
             docker_compose.stdout.on('data', (chunk) => {
                 data += chunk

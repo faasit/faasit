@@ -20,9 +20,9 @@ def function(fn: type_Function):
 
     match containerConf['provider']:
         case 'local':
-            def local_function(event) -> FaasitResult:
+            async def local_function(event) -> FaasitResult:
                 frt = LocalRuntime(event)
-                return fn(frt)
+                return await fn(frt)
             return local_function
         case 'aliyun':
             def aliyun_function(arg0, arg1):
@@ -38,13 +38,8 @@ def function(fn: type_Function):
                                workflow_runner = None,
                                metadata: FaasitRuntimeMetadata = None
                                ):
-                # metadata = createFaasitRuntimeMetadata(containerConf['funcName'])
                 frt = LocalOnceRuntime(event, workflow_runner, metadata)
                 result = await fn(frt)
-                # if metadata.invocation.kind == 'tell':
-                #     if metadata.invocation.callback.fn:
-                #         metadata.invocation.response.responseCtx = result
-                #         return metadata.invocation.callback.fn(metadata)
                 return result
             return local_function
         case _:
@@ -61,14 +56,16 @@ def create_handler(fn : type_Function | rt_workflow.WorkFlow):
         runner = rt_workflow.WorkFlowRunner(fn)
         container_conf = get_function_container_config()
         match container_conf['provider']:
-            case 'aliyun', 'aws', 'knative', 'local':
-                async def handler(frt):
+            case 'aliyun'| 'aws'| 'knative'| 'local':
+                async def handler(event:dict):
                     nonlocal runner
-                    return await runner.run(frt)
+                    return await runner.run(event)
+                return handler
             case 'local-once':
                 async def handler(event: dict):
                     nonlocal runner
                     return await runner.run(event, runner, createFaasitRuntimeMetadata(container_conf['funcName']))
+                return handler
         return handler
     else: #type(fn) == type_Function:
         async def handler(event: dict, *args):

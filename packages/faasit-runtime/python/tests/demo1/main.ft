@@ -25,5 +25,5 @@
 }
 
 @provider Local {
-  kind = "local-once"
+  kind = "local"
 }

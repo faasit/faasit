@@ -1,4 +1,4 @@
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from typing import Any, Tuple, Awaitable, Union, Callable, List
 from pydantic import BaseModel, validator, ValidationError
 import uuid
@@ -88,19 +88,23 @@ class FaasitRuntime(ABC):
     def metadata(self):
         return self._metadata
     
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def input(self) -> InputType:
         pass
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def output(self) -> OutputType:
         pass
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     async def call(self, fnName: str, fnParams: CallParams) -> CallResult:
         pass
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     async def tell(self, fnName:str, fnParams: TellParams) -> Awaitable[TellResult]:
         pass
 

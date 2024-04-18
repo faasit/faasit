@@ -1,6 +1,6 @@
 alibabacloud_fc_open20210406==2.0.11
 alibabacloud_tea_openapi==0.3.8
 alibabacloud_tea_util==0.3.11
+oss2==2.18.4
 pydantic==1.10.8
 python-dotenv==1.0.1
-setuptools==68.2.2

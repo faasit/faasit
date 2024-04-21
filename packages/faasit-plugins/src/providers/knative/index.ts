@@ -3,29 +3,29 @@ import { faas } from '@faasit/std'
 import axios from 'axios'
 import yaml from 'js-yaml'
 
-import * as plugin_utils from '../../utils'
 import path from 'path'
+import AdmZip from 'adm-zip'
 
 interface DeployParams {
   ctx: faas.ProviderPluginContext
   input: faas.ProviderDeployInput
-  providerDataDir: string
+  // providerDataDir: string
 }
 
 interface DeployFunctionParams {
   name: string
   codeDir: string
+  runtime: string
 }
 
 class KnativeProvider implements faas.ProviderPlugin {
   name: string = 'knative'
 
   async deploy(input: faas.ProviderDeployInput, ctx: faas.ProviderPluginContext) {
-    const providerDataDir = await plugin_utils.mkdir(path.resolve(ctx.cwd, '.ft', 'providers', this.name))
     if (faas.isWorkflowApplication(input.app)) {
-      return this.deployWorkflowApp({ ctx, input, providerDataDir }, input.app)
+      return this.deployWorkflowApp({ ctx, input }, input.app)
     }
-    return this.deployFunctionApp({ ctx, input, providerDataDir })
+    return this.deployFunctionApp({ ctx, input })
   }
 
   async invoke(input: faas.ProviderInvokeInput, ctx: faas.ProviderPluginContext) {
@@ -34,11 +34,18 @@ class KnativeProvider implements faas.ProviderPlugin {
 
     logger.info(`invoke function ${input.funcName}`)
 
-    const svcName = `${app.$ir.name}-${input.funcName}`
+    const svcName = app.$ir.name == "" ? input.funcName : `${app.$ir.name}-${input.funcName}`
+    // const svcName = `${app.$ir.name}-${input.funcName}`
 
-    const url = `http://${svcName}.faasit.192.168.1.240.sslip.io`
+    const url = `http://${svcName}.default.10.0.0.233.sslip.io`
 
-    const resp = await axios.post(url, input.input)
+    // 不使用代理发送请求
+    const resp = await axios.post(url, input.input, {
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      proxy: false
+    })
 
     console.log(resp.data)
 
@@ -63,13 +70,15 @@ class KnativeProvider implements faas.ProviderPlugin {
         name: fnRef.value.$ir.name,
         // use workflow's codeDir if no codeDir provided by the function
         codeDir: codeDir || workflow.codeDir,
+        runtime: fn.output.runtime
       })
     }
 
     // deploy executor function
     functionsToDeploy.push({
       name: '__executor',
-      codeDir: workflow.codeDir
+      codeDir: workflow.codeDir,
+      runtime: workflow.runtime
     })
 
     logger.info(`deploying workflow, functions=${functionsToDeploy.length}`)
@@ -79,7 +88,7 @@ class KnativeProvider implements faas.ProviderPlugin {
 
   async deployFunctionApp(p: DeployParams) {
     const { app } = p.input
-    const { logger } = p.ctx
+    const { rt, logger } = p.ctx
 
     logger.info(`deploy functions on knative`)
 
@@ -94,64 +103,24 @@ class KnativeProvider implements faas.ProviderPlugin {
 
       functionsToDeploy.push({
         name: fnRef.value.$ir.name,
-        codeDir: codeDir
+        codeDir: codeDir,
+        runtime: fn.output.runtime
       })
     }
 
-    await ft_utils.asyncPoolAll(4, functionsToDeploy, (fn) => this.deployOneFunction(p, fn))
-  }
-
-  async deployOneFunction(p: DeployParams, fnParams: {
-    name: string
-    codeDir: string
-  }) {
-    const { rt, logger } = p.ctx
-
-    logger.info(`  > deploy function ${fnParams.name}`)
-
-    const imageName = `${p.input.app.$ir.name}${fnParams.name}`.toLowerCase()
-    // const registry = 'reg.i2ec.top'
-    const registry = 'index.docker.io'
-    const funcObj = {
-      specVersion: "0.36.0",
-      name: imageName,
-      runtime: "node",
-      registry: `${registry}`,
-      image: `${registry}/xdydy/${imageName}`,
-      build: {
-        builder: "pack"
-      },
-      run: {
-        envs: [
-          {
-            name: "FAASIT_PROVIDER",
-            value: "knative"
-          },
-          {
-            name: "FAASIT_APP_NAME",
-            value: p.input.app.$ir.name
-          },
-          {
-            name: "FAASIT_WORKFLOW_FUNC_NAME",
-            value: fnParams.name
-          },
-          {
-            name: "FAASIT_FUNC_NAME",
-            value: fnParams.name
-          }
-        ]
-      },
-      deploy: {
-        namespace: "default"
-      },
-      created: `2024-04-09T14:34:47.426998481+08:00`
+    // await ft_utils.asyncPoolAll(4, functionsToDeploy, (fn) => this.deployOneFunction(p, fn))
+    let funcsObj:any[] = [];
+    for (const fn of functionsToDeploy) {
+      const funcobj = await this.deployOneFunction(p,fn);
+      funcsObj.push(funcobj)
     }
+    
+    const yamlsStrs = funcsObj.map((funcObj) => yaml.dump(funcObj))
+    const yamlsStr = yamlsStrs.join('---\n')
+    await rt.writeFile("kn_func.yaml", yamlsStr)
 
-    const funcFile = `${fnParams.codeDir}/func.yaml`
-    await rt.writeFile(funcFile, yaml.dump(funcObj))
-
-    const proc = rt.runCommand(`kn func deploy -v`, {
-      cwd: fnParams.codeDir,
+    const proc = rt.runCommand(`kubectl apply -f kn_func.yaml`, {
+      cwd: process.cwd(),
       shell: true,
       stdio: 'inherit'
     })
@@ -162,7 +131,125 @@ class KnativeProvider implements faas.ProviderPlugin {
     ])
     await proc.wait()
 
-    logger.info(`  > deployed function ${fnParams.name}`)
+    await rt.removeFile("kn_func.yaml")
+
+    logger.info(`deployed functions on knative`)
+  }
+
+  async deployOneFunction(p: DeployParams, fnParams: {
+    name: string
+    codeDir: string
+    runtime: string
+  }): Promise<any> {
+    const { rt, logger } = p.ctx
+
+    logger.info(`  > deploy function ${fnParams.name}`)
+
+    let imageName = "faasit-python-runtime:0.0.1"
+
+    if (fnParams.runtime == 'python') {
+      imageName = "faasit-python-runtime:0.0.1"
+    } else if (fnParams.runtime == 'nodejs') {
+      imageName = "faasit-nodejs-runtime:0.0.1"
+    }
+
+    const registry = 'docker.io'
+    const funcName = p.input.app.$ir.name == "" ? fnParams.name : `${p.input.app.$ir.name}-${fnParams.name}`
+    const funcObj = {
+      apiVersion: 'serving.knative.dev/v1',
+      kind: 'Service',
+      metadata: {
+        name: funcName,
+        namespace: 'default'
+      },
+      spec: {
+        template: {
+          spec: {
+            containers: [
+              {
+                image: `${registry}/xdydy/${imageName}`,
+                ports: [{"containerPort": 9000}],
+                readinessProbe: {
+                  httpGet: {
+                    path: '/health',
+                    port: 9000
+                  },
+                  initialDelaySeconds: 5,
+                  periodSeconds: 2,
+                  timeoutSeconds: 1,
+                  successThreshold: 1,
+                  failureThreshold: 3
+                },
+                securityContext: {
+                  runAsNonRoot: false,
+                  allowPrivilegeEscalation: false,
+                  capabilities: {
+                    drop: ['ALL']
+                  },
+                  seccompProfile: {
+                    type: 'RuntimeDefault'
+                  }
+                },
+                env: [
+                  {
+                    name: 'FAASIT_FUNC_NAME',
+                    value: fnParams.name
+                  },
+                  {
+                    name: 'FAASIT_PROVIDER',
+                    value: 'knative'
+                  },
+                  {
+                    name: 'FAASIT_CODE_DIR',
+                    value: `${funcName}.zip`
+                  }
+                ],
+                command: ["python"],
+                args: ["/app/server.py"]
+              }
+            ]
+          }
+        }
+      }
+    }
+    const zipFile = await this.packFuncCode({codeDir: fnParams.codeDir, fnName: funcName})
+    // 获取名称包含funcName的pod的名称
+    const getPodProc = rt.runCommand(`kubectl get pod | grep nginx-file-server | awk '{print $1}'`, {
+      cwd: process.cwd(),
+      shell: true
+    })
+    let podName:string = '';
+    getPodProc.readOut(v => {
+      podName = String(v).replace('\n', '')
+      logger.info(`podName: ${podName}`)
+    })
+    await getPodProc.wait()
+
+    logger.info(`Deploy ${zipFile} to Pod ${podName}`)
+    const cpProc = rt.runCommand(`kubectl cp ${zipFile} ${podName}:/data/uploads`, {
+      cwd: process.cwd(),
+      shell: true,
+      stdio: 'inherit'
+    })
+    await Promise.all([
+      cpProc.readOut(v => logger.info(v)),
+      cpProc.readErr(v => logger.error(v))
+    ])
+    await cpProc.wait()
+    await rt.removeFile(zipFile)
+
+    return funcObj
+  }
+  async packFuncCode(fn: {
+    codeDir:string, fnName:string
+  }) {
+    // pack code to zip file
+    const { codeDir, fnName } = fn
+    const zipFile = `${fnName}.zip`
+    const zip = new AdmZip()
+    zip.addLocalFolder(codeDir)
+    zip.writeZip(zipFile)
+    return zipFile
   }
 }
 

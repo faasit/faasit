@@ -4,6 +4,7 @@ from faasit_runtime.runtime import (
     AliyunRuntime,
     LocalOnceRuntime,
     LocalRuntime,
+    KnativeRuntime,
     createFaasitRuntimeMetadata,
     FaasitRuntimeMetadata
 )
@@ -30,7 +31,10 @@ def function(fn: type_Function):
                 return fn(frt)
             return aliyun_function
         case 'knative':
-            frt = FaasitRuntime(containerConf)
+            async def kn_function(event) -> FaasitResult:
+                frt = KnativeRuntime(event)
+                return await fn(frt)
+            return kn_function
         case 'aws':
             frt = FaasitRuntime(containerConf)
         case 'local-once':

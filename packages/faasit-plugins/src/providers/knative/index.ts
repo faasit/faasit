@@ -33,19 +33,22 @@ class KnativeProvider implements faas.ProviderPlugin {
     const { app } = input
 
     logger.info(`invoke function ${input.funcName}`)
+    logger.info(`input: ${JSON.stringify(input.input)}`)
 
-    const svcName = app.$ir.name == "" ? input.funcName : `${app.$ir.name}-${input.funcName}`
+    const svcName = app.$ir.name == "" ? input.funcName : `${app.$ir.name.toLowerCase()}-executor`
     // const svcName = `${app.$ir.name}-${input.funcName}`
 
     const url = `http://${svcName}.default.10.0.0.233.sslip.io`
 
     // 不使用代理发送请求
-    const resp = await axios.post(url, input.input, {
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      proxy: false
-    })
+    const axiosInstance = axios.create()
+    // const resp = await axios.post(url, JSON.stringify(input.input), {
+    //   headers: {
+    //     'Content-Type': 'application/json'
+    //   },
+    //   proxy: false
+    // })
+    const resp = await axiosInstance.post(url, input.input ? JSON.stringify(input.input) : {}, {headers: {'Content-Type': 'application/json'}, proxy: false})
 
     console.log(resp.data)
 
@@ -55,7 +58,7 @@ class KnativeProvider implements faas.ProviderPlugin {
   // helpers
   async deployWorkflowApp(p: DeployParams, app: faas.WorkflowApplication) {
     const { ctx } = p
-    const { logger } = ctx
+    const { rt, logger } = ctx
 
     logger.info(`deploy workflow on knative`)
     const workflow = app.output.workflow.value.output
@@ -82,7 +85,29 @@ class KnativeProvider implements faas.ProviderPlugin {
     })
 
     logger.info(`deploying workflow, functions=${functionsToDeploy.length}`)
-    await ft_utils.asyncPoolAll(1, functionsToDeploy, (fn) => this.deployOneFunction(p, fn))
+    // await ft_utils.asyncPoolAll(1, functionsToDeploy, (fn) => this.deployOneFunction(p, fn))
+    let funcsObj:any[] = [];
+    for (const fn of functionsToDeploy) {
+      const funcobj = await this.deployOneFunction(p,fn);
+      funcsObj.push(funcobj)
+    }
+    const yamlsStrs = funcsObj.map((funcObj) => yaml.dump(funcObj))
+    const yamlsStr = yamlsStrs.join('---\n')
+    await rt.writeFile("kn_func.yaml", yamlsStr)
+
+    const proc = rt.runCommand(`kubectl apply -f kn_func.yaml`, {
+      cwd: process.cwd(),
+      shell: true,
+      stdio: 'inherit'
+    })
+
+    await Promise.all([
+      proc.readOut(v => logger.info(v)),
+      proc.readErr(v => logger.error(v))
+    ])
+    await proc.wait()
+
+    // await rt.removeFile("kn_func.yaml")
     logger.info(`deployed workflow, functions=${functionsToDeploy.length}`)
   }
 
@@ -154,12 +179,13 @@ class KnativeProvider implements faas.ProviderPlugin {
     }
 
     const registry = 'docker.io'
-    const funcName = p.input.app.$ir.name == "" ? fnParams.name : `${p.input.app.$ir.name}-${fnParams.name}`
+    const funcName = p.input.app.$ir.name == "" ? fnParams.name : `${p.input.app.$ir.name.toLowerCase()}-${fnParams.name}`
+    const svcName = fnParams.name != '__executor' ? funcName : `${p.input.app.$ir.name.toLowerCase()}-executor`
     const funcObj = {
       apiVersion: 'serving.knative.dev/v1',
       kind: 'Service',
       metadata: {
-        name: funcName,
+        name: svcName,
         namespace: 'default'
       },
       spec: {
@@ -175,7 +201,7 @@ class KnativeProvider implements faas.ProviderPlugin {
                     port: 9000
                   },
                   initialDelaySeconds: 5,
-                  periodSeconds: 2,
+                  periodSeconds: 10,
                   timeoutSeconds: 1,
                   successThreshold: 1,
                   failureThreshold: 3
@@ -202,6 +228,10 @@ class KnativeProvider implements faas.ProviderPlugin {
                   {
                     name: 'FAASIT_CODE_DIR',
                     value: `${funcName}.zip`
+                  },
+                  {
+                    name: 'FAASIT_WORKFLOW_NAME',
+                    value: p.input.app.$ir.name.toLowerCase()
                   }
                 ],
                 command: ["python"],

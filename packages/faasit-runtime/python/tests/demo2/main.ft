@@ -26,6 +26,7 @@ import (
 @application WordCount {
   workflow = WordCountFlow
   defaultProvider = Local
+  providers= [Local, Knative]
 
   // used by `ft run`
   inputExamples = [

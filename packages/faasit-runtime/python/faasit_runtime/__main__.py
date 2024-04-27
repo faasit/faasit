@@ -21,8 +21,8 @@ def function(fn: type_Function):
 
     match containerConf['provider']:
         case 'local':
-            async def local_function(event) -> FaasitResult:
-                frt = LocalRuntime(event)
+            async def local_function(event,metadata:FaasitRuntimeMetadata = None) -> FaasitResult:
+                frt = LocalRuntime(event,metadata)
                 return await fn(frt)
             return local_function
         case 'aliyun':
@@ -60,7 +60,13 @@ def create_handler(fn : type_Function | rt_workflow.WorkFlow):
         runner = rt_workflow.WorkFlowRunner(fn)
         container_conf = get_function_container_config()
         match container_conf['provider']:
-            case 'aliyun'| 'aws'| 'knative'| 'local':
+            case 'local':
+                async def handler(event:dict, metadata=None):
+                    nonlocal runner
+                    metadata = createFaasitRuntimeMetadata(container_conf['funcName']) if metadata == None else metadata
+                    return await runner.run(event, metadata)
+                return handler
+            case 'aliyun'| 'aws'| 'knative':
                 async def handler(event:dict):
                     nonlocal runner
                     return await runner.run(event)

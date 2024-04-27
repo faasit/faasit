@@ -1,46 +1,61 @@
-from abc import ABC, abstractclassmethod
+from abc import ABC, abstractmethod
 from typing import Any, Awaitable, Union, Callable
 from pydantic import BaseModel
 from typing import Literal
 from faasit_runtime.runtime import CallResult
+import json
+import redis
 
 class DurableStateClient(ABC):
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def __init__(self) -> None:
         pass
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def set(self, key: str, value: Any) -> Awaitable[None]:
         pass
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def get(self, key: str) -> Union[Awaitable[Any],None] :
         pass
 
-    @abstractclassmethod
+    @classmethod
+    @abstractmethod
     def get(self, key: str, default: Callable) -> Awaitable[Any]:
         pass
 
 class ScopedDurableStateClient(DurableStateClient):
-    def __init__(self) -> None:
+    def __init__(self,scopedId) -> None:
         self._state = dict()
-        # self._scopedId = scopedId
+        self._scopedId = scopedId
         pass
 
     async def set(self, key: str, value: Any) -> Awaitable[None]:
-        # key = self.build_key(key)
+        key = self.build_key(key)
         self._state[key] = value
         pass
     async def get(self, key: str) -> Union[Awaitable[Any],None]:
-        # key = self.build_key(key)
+        key = self.build_key(key)
         return self._state.get(key, None)
     async def get(self, key: str, default: Callable) -> Awaitable[Any]:
-        # key = self.build_key(key)
+        key = self.build_key(key)
         return self._state.get(key, default)
 
-    # def build_key(self, key: str) -> str:
-    #     return f"{self._scopedId}::{key}"
+    def build_key(self, key: str) -> str:
+        return f"{self._scopedId}::{key}"
+    
+    def to_dict(self):
+        return self._state
+    
+    @staticmethod
+    def load(scopedId:str, state:dict):
+        client = ScopedDurableStateClient(scopedId)
+        client._state = state
+        return client
 
 class DurableState(ABC):
     def __init__(self) -> None:
@@ -73,6 +88,21 @@ class DurableFunctionState(DurableState):
         state._actions = await client.get("actions", list())
         return (state, False)
     
+    @staticmethod
+    async def loads(key):
+        redis_client = redis.Redis(host='redis', port=6379, db=0)
+        redis_value = redis_client.get(key)
+        serializedState = json.loads(redis_value)
+
+        functionId = serializedState['functionId']
+        funcStates = serializedState['funcstates']
+        client = ScopedDurableStateClient.load(functionId, json.loads(funcStates))
+        
+        actions = serializedState['actions']
+        state = DurableFunctionState()
+        state._actions = [Action(**action) for action in actions]
+        return (state,client)
+    
     async def store(self, client: ScopedDurableStateClient):
         await client.set('actions', self._actions)
         pass
@@ -87,6 +117,28 @@ class DurableFunctionState(DurableState):
     
     def get_actions(self):
         return self._actions
+    
+    def to_dict(self, client: ScopedDurableStateClient):
+        status = 'running'
+        if client.get('isFinished', False) == True:
+            status = 'finished'
+        result = None
+        if status == 'finished':
+            result = client.get('result')
+        return {
+            'functionId': client._scopedId,
+            'actions': [action.dict() for action in self._actions],
+            'funcstates': client.to_dict(),
+            'status': status,
+            'result': result
+        }
+    
+    def to_redis(self,fnName:str,client:ScopedDurableStateClient):
+        key = fnName + "::" + client._scopedId
+        redis_client = redis.Redis(host='redis', port=6379, db=0)
+        redis_client.set(key, json.dumps(self.to_dict(client)))
+        redis_client.close()
+        return (key, json.dumps(self.to_dict(client)))
 
 class DurableGroupState(DurableState):
     def __init__(self, groupid) -> None:

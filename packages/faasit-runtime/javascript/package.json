@@ -27,7 +27,6 @@
     "@alicloud/fc-open20210406": "^2.0.9",
     "@alicloud/openapi-client": "^0.4.6",
     "@alicloud/tea-util": "^1.4.7",
-    "@faasit/runtime": "file:faasit-runtime-1.2.0.tgz",
     "ali-oss": "^6.20.0",
     "axios": "^1.6.0",
     "zod": "^3.21.4"

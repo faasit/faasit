@@ -1,0 +1,119 @@
+inputs:
+  - name: max_epoch
+    default: 100
+  - name: run_val
+    default: true
+  - name: seed
+    default: 42
+  - name: dataload_mode
+    default: pytorch
+  - name: dataload_train_workers
+    default: 8
+  - name: dataload_train_batch_size
+    default: 128
+  - name: data_only
+    default: false
+  - name: log_dry_run
+    default: false
+  - name: profile_data
+    default: ""
+  - name: aliyun_s3_key_id
+    env: DPS_SECRET_ALIYUN_S3_KEY_ID
+    default: ""
+    secret: true
+  - name: aliyun_s3_key_secret
+    env: DPS_SECRET_ALIYUN_S3_KEY_SECRET
+    default: ""
+    secret: true
+
+vars:
+  - name: log_common
+    value:
+      log_dry_run: ${inputs.log_dry_run}
+      log_path: ".local/dps_workloads"
+
+  - name: dataload_common
+    value:
+      dataload:
+        mode: ${inputs.dataload_mode}
+        train_workers: ${inputs.dataload_train_workers}
+
+  - name: addr_s3_local_base
+    value:
+      s3:
+        endpoint_url: http://192.168.15.104:22900
+        access_key_id: dps-minio
+        access_key_secret: dps-minio123
+  - name: addr_fs_local
+    value:
+      dataset_store_path: "dpflow/datas"
+      fs:
+        root_dir: /data
+  - name: addr_fs_local_dev
+    value:
+      dataset_store_path: "dpshare/datas"
+      fs:
+        root_dir: ~/projects-released/dpflow
+  - name: addr_s3_local
+    value:
+      $extends: [vars.addr_s3_local_base]
+      dataset_store_path: dpshare/datas
+  - name: addr_s3_local_dev
+    value:
+      $extends: [vars.addr_s3_local_base]
+      dataset_store_path: dpshare/minidatas
+  - name: addr_s3_local
+    value:
+      dataset_store_path: dpshare/datas
+      s3:
+        endpoint_url: http://192.168.15.104:22900
+        access_key_id: dps-minio
+        access_key_secret: dps-minio123
+  - name: addr_s3_aliyun
+    value:
+      dataset_store_path: dpshare/datas
+      s3:
+        endpoint_url: https://oss-cn-hangzhou-internal.aliyuncs.com
+        access_key_id: ${inputs.aliyun_s3_key_id}
+        access_key_secret: ${inputs.aliyun_s3_key_secret}
+  - name: addr_s3_aliyun_pub
+    value:
+      dataset_store_path: dpshare/datas
+      s3:
+        endpoint_url: https://oss-cn-hangzhou.aliyuncs.com
+        access_key_id: ${inputs.aliyun_s3_key_id}
+        access_key_secret: ${inputs.aliyun_s3_key_secret}
+  - name: log_path
+    value: ".local"
+
+components:
+  - name: train-cls-base
+    props:
+      - name: ds_addr
+    render:
+      task:
+        name: TrainClsResnetTask
+        config:
+          $extends: [vars.log_common]
+          max_epoch: ${inputs.max_epoch}
+          run_val: ${inputs.run_val}
+          profile_data: ${inputs.profile_data}
+          seed: ${inputs.seed}
+          model: resnet18
+          dataset_addr:
+            $extends:
+              - ${props.ds_addr}
+          dataload:
+            mode: ${inputs.dataload_mode}
+            train_workers: ${inputs.dataload_train_workers}
+            eval_workers: 8
+            train_batch_size: ${inputs.dataload_train_batch_size}
+            eval_batch_size: 256
+
+configs:
+  - name: train-cls-resnet
+    component:
+      name: train-cls-base
+      props:
+        ds_addr: vars.addr_fs_local
+

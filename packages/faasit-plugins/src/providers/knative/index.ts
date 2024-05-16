@@ -35,7 +35,16 @@ class KnativeProvider implements faas.ProviderPlugin {
     logger.info(`invoke function ${input.funcName}`)
     logger.info(`input: ${JSON.stringify(input.input)}`)
 
-    const svcName = app.$ir.name == "" ? input.funcName : `${app.$ir.name.toLowerCase()}-executor`
+    const getSvcName = () => {
+      if (faas.isWorkflowApplication(app)) {
+        return app.$ir.name == "" ? input.funcName.toLowerCase() : `${app.$ir.name.toLowerCase()}-executor`
+      }
+
+      // function
+      return `${app.$ir.name.toLowerCase()}-${input.funcName.toLowerCase()}`
+    }
+
+    const svcName = getSvcName()
     // const svcName = `${app.$ir.name}-${input.funcName}`
 
     const url = `http://${svcName}.default.10.0.0.233.sslip.io`
@@ -48,7 +57,7 @@ class KnativeProvider implements faas.ProviderPlugin {
     //   },
     //   proxy: false
     // })
-    const resp = await axiosInstance.post(url, input.input ? JSON.stringify(input.input) : {}, {headers: {'Content-Type': 'application/json'}, proxy: false})
+    const resp = await axiosInstance.post(url, input.input ? JSON.stringify(input.input) : {}, { headers: { 'Content-Type': 'application/json' }, proxy: false })
 
     console.log(resp.data)
 
@@ -86,9 +95,9 @@ class KnativeProvider implements faas.ProviderPlugin {
 
     logger.info(`deploying workflow, functions=${functionsToDeploy.length}`)
     // await ft_utils.asyncPoolAll(1, functionsToDeploy, (fn) => this.deployOneFunction(p, fn))
-    let funcsObj:any[] = [];
+    let funcsObj: any[] = [];
     for (const fn of functionsToDeploy) {
-      const funcobj = await this.deployOneFunction(p,fn);
+      const funcobj = await this.deployOneFunction(p, fn);
       funcsObj.push(funcobj)
     }
     const yamlsStrs = funcsObj.map((funcObj) => yaml.dump(funcObj))
@@ -134,12 +143,12 @@ class KnativeProvider implements faas.ProviderPlugin {
     }
 
     // await ft_utils.asyncPoolAll(4, functionsToDeploy, (fn) => this.deployOneFunction(p, fn))
-    let funcsObj:any[] = [];
+    let funcsObj: any[] = [];
     for (const fn of functionsToDeploy) {
-      const funcobj = await this.deployOneFunction(p,fn);
+      const funcobj = await this.deployOneFunction(p, fn);
       funcsObj.push(funcobj)
     }
-    
+
     const yamlsStrs = funcsObj.map((funcObj) => yaml.dump(funcObj))
     const yamlsStr = yamlsStrs.join('---\n')
     await rt.writeFile("kn_func.yaml", yamlsStr)
@@ -179,7 +188,7 @@ class KnativeProvider implements faas.ProviderPlugin {
     }
 
     const registry = 'docker.io'
-    const funcName = p.input.app.$ir.name == "" ? fnParams.name : `${p.input.app.$ir.name.toLowerCase()}-${fnParams.name}`
+    const funcName = (p.input.app.$ir.name == "" ? fnParams.name : `${p.input.app.$ir.name.toLowerCase()}-${fnParams.name}`).toLowerCase()
     const svcName = fnParams.name != '__executor' ? funcName : `${p.input.app.$ir.name.toLowerCase()}-executor`
     const funcObj = {
       apiVersion: 'serving.knative.dev/v1',
@@ -194,7 +203,7 @@ class KnativeProvider implements faas.ProviderPlugin {
             containers: [
               {
                 image: `${registry}/xdydy/${imageName}`,
-                ports: [{"containerPort": 9000}],
+                ports: [{ "containerPort": 9000 }],
                 readinessProbe: {
                   httpGet: {
                     path: '/health',
@@ -242,13 +251,13 @@ class KnativeProvider implements faas.ProviderPlugin {
         }
       }
     }
-    const zipFile = await this.packFuncCode({codeDir: fnParams.codeDir, fnName: funcName})
+    const zipFile = await this.packFuncCode({ codeDir: fnParams.codeDir, fnName: funcName })
     // 获取名称包含funcName的pod的名称
     const getPodProc = rt.runCommand(`kubectl get pod | grep nginx-file-server | awk '{print $1}'`, {
       cwd: process.cwd(),
       shell: true
     })
-    let podName:string = '';
+    let podName: string = '';
     getPodProc.readOut(v => {
       podName = String(v).replace('\n', '')
       logger.info(`podName: ${podName}`)
@@ -271,7 +280,7 @@ class KnativeProvider implements faas.ProviderPlugin {
     return funcObj
   }
   async packFuncCode(fn: {
-    codeDir:string, fnName:string
+    codeDir: string, fnName: string
   }) {
     // pack code to zip file
     const { codeDir, fnName } = fn

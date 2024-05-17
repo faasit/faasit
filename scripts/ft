@@ -3,4 +3,4 @@
 export SCRIPT_DIR=$(dirname -- "$(readlink -f -- "$0")")
 export FAASIT_SRC_HOME=$(realpath "$SCRIPT_DIR/..")
 
-node $FAASIT_SRC_HOME/packages/faasit/bin/faasit.cjs "$@"
+node $FAASIT_SRC_HOME/packages/faasit/bin/faasit.mjs "$@"

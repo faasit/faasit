@@ -1,5 +1,5 @@
 import assert from "assert"
-import { CallParams, CallResult, DurableMetadata, FaasitRuntime, FaasitRuntimeMetadata, InputType, TellParams, TellResult } from "../runtime/FaasitRuntime"
+import { CallParams, CallResult, DurableMetadata, FaasitRuntime, FaasitRuntimeMetadata, InputType, StorageMethods, TellParams, TellResult } from "../runtime/FaasitRuntime"
 import { DurableCallbackContext } from "./context/DurableCallbackContext"
 import { DurableFunctionState } from "./state/DurableFunctionState"
 
@@ -25,6 +25,10 @@ export class DurableFaasitRuntime implements FaasitRuntime {
             throw new Error(`no durable.orchestrator definied in metadata`)
         }
         this.orchestratorMetadata = orcheMetadata
+    }
+
+    get storage(): StorageMethods {
+        return this.rt.storage
     }
 
     get name(): string {

@@ -40,8 +40,10 @@ class KnativeProvider implements faas.ProviderPlugin {
         return app.$ir.name == "" ? input.funcName.toLowerCase() : `${app.$ir.name.toLowerCase()}-executor`
       }
 
-      // function
-      return `${input.funcName.toLowerCase()}`
+      const lowerAppName = app.$ir.name.toLowerCase()
+      const lowerFuncName = input.funcName.toLowerCase()
+
+      return lowerAppName ? `${lowerAppName}-${lowerFuncName}` : lowerFuncName
     }
 
     const svcName = getSvcName()
@@ -57,7 +59,9 @@ class KnativeProvider implements faas.ProviderPlugin {
     //   },
     //   proxy: false
     // })
-    const resp = await axiosInstance.post(url, input.input ? JSON.stringify(input.input) : {}, { headers: { 'Content-Type': 'application/json' }, proxy: false })
+
+    const data = { event: input?.input || {}, metadata: {}}
+    const resp = await axiosInstance.post(url, data, { headers: { 'Content-Type': 'application/json' }, proxy: false })
 
     console.log(resp.data)
 

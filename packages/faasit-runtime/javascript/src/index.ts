@@ -1,6 +1,6 @@
 import { LocalRuntime } from "./runtime/LocalRuntime";
 import { KnativeRuntime } from "./runtime/KnativeRuntime";
-import { AliyunEventRuntime, AliyunHttpRuntime } from "./runtime/AliyunRuntime";
+
 import { FaasitRuntime, createFaasitRuntimeMetadata } from "./runtime/FaasitRuntime";
 import { WorkflowContainerRunner, WorkflowSpec } from './Workflow'
 import { FunctionContainerConfig, UnknownProvider, getFunctionContainerConfig } from "./type";
@@ -78,7 +78,8 @@ function transformFunction(fn: HandlerType) {
         return fn(runtime)
       }
     case 'aliyun':
-      return (arg0: any, arg1: any, arg2: any) => {
+      return async (arg0: any, arg1: any, arg2: any) => {
+        const  { AliyunEventRuntime, AliyunHttpRuntime } = await import("./runtime/AliyunRuntime");
         let runtime: FaasitRuntime
         if (arg2 instanceof Function) {
           runtime = new AliyunEventRuntime({ event: arg0, context: arg1, callback: arg2, metadata })
@@ -89,7 +90,7 @@ function transformFunction(fn: HandlerType) {
         return fn(runtime)
       }
     case 'knative':
-      return (context: any, event: any) => {
+      return (event: any, context: any) => {
         const runtime = new KnativeRuntime({ context, event, metadata })
         return fn(runtime)
       }
@@ -132,11 +133,8 @@ function transformHandlerExports(conf: FunctionContainerConfig, obj: { handler: 
     case 'local-once':
     case 'aliyun':
     case 'aws':
-      return obj
     case 'knative':
-      return {
-        handle: obj.handler
-      }
+      return obj
     default:
       throw new UnknownProvider(conf.provider)
   }

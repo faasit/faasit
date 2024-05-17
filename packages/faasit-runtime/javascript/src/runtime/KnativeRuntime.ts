@@ -41,7 +41,8 @@ export class KnativeRuntime extends BaseFaasitRuntime {
 
     private async invokeKnativeFunction(fnName: string, event: any) {
         const svcName = `${process.env.FAASIT_APP_NAME}-${fnName}`
-        const url = `http://${svcName}.faasit.192.168.1.240.sslip.io`
+        const gatewayAddress = `${process.env.FAASIT_PROVIDER_KNATIVE_GATEWAY_ADDRESS}` || '10.0.0.233.sslip.io'
+        const url = `http://${svcName}.faasit.${gatewayAddress}`
         return await axios.post(url, event)
     }
 }

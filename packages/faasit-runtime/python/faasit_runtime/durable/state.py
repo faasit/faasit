@@ -92,6 +92,12 @@ class DurableFunctionState(DurableState):
     async def loads(key):
         redis_client = redis.Redis(host='redis', port=6379, db=0)
         redis_value = redis_client.get(key)
+        if redis_value == None:
+            print(f"[STATE] first call: redis key {key}")
+            client = ScopedDurableStateClient(key)
+            state = DurableFunctionState.load(client)
+            return (state,client)
+        print(f"[STATE] redis key {key} exists")
         serializedState = json.loads(redis_value)
 
         functionId = serializedState['functionId']
@@ -101,6 +107,7 @@ class DurableFunctionState(DurableState):
         actions = serializedState['actions']
         state = DurableFunctionState()
         state._actions = [Action(**action) for action in actions]
+        print(f"[ACTIONS]: {state._actions}")
         return (state,client)
     
     async def store(self, client: ScopedDurableStateClient):
@@ -133,8 +140,8 @@ class DurableFunctionState(DurableState):
             'result': result
         }
     
-    def to_redis(self,fnName:str,client:ScopedDurableStateClient):
-        key = fnName + "::" + client._scopedId
+    def to_redis(self,client:ScopedDurableStateClient):
+        key = client._scopedId
         redis_client = redis.Redis(host='redis', port=6379, db=0)
         redis_client.set(key, json.dumps(self.to_dict(client)))
         redis_client.close()

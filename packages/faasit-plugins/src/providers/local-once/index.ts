@@ -106,7 +106,8 @@ loop.close()
 
       let data = ''
       python.stdout.on('data', (chunk) => {
-        data += chunk
+        console.log(chunk.toString())
+        // data += chunk
         result = data.replace(/\\n/g, '\n')
       })
       python.stderr.on('data', (chunk) => {

@@ -66,6 +66,12 @@ class LocalProvider implements faas.ProviderPlugin {
                 },
                 "networks": [`${workflow.$ir.name.toLowerCase()}`]
             }
+            services['redis'] = {
+                "image": "redis:latest",
+                "container_name": "redis",
+                "ports": ["6379:6379"],
+                "networks": [`${workflow.$ir.name.toLowerCase()}`]
+            }
             config['executor'] = currentPort++
             for (const fnRef of workflow.output.functions) {
                 const fn = fnRef.value

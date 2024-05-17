@@ -180,11 +180,16 @@ class KnativeProvider implements faas.ProviderPlugin {
     logger.info(`  > deploy function ${fnParams.name}`)
 
     let imageName = "faasit-python-runtime:0.0.1"
-
+    let runCommand:String[] = []
+    let runArgs:String[] = []
     if (fnParams.runtime == 'python') {
       imageName = "faasit-python-runtime:0.0.1"
+      runCommand.push('python')
+      runArgs.push('/app/server.py')
     } else if (fnParams.runtime == 'nodejs') {
       imageName = "faasit-nodejs-runtime:0.0.1"
+      runCommand.push('node')
+      runArgs.push('/app/server.js')
     }
 
     const registry = 'docker.io'
@@ -257,8 +262,8 @@ class KnativeProvider implements faas.ProviderPlugin {
                     value: nginxIP
                   }
                 ],
-                command: ["python"],
-                args: ["/app/server.py"]
+                command: runCommand,
+                args: runArgs
               }
             ]
           }

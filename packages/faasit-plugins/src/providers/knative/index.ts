@@ -41,7 +41,7 @@ class KnativeProvider implements faas.ProviderPlugin {
       }
 
       // function
-      return `${app.$ir.name.toLowerCase()}-${input.funcName.toLowerCase()}`
+      return `${input.funcName.toLowerCase()}`
     }
 
     const svcName = getSvcName()
@@ -190,6 +190,16 @@ class KnativeProvider implements faas.ProviderPlugin {
     const registry = 'docker.io'
     const funcName = (p.input.app.$ir.name == "" ? fnParams.name : `${p.input.app.$ir.name.toLowerCase()}-${fnParams.name}`).toLowerCase()
     const svcName = fnParams.name != '__executor' ? funcName : `${p.input.app.$ir.name.toLowerCase()}-executor`
+    const getNginxProc = rt.runCommand(`kubectl get svc | grep nginx-file-server | awk '{print $3}'`, {
+      cwd: process.cwd(),
+      shell: true
+    })
+    let nginxIP = ''
+    getNginxProc.readOut(v => {
+      nginxIP = String(v).replace('\n', '')
+    })
+    await getNginxProc.wait()
+
     const funcObj = {
       apiVersion: 'serving.knative.dev/v1',
       kind: 'Service',
@@ -241,6 +251,10 @@ class KnativeProvider implements faas.ProviderPlugin {
                   {
                     name: 'FAASIT_WORKFLOW_NAME',
                     value: p.input.app.$ir.name.toLowerCase()
+                  },
+                  {
+                    name: 'CODE_IP',
+                    value: nginxIP
                   }
                 ],
                 command: ["python"],

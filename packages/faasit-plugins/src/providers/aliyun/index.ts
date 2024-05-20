@@ -3,6 +3,7 @@ import * as Trigger from "./utils/trigger";
 import axios from "axios";
 import { AliyunFunction, AliyunService, AliyunTrigger, AliyunSecretType, parseAliyunSecret } from './utils'
 import { createClient } from './utils/client';
+import Client from '@alicloud/fc-open20210406';
 
 
 interface DeployParams {
@@ -13,7 +14,8 @@ interface DeployParams {
 
 interface DeployFunctionParams {
 	name: string,
-	codeDir: string
+	codeDir: string,
+	runtime: string,
 }
 
 class AliyunProvider implements faas.ProviderPlugin {
@@ -113,6 +115,83 @@ class AliyunProvider implements faas.ProviderPlugin {
 		// }
 	}
 
+	async deployOneFunction(
+		p: DeployParams,
+		client: Client, 
+		appName: string,
+		serviceName: string,
+		functionName: string,
+		codeDir: string,
+		runtime: string,
+		handler: string,
+		triggers: any[]) {
+		const service = new AliyunService({ client, serviceName });
+		const getServiceResp = await service.get()
+		if (!getServiceResp) {
+			await service.create()
+		}
+		if (runtime.includes('python')) {
+			runtime = 'python3.10'
+		}
+		if (runtime.includes('nodejs')) {
+			runtime = 'nodejs16'
+		}
+		let func = new AliyunFunction({
+			client,
+			serviceName,
+			functionName,
+			codeDir,
+			runtime,
+			handler: handler ? handler : "index.handler",
+			env: {
+				FAASIT_PROVIDER: 'aliyun',
+				FAASIT_APP_NAME: appName,
+				FAASIT_FUNC_NAME: functionName,
+				FAASIT_WORKFLOW_FUNC_NAME: functionName,
+				ALIBABA_CLOUD_ACCESS_KEY_ID: p.secret.accessKeyId,
+				ALIBABA_CLOUD_ACCESS_KEY_SECRET: p.secret.accessKeySecret,
+				ALIBABA_CLOUD_PRODUCT_CODE: p.secret.accountId,
+				ALIBABA_CLOUD_REGION: p.secret.region,
+				ALIBABA_CLOUD_SERVICE: serviceName,
+				// OSS
+				ALIBABA_CLOUD_OSS_BUCKET_NAME: process.env.ALIBABA_CLOUD_OSS_BUCKET_NAME, // faasit
+				ALIBABA_CLOUD_OSS_REGION: process.env.ALIBABA_CLOUD_OSS_REGION, // oss-cn-hangzhou
+			}
+		})
+		await func.get().then(async getFunctionResp => {
+			if (getFunctionResp) {
+				await func.update()
+			} else {
+				await func.create()
+			}
+		})
+		for (let trigger of (triggers || [])) {
+			const baseTrigger = await Trigger.getTrigger({
+				kind: trigger.kind,
+				name: trigger.name,
+				opts: {/**TODO */ }
+			})
+
+			let aliyunTrigger = new AliyunTrigger(
+				{
+					client,
+					serviceName,
+					functionName,
+					triggerName: trigger.name,
+					triggerType: trigger.kind,
+					triggerOpts: {}
+				})
+
+			await aliyunTrigger.get().then(async getTriggerResp => {
+				if (getTriggerResp) {
+					await aliyunTrigger.update()
+				} else {
+					await aliyunTrigger.create()
+				}
+			})
+		}
+	}
+
 	async deployFunctions(p: DeployParams) {
 		const { app } = p.input
 		const { logger } = p.ctx
@@ -126,79 +205,17 @@ class AliyunProvider implements faas.ProviderPlugin {
 			const functionName = fn.$ir.name
 			logger.info(`deploy function ${fn.$ir.name}`)
 
-			const service = new AliyunService({ client, serviceName });
-
-			const getServiceResp = await service.get()
-			if (!getServiceResp) {
-				logger.info("aliyun service faasit doesn't exist, it will be created...")
-				await service.create()
-			}
-
-			if (fn.output.runtime.includes('python')) {
-				fn.output.runtime = 'python3.10'
-			}
-			if (fn.output.runtime.includes('nodejs')) {
-				fn.output.runtime = 'nodejs16'
-			}
-			let func = new AliyunFunction({
+			await this.deployOneFunction(
+				p,
 				client,
+				app.$ir.name,
 				serviceName,
-				functionName: fn.$ir.name,
-				codeDir: fn.output.codeDir,
-				runtime: fn.output.runtime,
-				handler: fn.output.handler ? fn.output.handler : "index.handler",
-				env: {
-					FAASIT_PROVIDER: 'aliyun',
-					FAASIT_APP_NAME: app.$ir.name,
-					FAASIT_FUNC_NAME: functionName,
-					FAASIT_WORKFLOW_FUNC_NAME: functionName,
-					// OSS
-					ALIBABA_CLOUD_OSS_BUCKET_NAME: process.env.ALIBABA_CLOUD_OSS_BUCKET_NAME, // faasit
-					ALIBABA_CLOUD_OSS_REGION: process.env.ALIBABA_CLOUD_OSS_REGION, // oss-cn-hangzhou
-				}
-			})
-
-			await func.get().then(async getFunctionResp => {
-				if (getFunctionResp) {
-					logger.info(`aliyun function ${fn.$ir.name} exists, it will be updated!`);
-					const resp = await func.update()
-					// logger.info('update function results: ');
-					// console.log(resp?.body.toMap());
-				} else {
-					logger.info(`create aliyun function ${fn.$ir.name}...`);
-					const resp = await func.create()
-					// logger.info(`create function results: `);
-					// console.log(resp?.body.toMap());
-				}
-			})
-
-			for (let trigger of (fn.output.triggers || [])) {
-				const baseTrigger = await Trigger.getTrigger({
-					kind: trigger.kind,
-					name: trigger.name,
-					opts: {/**TODO */ }
-				})
-
-				let aliyunTrigger = new AliyunTrigger(
-					{
-						client,
-						serviceName,
-						functionName: fn.$ir.name,
-						triggerName: trigger.name,
-						triggerType: trigger.kind,
-						triggerOpts: {}
-					})
-
-				await aliyunTrigger.get().then(async getTriggerResp => {
-					if (getTriggerResp) {
-						logger.info(`aliyun trigger ${trigger.name} exists, it will be updated!`);
-						await aliyunTrigger.update()
-					} else {
-						logger.info(`create trigger ${trigger.name}...`);
-						await aliyunTrigger.create()
-					}
-				})
-			}
+				functionName,
+				fn.output.codeDir,
+				fn.output.runtime,
+				fn.output.handler? fn.output.handler : "index.handler",
+				fn.output.triggers
+			)
 
 			logger.info(`aliyun deployed function ${functionName}`)
 		}
@@ -221,88 +238,32 @@ class AliyunProvider implements faas.ProviderPlugin {
 
 			functionsToDeploy.push({
 				name: fnRef.value.$ir.name,
-				codeDir: codeDir || workflow.codeDir
+				codeDir: codeDir || workflow.codeDir,
+				runtime: fn.output.runtime
 			})
 		}
 
 		functionsToDeploy.push({
 			name: '__executor',
-			codeDir: workflow.codeDir
+			codeDir: workflow.codeDir,
+			runtime: workflow.runtime
 		})
 
 		for (const func of functionsToDeploy) {
 			const functionName = func.name
 			const codeDir = func.codeDir
 
-			let env = {
-				FAASIT_PROVIDER: 'aliyun',
-				FAASIT_APP_NAME: app.$ir.name,
-				FAASIT_FUNC_NAME: functionName,
-				FAASIT_WORKFLOW_FUNC_NAME: functionName,
-				// use for commnuication between functions
-				ALIBABA_CLOUD_ACCESS_KEY_ID: p.secret.accessKeyId,
-				ALIBABA_CLOUD_ACCESS_KEY_SECRET: p.secret.accessKeySecret,
-				ALIBABA_CLOUD_PRODUCT_CODE: p.secret.accountId,
-				ALIBABA_CLOUD_REGION: p.secret.region,
-				ALIBABA_CLOUD_SERVICE: serviceName,
-				// OSS
-				ALIBABA_CLOUD_OSS_BUCKET_NAME: process.env.ALIBABA_CLOUD_OSS_BUCKET_NAME, // faasit
-				ALIBABA_CLOUD_OSS_REGION: process.env.ALIBABA_CLOUD_OSS_REGION, // oss-cn-hangzhou
-			}
-
-			let service = new AliyunService({ client, serviceName });
-			await service.get().then(getServiceResp => {
-				if (getServiceResp) {
-					logger.info(`aliyun service ${serviceName} exists`);
-					return;
-				} else {
-					logger.info(`aliyun service ${serviceName} doesn't exist, it will be created...`)
-					service.create().catch(err => {
-						logger.error(err);
-						return;
-					});
-				}
-			}).catch(err => {
-				logger.error(err);
-			});
-
-			let aliyunFunc = new AliyunFunction(
-				{
-					client,
-					serviceName,
-					functionName,
-					codeDir,
-					runtime: 'nodejs14',
-					handler: "index.handler",
-					env
-				});
-			await aliyunFunc.get().then(async getFunctionResp => {
-				if (getFunctionResp) {
-					logger.info(`aliyun function ${functionName} exists, it will be updated!`);
-					logger.info('update function results: ');
-					await aliyunFunc.update()
-						.then(updateFunctionResp => {
-							if (updateFunctionResp) {
-								console.log(updateFunctionResp.body.toMap());
-							}
-						})
-						.catch(err => {
-							logger.error(err);
-						})
-				} else {
-					logger.info(`create aliyun function ${functionName}...`);
-					logger.info('create function results: ');
-					await aliyunFunc.create()
-						.then(createFunctionResp => {
-							console.log(createFunctionResp?.body.toMap());
-						})
-						.catch(err => {
-							logger.error(err);
-						})
-				}
-			}).catch(err => {
-				logger.error(err);
-			})
+			await this.deployOneFunction(
+				p,
+				client,
+				app.$ir.name,
+				serviceName,
+				functionName,
+				codeDir,
+				func.runtime,
+				"index.handler",
+				[]
+			)
 		}
 	}
 

@@ -207,6 +207,16 @@ class KnativeProvider implements faas.ProviderPlugin {
     getNginxProc.readOut(v => {
       nginxIP = String(v).replace('\n', '')
     })
+
+    const getRedisProc = rt.runCommand(`kubectl get svc | grep faasit-redis | awk '{print $3}'`, {
+      cwd: process.cwd(),
+      shell: true
+    })
+    let redisIP = ''
+    getRedisProc.readOut(v => {
+      redisIP = String(v).replace('\n', '')
+    })
+
     await getNginxProc.wait()
 
     const funcObj = {
@@ -264,6 +274,14 @@ class KnativeProvider implements faas.ProviderPlugin {
                   {
                     name: 'CODE_IP',
                     value: nginxIP
+                  },
+                  {
+                    name: 'REDIS_HOST',
+                    value: redisIP
+                  },
+                  {
+                    name: 'REDIS_PORT',
+                    value: 6379
                   }
                 ],
                 command: runCommand,

@@ -129,6 +129,7 @@ export async function main() {
     .option('-f, --func [string]', 'function name')
     .option('-p, --provider [string]', 'deploy on given provider')
     .option('--example [int]', 'select example data', '0')
+    .option('--retry [int]', 'retried times when error', '4')
     .action(async (p) => {
       const config = resolveConfigPath('')
       await engine

@@ -175,3 +175,9 @@ export async function asyncPoolAll<T, R>(concurrency: number, iterable: Iterable
   }
   return results;
 }
+
+export async function sleep(timeMs: number) {
+  return new Promise((resolve) => {
+    setTimeout(resolve, timeMs)
+  })
+}

@@ -104,6 +104,10 @@ export class Engine {
     const provider = await this.handleGetProvider({ app, provider: opts.provider })
     const plugin = await getProviderPlugin(provider.output.kind)
 
+    if (!app.$ir.name) {
+      throw new Error(`no application name, must provide it!`)
+    }
+
     if (plugin.deploy) {
       await plugin.deploy({ app, provider }, this.getPluginRuntime(opts))
     }
@@ -148,7 +152,7 @@ export class Engine {
     }
   }
 
-  async invoke(opts: { config: string; func?: string; provider?: string; example: number } & GlobalOptions) {
+  async invoke(opts: { config: string; func?: string; provider?: string; example: number; retry: number } & GlobalOptions) {
     const app = await this.resolveApplication(opts)
     const provider = await this.handleGetProvider({ app, provider: opts.provider })
     const plugin = await getProviderPlugin(provider.output.kind)
@@ -163,10 +167,33 @@ export class Engine {
     if (plugin.invoke) {
       let funcName = opts.func
       if (!funcName) {
-        // get first function
-        funcName = app.output.functions[0].value.$ir.name
+        if (faas.isWorkflowApplication(app)) {
+          funcName = "__executor"
+        } else {
+          // get first function
+          funcName = app.output.functions[0].value.$ir.name
+        }
       }
-      await plugin.invoke({ app, funcName, input }, rt)
+      
+      const maxRetriedTimes = opts.retry || 1
+
+      let err: unknown = null;
+      for (let i = 0; i < maxRetriedTimes; ++i) {
+        try {
+          await plugin.invoke({ app, funcName, input }, rt)
+          err = null
+          break
+        } catch (e) {
+          err = e;
+        }
+
+        console.log(`retrying ... retried ${i}/${maxRetriedTimes} times`)
+        await ft_utils.sleep(1000)
+      }
+
+      if (err) {
+        throw err
+      }
     }
   }
 

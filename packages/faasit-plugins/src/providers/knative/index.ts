@@ -18,6 +18,17 @@ interface DeployFunctionParams {
   runtime: string
 }
 
+function normalizeDnsName(dnsName: string) {
+  return dnsName.toLowerCase().replace(/_/g, '-')
+}
+
+function getNormalizedFuncName(app: faas.Application, funcName: string) {
+  const lowerAppName = normalizeDnsName(app.$ir.name)
+  const lowerFuncName = normalizeDnsName(funcName)
+
+  return `${lowerAppName}-${lowerFuncName}`
+}
+
 class KnativeProvider implements faas.ProviderPlugin {
   name: string = 'knative'
 
@@ -37,13 +48,10 @@ class KnativeProvider implements faas.ProviderPlugin {
 
     const getSvcName = () => {
       if (faas.isWorkflowApplication(app)) {
-        return app.$ir.name == "" ? input.funcName.toLowerCase() : `${app.$ir.name.toLowerCase()}-executor`
+        return getNormalizedFuncName(app, 'executor')
       }
 
-      const lowerAppName = app.$ir.name.toLowerCase()
-      const lowerFuncName = input.funcName.toLowerCase()
-
-      return lowerAppName ? `${lowerAppName}-${lowerFuncName}` : lowerFuncName
+      return getNormalizedFuncName(app, input.funcName)
     }
 
     const svcName = getSvcName()
@@ -197,8 +205,9 @@ class KnativeProvider implements faas.ProviderPlugin {
     }
 
     const registry = 'docker.io'
-    const funcName = (p.input.app.$ir.name == "" ? fnParams.name : `${p.input.app.$ir.name.toLowerCase()}-${fnParams.name}`).toLowerCase()
-    const svcName = fnParams.name != '__executor' ? funcName : `${p.input.app.$ir.name.toLowerCase()}-executor`
+
+    const funcName = getNormalizedFuncName(p.input.app, fnParams.name)
+    const svcName = fnParams.name != '__executor' ? funcName : getNormalizedFuncName(p.input.app, 'executor')
     const getNginxProc = rt.runCommand(`kubectl get svc | grep nginx-file-server | awk '{print $3}'`, {
       cwd: process.cwd(),
       shell: true
@@ -232,6 +241,7 @@ class KnativeProvider implements faas.ProviderPlugin {
             containers: [
               {
                 image: `${registry}/xdydy/${imageName}`,
+                imagePullPolicy: "IfNotPresent",
                 ports: [{ "containerPort": 9000 }],
                 readinessProbe: {
                   httpGet: {
@@ -268,8 +278,12 @@ class KnativeProvider implements faas.ProviderPlugin {
                     value: `${funcName}.zip`
                   },
                   {
+                    name: 'FAASIT_APP_NAME',
+                    value: normalizeDnsName(p.input.app.$ir.name)
+                  },
+                  {
                     name: 'FAASIT_WORKFLOW_NAME',
-                    value: p.input.app.$ir.name.toLowerCase()
+                    value: normalizeDnsName(p.input.app.$ir.name)
                   },
                   {
                     name: 'CODE_IP',
@@ -281,7 +295,7 @@ class KnativeProvider implements faas.ProviderPlugin {
                   },
                   {
                     name: 'REDIS_PORT',
-                    value: 6379
+                    value: '6379'
                   }
                 ],
                 command: runCommand,

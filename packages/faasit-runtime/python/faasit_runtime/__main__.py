@@ -11,6 +11,7 @@ from faasit_runtime.runtime import (
 from faasit_runtime.utils.config import get_function_container_config
 import faasit_runtime.workflow as rt_workflow
 from typing import Callable, Set, Any
+import asyncio
 
 type_Function = Callable[[Any], FaasitResult]
 type_WorkFlow = Callable[[rt_workflow.WorkFlowBuilder], rt_workflow.WorkFlow]
@@ -26,9 +27,9 @@ def function(fn: type_Function):
                 return await fn(frt)
             return local_function
         case 'aliyun':
-            def aliyun_function(arg0, arg1):
+            async def aliyun_function(arg0, arg1):
                 frt = AliyunRuntime(arg0, arg1)
-                return fn(frt)
+                return await fn(frt)
             return aliyun_function
         case 'knative':
             async def kn_function(event) -> FaasitResult:
@@ -56,9 +57,9 @@ def workflow(fn: type_WorkFlow) -> rt_workflow.WorkFlow:
         
 
 def create_handler(fn : type_Function | rt_workflow.WorkFlow):
+    container_conf = get_function_container_config()
     if type(fn) == rt_workflow.WorkFlow:
         runner = rt_workflow.WorkFlowRunner(fn)
-        container_conf = get_function_container_config()
         match container_conf['provider']:
             case 'local':
                 async def handler(event:dict, metadata=None):
@@ -78,7 +79,13 @@ def create_handler(fn : type_Function | rt_workflow.WorkFlow):
                 return handler
         return handler
     else: #type(fn) == type_Function:
-        async def handler(event: dict, *args):
-            return await fn(event, *args)
-        return handler
+        match container_conf['provider']:
+            case 'aliyun':
+                def handler(event: dict, *args):
+                    return asyncio.run(fn(event, *args))
+                return handler
+            case _:
+                async def handler(event: dict, *args):
+                    return await fn(event, *args)
+                return handler
     

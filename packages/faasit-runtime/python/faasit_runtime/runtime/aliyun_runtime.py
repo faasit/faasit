@@ -36,7 +36,7 @@ class AliyunRuntime(FaasitRuntime):
         self._storage = self.AliyunStorage()
 
     def input(self):
-        return json.loads(str(self.event))
+        return json.loads(self.event)
 
     def output(self, data):
         return data

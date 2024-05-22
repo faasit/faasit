@@ -227,6 +227,7 @@ class KnativeProvider implements faas.ProviderPlugin {
     })
 
     await getNginxProc.wait()
+    await getRedisProc.wait()
 
     const funcObj = {
       apiVersion: 'serving.knative.dev/v1',

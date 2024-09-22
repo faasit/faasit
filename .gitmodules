@@ -7,3 +7,6 @@
 [submodule "packages/faasit-std"]
 	path = packages/faasit-std
 	url = git@github.com:faasit/faasit-std.git
+[submodule "packages/faasit-cli"]
+	path = packages/faasit-cli
+	url = git@github.com:faasit/faasit-cli.git

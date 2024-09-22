@@ -1,1 +1,0 @@
-export { URI, Utils as UriUtils } from 'vscode-uri';

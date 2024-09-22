@@ -19,3 +19,6 @@
 [submodule "packages/faasit-plugins"]
 	path = packages/faasit-plugins
 	url = git@github.com:faasit/faasit-plugins.git
+[submodule "demo-202405"]
+	path = demo-202405
+	url = git@github.com:faasit/demo-202405.git

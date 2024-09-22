@@ -1,0 +1,3 @@
+[submodule "packages/vscode-faasit"]
+	path = packages/vscode-faasit
+	url = git@github.com:faasit/vscode-faasit.git

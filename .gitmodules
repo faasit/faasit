@@ -16,3 +16,6 @@
 [submodule "faasit-runtime"]
 	path = faasit-runtime
 	url = git@github.com:faasit/faasit-runtime.git
+[submodule "packages/faasit-plugins"]
+	path = packages/faasit-plugins
+	url = git@github.com:faasit/faasit-plugins.git

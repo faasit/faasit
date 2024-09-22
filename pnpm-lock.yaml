@@ -106,12 +106,6 @@ importers:
         specifier: ^3.21.4
         version: 3.21.4
 
-  packages/faasit-examples:
-    dependencies:
-      faasit:
-        specifier: workspace:^
-        version: link:../faasit
-
   packages/faasit-plugins:
     dependencies:
       '@alicloud/fc-open20210406':
@@ -172,28 +166,6 @@ importers:
       '@types/js-yaml':
         specifier: ^4.0.5
         version: 4.0.5
-
-  packages/faasit-runtime/javascript:
-    dependencies:
-      '@alicloud/fc-open20210406':
-        specifier: ^2.0.9
-        version: 2.0.9
-      '@alicloud/openapi-client':
-        specifier: ^0.4.6
-        version: 0.4.6
-      '@alicloud/tea-util':
-        specifier: ^1.4.7
-        version: 1.4.7
-      axios:
-        specifier: ^1.6.0
-        version: 1.6.0
-      zod:
-        specifier: ^3.21.4
-        version: 3.21.4
-    devDependencies:
-      '@types/node':
-        specifier: ^20.8.4
-        version: 20.8.4
 
   packages/faasit-std:
     dependencies:
@@ -2951,16 +2923,6 @@ packages:
 
   /axios@1.4.0:
     resolution: {integrity: sha512-S4XCWMEmzvo64T9GfvQDOXgYRDJ/wsSZc7Jvdgx5u1sd0JwsuPLqb3SYmusag+edF6ziyMensPVqLTSc1PiSEA==}
-    dependencies:
-      follow-redirects: 1.15.2
-      form-data: 4.0.0
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
-  /axios@1.6.0:
-    resolution: {integrity: sha512-EZ1DYihju9pwVB+jg67ogm+Tmqc6JmhamRN6I4Zt8DfZu5lbcQGw3ozH9lFejSJgs/ibaef3A9PMXPLeefFGJg==}
     dependencies:
       follow-redirects: 1.15.2
       form-data: 4.0.0

@@ -10,3 +10,6 @@
 [submodule "packages/faasit-cli"]
 	path = packages/faasit-cli
 	url = git@github.com:faasit/faasit-cli.git
+[submodule "packages/vscode-faasit-cloud"]
+	path = packages/vscode-faasit-cloud
+	url = git@github.com:faasit/vscode-faasit-cloud.git

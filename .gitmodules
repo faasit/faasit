@@ -1,0 +1,27 @@
+[submodule "packages/faasit-plugins"]
+	path = packages/faasit-plugins
+	url = git@github.com:faasit/faasit-plugins.git
+[submodule "packages/faasit-cli"]
+	path = packages/faasit-cli
+	url = git@github.com:faasit/faasit-cli.git
+[submodule "packages/faasit-core"]
+	path = packages/faasit-core
+	url = git@github.com:faasit/faasit-core.git
+[submodule "packages/faasit-std"]
+	path = packages/faasit-std
+	url = git@github.com:faasit/faasit-std.git
+[submodule "packages/vscode-faasit"]
+	path = packages/vscode-faasit
+	url = git@github.com:faasit/vscode-faasit.git
+[submodule "packages/vscode-faasit-cloud"]
+	path = packages/vscode-faasit-cloud
+	url = git@github.com:faasit/vscode-faasit-cloud.git
+[submodule "faasit-runtime"]
+	path = faasit-runtime
+	url = git@github.com:faasit/faasit-runtime.git
+[submodule "faasit-docker"]
+	path = faasit-docker
+	url = git@github.com:faasit/faasit-docker.git
+[submodule "demo-202405"]
+	path = demo-202405
+	url = git@github.com:faasit/demo-202405.git

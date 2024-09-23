@@ -7,6 +7,12 @@
 
 ## Quick Start
 
+**模块下载 & 同步**
+
+```bash
+git submodule update --init --recursive
+```
+
 **安装依赖**
 
 ```sh
@@ -36,16 +42,16 @@ export PATH=$PATH:"<faasit-src-dir>/scripts"
 **运行 ft 命令行工具**
 
 ```bash
-cd packages/faasit-examples/examples/nodejs-hello
+cd demo-202405/helloworld/
 
 # 将 DSL 转换为 IR
 ft eval main.ft
 
 # 部署函数到云平台
-ft deploy
+ft deploy -p Aliyun
 
 # 调用部署好的函数
-ft invoke
+ft invoke -p Aliyun
 
 # 在本地运行 Function & Workflow
 ft run

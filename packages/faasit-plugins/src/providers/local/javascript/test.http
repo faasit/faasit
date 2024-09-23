@@ -1,7 +1,0 @@
-POST http://0.0.0.0:9000/executor HTTP/1.1
-Content-Type: application/json
-
-{
-    "text" : "Hello world this is a happy day",
-    "batchSize" : 3
-} 

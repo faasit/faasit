@@ -1,1 +1,0 @@
-export * as faas from './dist/faas.mjs'

@@ -19,6 +19,7 @@
 [submodule "faasit-runtime"]
 	path = faasit-runtime
 	url = git@github.com:faasit/faasit-runtime.git
+	branch = dydy-dev
 [submodule "faasit-docker"]
 	path = faasit-docker
 	url = git@github.com:faasit/faasit-docker.git

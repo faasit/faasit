@@ -1,6 +1,7 @@
 [submodule "packages/faasit-plugins"]
 	path = packages/faasit-plugins
 	url = git@github.com:faasit/faasit-plugins.git
+	branch = dydy-dev
 [submodule "packages/faasit-cli"]
 	path = packages/faasit-cli
 	url = git@github.com:faasit/faasit-cli.git

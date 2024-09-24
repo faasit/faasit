@@ -203,6 +203,7 @@ gradle-app.setting
 build/
 # Node
 node_modules
+pnpm-lock.yaml
 
 # Xtext / Xtend
 model

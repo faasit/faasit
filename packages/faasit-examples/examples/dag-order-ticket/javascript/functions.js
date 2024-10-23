@@ -1,5 +1,5 @@
 const { createFunction } = require('@faasit/runtime')
-const { txn, df } = require('@faasit/runtime')
+const { TccTxn, df } = require('@faasit/runtime')
 
 const BuyTrainTicket = createFunction(async (frt) => {
   const { control } = frt.input()
@@ -54,7 +54,7 @@ const executor = createFunction(async (frt) => {
 
   const { control } = frt.input()
 
-  const buyTrainTicket = txn.CreateTccTask({
+  const buyTrainTicket = TccTxn.CreateTccTask({
     tryFn: async ({ txnID }) => {
       addLog(`Try TrainTicket`, txnID)
       const r1 = await frt.call('BuyTrainTicket', { input: { control } })
@@ -69,7 +69,7 @@ const executor = createFunction(async (frt) => {
     }
   })
 
-  const reserveFlight = txn.CreateTccTask({
+  const reserveFlight = TccTxn.CreateTccTask({
     tryFn: async ({ txnID }) => {
       addLog(`Try ReserveFlight`, txnID)
       const r1 = await frt.call(`ReserveFlight`, { input: { control } })
@@ -84,7 +84,7 @@ const executor = createFunction(async (frt) => {
     }
   })
 
-  const reserveHotel = txn.CreateTccTask({
+  const reserveHotel = TccTxn.CreateTccTask({
     tryFn: async ({ txnID }) => {
       addLog(`Try ReserveHotel`, txnID)
       const r1 = await frt.call('ReserveHotel', { input: { control } })
@@ -128,7 +128,7 @@ const executor = createFunction(async (frt) => {
     }
   }
 
-  const res = await txn
+  const res = await TccTxn
     .WithTcc({ buyTrainTicket, reserveFlight, reserveHotel })
     .Run(async (tx) => {
       const r1 = await tx.exec.buyTrainTicket()

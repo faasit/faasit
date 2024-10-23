@@ -10,7 +10,7 @@ export { createWorkflow } from './Workflow'
 import * as utils from './utils'
 import { AwsRuntime } from "./runtime/AwsRuntime";
 
-export * as txn from "./txn"
+export * as TccTxn from "./txn/TccTxn"
 export * as df from "./durable"
 export * as operators from "./operators"
 

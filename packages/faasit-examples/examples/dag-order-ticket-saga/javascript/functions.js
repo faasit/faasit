@@ -1,5 +1,5 @@
 const { createFunction } = require('@faasit/runtime')
-const { TccTxn, df } = require('@faasit/runtime')
+const { SagaTxn, df } = require('@faasit/runtime')
 
 const BuyTrainTicket = createFunction(async (frt) => {
   const { control } = frt.input()
@@ -28,15 +28,15 @@ const ReserveHotel = createFunction(async (frt) => {
   return frt.output({ ok: false, error: { code: "400", detail: "refused" } })
 })
 
-const CancelFlight = createFunction(async (frt) => {
+const CompensateFlight = createFunction(async (frt) => {
   return frt.output({})
 })
 
-const CancelTrainTicket = createFunction(async (frt) => {
+const CompensateTrainTicket = createFunction(async (frt) => {
   return frt.output({})
 })
 
-const CancelHotel = createFunction(async (frt) => {
+const CompensateHotel = createFunction(async (frt) => {
   return frt.output({})
 })
 
@@ -54,82 +54,68 @@ const executor = createFunction(async (frt) => {
 
   const { control } = frt.input()
 
-  const buyTrainTicket = TccTxn.CreateTccTask({
-    tryFn: async ({ txnID }) => {
-      addLog(`Try TrainTicket`, txnID)
+  const buyTrainTicket = SagaTxn.CreateSagaTask({
+    operateFn: async ({ txnID }) => {
+      addLog(`Operate BuyTrainTicket`, txnID)
       const r1 = await frt.call('BuyTrainTicket', { input: { control } })
       return r1.output
     },
-    confirmFn: async ({ txnID }) => {
-      addLog(`Confirm TrainTicket`, txnID)
-    },
-    cancelFn: async ({ txnID, res }) => {
-      addLog(`CancelTrainTicket`, txnID, res.error)
-      await frt.call('CancelTrainTicket', { input: { control, txnID } })
+    compensateFn: async ({ txnID, res }) => {
+      addLog(`CompensateTrainTicket`, txnID, res.error)
+      await frt.call('CompensateTrainTicket', { input: { control, txnID } })
     }
   })
 
-  const reserveFlight = TccTxn.CreateTccTask({
-    tryFn: async ({ txnID }) => {
-      addLog(`Try ReserveFlight`, txnID)
+  const reserveFlight = SagaTxn.CreateSagaTask({
+    operateFn: async ({ txnID }) => {
+      addLog(`Operate ReserveFlight`, txnID)
       const r1 = await frt.call(`ReserveFlight`, { input: { control } })
       return r1.output
     },
-    confirmFn: async ({ txnID }) => {
-      addLog(`Confirm ReserveFlight`, txnID)
-    },
-    cancelFn: async ({ txnID, res }) => {
-      addLog(`CancelFlight`, txnID, res.error)
-      await frt.call(`CancelFlight`, { input: { control, txnID } })
+    compensateFn: async ({ txnID, res }) => {
+      addLog(`CompensateFlight`, txnID, res.error)
+      await frt.call(`CompensateFlight`, { input: { control, txnID } })
     }
   })
 
-  const reserveHotel = TccTxn.CreateTccTask({
-    tryFn: async ({ txnID }) => {
-      addLog(`Try ReserveHotel`, txnID)
+  const reserveHotel = SagaTxn.CreateSagaTask({
+    operateFn: async ({ txnID }) => {
+      addLog(`Operate ReserveHotel`, txnID)
       const r1 = await frt.call('ReserveHotel', { input: { control } })
       return r1.output
     },
-    confirmFn: async ({ txnID }) => {
-      addLog(`Confirm ReserveHotel`, txnID)
-    },
-    cancelFn: async ({ txnID, res }) => {
-      addLog(`CancelHotel`, txnID, res.error)
-      await frt.call(`CancelHotel`, { input: { control, txnID } })
+    compensateFn: async ({ txnID, res }) => {
+      addLog(`CompensateHotel`, txnID, res.error)
+      await frt.call(`CompensateHotel`, { input: { control, txnID } })
     }
   })
 
 
   const runManually = async () => {
-    // parallel try
+    // parallel operate
     const [r1, r2, r3] = await Promise.all([
-      buyTrainTicket.try({}),
-      reserveFlight.try({}),
-      reserveHotel.try({})
+      buyTrainTicket.operate({}),
+      reserveFlight.operate({}),
+      reserveHotel.operate({})
     ])
 
     if (r1.ok && r2.ok && r3.ok) {
-      await Promise.all([
-        buyTrainTicket.confirm(),
-        reserveFlight.confirm(),
-        reserveHotel.confirm()
-      ])
       return { ok: true, logs }
     } else {
 
       // rollback
       await Promise.all([
-        buyTrainTicket.cancel(),
-        reserveFlight.cancel(),
-        reserveHotel.cancel()
+        buyTrainTicket.compensate(),
+        reserveFlight.compensate(),
+        reserveHotel.compensate()
       ])
 
       return { ok: false, logs }
     }
   }
 
-  const res = await TccTxn
-    .WithTcc({ buyTrainTicket, reserveFlight, reserveHotel })
+  const res = await SagaTxn
+    .WithSaga({ buyTrainTicket, reserveFlight, reserveHotel })
     .Run(async (tx) => {
       const r1 = await tx.exec.buyTrainTicket()
       if (r1.error) {
@@ -148,4 +134,4 @@ const executor = createFunction(async (frt) => {
 
 })
 
-module.exports = { BuyTrainTicket, ReserveFlight, ReserveHotel, CancelFlight, CancelTrainTicket, CancelHotel, executor }
+module.exports = { BuyTrainTicket, ReserveFlight, ReserveHotel, CompensateFlight, CompensateTrainTicket, CompensateHotel, executor }

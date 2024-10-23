@@ -11,6 +11,7 @@ import * as utils from './utils'
 import { AwsRuntime } from "./runtime/AwsRuntime";
 
 export * as TccTxn from "./txn/TccTxn"
+export * as SagaTxn from "./txn/SagaTxn"
 export * as df from "./durable"
 export * as operators from "./operators"
 

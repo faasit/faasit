@@ -1,0 +1,21 @@
+{
+    "name": "@faasit/benchmark",
+    "version": "1.0.0",
+    "license": "MIT",
+    "type": "module",
+    "exports": {
+        ".": {
+          "require": "./dist/index.cjs",
+          "import": "./dist/index.mjs"
+        }
+    },
+    "types": "./dist/index.d.ts",
+    "scripts": {
+        "dev": "unbuild --stub",
+        "build": "unbuild",
+        "test:unit": "vitest"
+    },
+    "dependencies": {
+        "yaml": "^2.6.0"
+    }
+}

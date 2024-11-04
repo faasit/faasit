@@ -1,0 +1,8 @@
+metrics:
+- name: "metric1"
+  type: "max"
+- name: "metric2"
+  type: "avg"
+cases:
+- name: "test1"
+- name: "test2"

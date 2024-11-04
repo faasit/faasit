@@ -30,6 +30,7 @@
     "test:unit": "vitest"
   },
   "dependencies": {
-    "@faasit/cli": "workspace:^"
+    "@faasit/cli": "workspace:^",
+    "@faasit/benchmark": "workspace:^"
   }
 }

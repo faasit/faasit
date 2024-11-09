@@ -1,0 +1,14 @@
+metrics:
+- name: "times"
+  type: "sum"
+- name: "coldTime"
+  type: "avg"
+- name: "coldComTime"
+  type: "avg"
+- name: "warmComTime"
+  type: "avg"
+cases:
+- name: "cold starup time"
+  root: "./bench1"
+  file: "bench.ts"
+  times: 10

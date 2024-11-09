@@ -21,9 +21,11 @@
 	path = faasit-runtime
 	url = git@github.com:faasit/faasit-runtime.git
 	branch = dydy-dev
+	ignore = dirty
 [submodule "faasit-docker"]
 	path = faasit-docker
 	url = git@github.com:faasit/faasit-docker.git
 [submodule "demo-202405"]
 	path = demo-202405
 	url = git@github.com:faasit/demo-202405.git
+	ignore = dirty

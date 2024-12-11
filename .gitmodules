@@ -25,6 +25,7 @@
 [submodule "faasit-runtime"]
 	path = faasit-runtime
 	url = https://github.com/faasit/faasit-runtime.git
+	branch = release
 	ignore = dirty
 [submodule "faasit-docker"]
 	path = faasit-docker

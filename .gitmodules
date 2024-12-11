@@ -1,36 +1,36 @@
 [submodule "packages/faasit-plugins"]
 	path = packages/faasit-plugins
-	url = git@github.com:faasit/faasit-plugins.git
+	url = https://github.com/faasit/faasit-plugins.git
 	ignore = dirty
 [submodule "packages/faasit-cli"]
 	path = packages/faasit-cli
-	url = git@github.com:faasit/faasit-cli.git
+	url = https://github.com/faasit/faasit-cli.git
 	ignore = dirty
 [submodule "packages/faasit-core"]
 	path = packages/faasit-core
-	url = git@github.com:faasit/faasit-core.git
+	url = https://github.com/faasit/faasit-core.git
 	ignore = dirty
 [submodule "packages/faasit-std"]
 	path = packages/faasit-std
-	url = git@github.com:faasit/faasit-std.git
+	url = https://github.com/faasit/faasit-std.git
 	ignore = dirty
 [submodule "packages/vscode-faasit"]
 	path = packages/vscode-faasit
-	url = git@github.com:faasit/vscode-faasit.git
+	url = https://github.com/faasit/vscode-faasit.git
 	ignore = dirty
 [submodule "packages/vscode-faasit-cloud"]
 	path = packages/vscode-faasit-cloud
-	url = git@github.com:faasit/vscode-faasit-cloud.git
+	url = https://github.com/faasit/vscode-faasit-cloud.git
 	ignore = dirty
 [submodule "faasit-runtime"]
 	path = faasit-runtime
-	url = git@github.com:faasit/faasit-runtime.git
+	url = https://github.com/faasit/faasit-runtime.git
 	ignore = dirty
 [submodule "faasit-docker"]
 	path = faasit-docker
-	url = git@github.com:faasit/faasit-docker.git
+	url = https://github.com/faasit/faasit-docker.git
 	ignore = dirty
 [submodule "demo-202405"]
 	path = demo-202405
-	url = git@github.com:faasit/demo-202405.git
+	url = https://github.com/faasit/demo-202405.git
 	ignore = dirty

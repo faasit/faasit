@@ -250,7 +250,7 @@ import json
 import os
 os.environ["FAASIT_PROVIDER"]="pku"
 from index import handler
-output,invoke = handler()
+output = handler()
 print(output)
 ```
 

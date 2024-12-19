@@ -71,7 +71,7 @@ ft init
 
 密钥放在`.ssh/demo.pem`下
 
-**Python3.10 环境**
+#### Python3.10 环境
 
 将`deploy_pku/python.sh`复制到北大的目录下
 
@@ -86,7 +86,7 @@ scp -i ~/.ssh/demo.pem python.sh root@xx.xx.xx.xx:/root
 bash python.sh
 ```
 
-**NodeJS 环境**
+#### NodeJS 环境
 
 ```bash
 cd deploy_pku
@@ -103,7 +103,7 @@ volta install node@16
 volta install pnpm@8.6.0
 ```
 
-**Faasit 环境**
+#### Faasit 环境
 
 ```bash
 pwd # faasit
@@ -119,7 +119,7 @@ pnpm i
 pnpm -r dev
 ```
 
-**Dockerhub**
+#### Dockerhub
 
 ```bash
 cd deploy_pku
@@ -166,7 +166,7 @@ curl -X GET http://192.168.0.136:5000/v2/_catalog
 # {"repositories":["library/redis","redis"]}
 ```
 
-**PypiServer**
+#### PypiServer
 
 ```bash
 docker pull pypiserver/pypiserver:v2.2.0
@@ -206,6 +206,55 @@ pip install faasit-runtime --index-url http://localhost:12121
 ```bash
 pip install faasit-runtime --index-url http://{ip}:12121 --trust-host {ip}
 ```
+
+#### CodeServer
+
+下载`code-server`并上传
+
+```bash
+wget https://github.com/coder/code-server/releases/download/v4.96.1/code-server_4.96.1_amd64.deb
+scp -i ~/.ssh/demo.pem code-server_4.96.1_amd64.deb pkualiyun:/coder
+```
+
+登录北大服务器
+
+```bash
+useradd -mG sudo coder
+passwd coder
+# faasitcoder
+visudo
+# add below
+# coder  ALL=(ALL:ALL)  NOPASSWD:   ALL
+chsh coder -s /bin/bash
+dpkg -i /home/coder/code-server_4.96.1_amd64.deb
+vim /home/coder/.config/code-server/config.yaml
+# 写入下列内容
+bind-addr: 0.0.0.0:8080
+auth: password
+password: faasit-code
+cert: false
+
+vim /lib/systemd/system/code-server\@.service
+# 写入下列内容
+[Unit]
+Description=code-server
+After=network.target
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/code-server /home/coder/projects
+Restart=always
+User=%i
+
+[Install]
+WantedBy=default.target
+
+
+systemctl daemon-reload
+systemctl restart code-server@coder
+```
+
+
 
 ### 应用开发
 

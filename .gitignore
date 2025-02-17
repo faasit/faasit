@@ -238,6 +238,7 @@ template/
 .func/
 func.yaml
 .vscode/sftp.json
+*.deb
 
 # python
 __pycache__

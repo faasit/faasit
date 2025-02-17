@@ -63,6 +63,248 @@ ft codegen
 ft init
 ```
 
+## 北大集成
+
+### 环境配置
+
+**前提**
+
+密钥放在`.ssh/demo.pem`下
+
+#### Python3.10 环境
+
+将`deploy_pku/python.sh`复制到北大的目录下
+
+```bash
+cd deploy_pku
+scp -i ~/.ssh/demo.pem python.sh root@xx.xx.xx.xx:/root
+```
+
+登录到北大服务器
+
+```bash
+bash python.sh
+```
+
+#### NodeJS 环境
+
+```bash
+cd deploy_pku
+curl --location --fail https://github.com/volta-cli/volta/releases/download/v2.0.2/volta-2.0.2-linux.tar.gz --output volta-2.0.2-linux.tar.gz
+scp -i ~/.ssh/demo.pem volta-2.0.2-linux.tar.gz root@xx.xx.xx.xx:/root
+scp -i ~/.ssh/demo.pem volta.sh root@xx.xx.xx.xx:/root
+```
+
+登录到北大服务器
+
+```bash
+bash volta.sh
+volta install node@16
+volta install pnpm@8.6.0
+```
+
+#### Faasit 环境
+
+```bash
+pwd # faasit
+cd ..
+scp -i ~/.ssh/demo.pem -r faasit root@xx.xx.xx.xx:/root
+```
+
+登录到北大服务器
+
+```bash
+cd faasit
+pnpm i 
+pnpm -r dev
+```
+
+#### Dockerhub
+
+```bash
+cd deploy_pku
+docker pull registry:2
+docker save registry:2 -o registry.tar
+scp -i ~/.ssh/demo.pem registry.tar root@xx.xx.xx.xx:/root
+```
+
+登录北大服务器`master`节点
+
+```bash
+mkdir -p dockerimage
+docker load -i registry.tar
+docker run --rm -d -p 5000:5000 --name registry -v /root/dockerimage:/var/lib/registry registry:2
+```
+
+使用`ip addr`获取北大`master`节点的内网IP地址，大概是`192.168.0.xxx`
+
+然后登录北大服务器的其他`node`节点
+
+```bash
+sudo vim /etc/docker/daemon.json
+```
+
+写入以下内容
+
+```bash
+{
+  "insecure-registries": ["192.168.0.xxx:5000"],
+  "registry-mirrors": ["http://192.168.0.xxx:5000"]
+}
+```
+
+之后重新加载一下`docker`的配置
+
+```bash
+sudo systemctl reload docker
+```
+
+可以通过下列命令测试环境是否部署成功
+
+```bash
+curl -X GET http://192.168.0.136:5000/v2/_catalog
+# {"repositories":["library/redis","redis"]}
+```
+
+#### PypiServer
+
+```bash
+docker pull pypiserver/pypiserver:v2.2.0
+docker save pypiserver/pypiserver:v2.2.0 -o pypi.tar
+scp -i ~/.ssh/demo.pem pypi.tar root@xx.xx.xx.xx:/root
+scp -i ~/.ssh/demo.pem htpasswd.txt root@xx.xx.xx.xx:/root
+```
+
+登录北大服务器
+
+```bash
+mkdir -p .pypi
+docker load -i pypi.tar
+docker run --rm --name pypi -d -p 12121:8080 -v ~/.pypi/:/data/packages -v ~/htpasswd.txt:/data/.htpasswd  pypiserver/pypiserver:v2.2.0 run -P .htpasswd packages
+```
+
+上传`serverless-framework`以及`faasit-runtime`
+
+```bash
+cd /root/faasit/faasit-runtime/faasit-python-runtime/pku-pkg
+pip3 install wheel twine
+python3 setup.py bdist_wheel
+twine upload --repository-url http://localhost:12121/ dist/* -u "faasit" -p "faasit-pypi" --verbose
+cd ..
+python3 setup.py bdist_wheel
+twine upload --repository-url http://localhost:12121/ dist/* -u "faasit" -p "faasit-pypi" --verbose
+```
+
+安装的时候只需要
+
+```bash
+pip install faasit-runtime --index-url http://localhost:12121
+```
+
+如果是在其他节点
+
+```bash
+pip install faasit-runtime --index-url http://{ip}:12121 --trust-host {ip}
+```
+
+#### CodeServer
+
+下载`code-server`并上传
+
+```bash
+wget https://github.com/coder/code-server/releases/download/v4.96.1/code-server_4.96.1_amd64.deb
+scp -i ~/.ssh/demo.pem code-server_4.96.1_amd64.deb pkualiyun:/coder
+```
+
+登录北大服务器
+
+```bash
+useradd -mG sudo coder
+passwd coder
+# faasitcoder
+visudo
+# add below
+# coder  ALL=(ALL:ALL)  NOPASSWD:   ALL
+chsh coder -s /bin/bash
+dpkg -i /home/coder/code-server_4.96.1_amd64.deb
+vim /home/coder/.config/code-server/config.yaml
+# 写入下列内容
+bind-addr: 0.0.0.0:8080
+auth: password
+password: faasit-code
+cert: false
+
+vim /lib/systemd/system/code-server\@.service
+# 写入下列内容
+[Unit]
+Description=code-server
+After=network.target
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/code-server /home/coder/projects
+Restart=always
+User=%i
+
+[Install]
+WantedBy=default.target
+
+
+systemctl daemon-reload
+systemctl restart code-server@coder
+```
+
+
+
+### 应用开发
+
+**前置**
+
+假设已经写好了应用以及`main.ft`
+
+**创建python虚拟环境**
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install click
+pip install faasit-runtime --index-url http://localhost:12121
+```
+
+**构建应用镜像**
+
+```bash
+ft build
+```
+
+**部署**
+
+```bash
+ft deploy
+```
+
+**调用**
+
+```bash
+ft invoke
+ft invoke --file [] # 指定文件触发
+```
+
+**报错解决**
+
+如果遇到`ft deploy`的时候输出一些奇怪的东西，则将下列代码写到跟`workflow`代码的同个目录下并命名为`driver.py`
+
+```python
+import json
+import os
+os.environ["FAASIT_PROVIDER"]="pku"
+from index import handler
+output = handler()
+print(output)
+```
+
+然后运行`driver.py`根据报错提示修改
+
 ## Development
 
 ### Conventions

@@ -7,8 +7,14 @@ metrics:
   type: "avg"
 - name: "warmComTime"
   type: "avg"
+- name: "test2_times"
+  type: "sum"
 cases:
-- name: "cold starup time"
+- name: "demo"
   root: "./bench1"
   file: "bench.ts"
   times: 10
+- name: "demo2"
+  root: "./bench2"
+  file: "bench.ts"
+  times: 20

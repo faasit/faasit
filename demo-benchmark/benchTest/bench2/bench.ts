@@ -9,19 +9,7 @@ class Demo implements Testcase{
     }
     async runTest(): Promise<Metric[]> {
         return [{
-            name:"warmComTime",
-            value:1.0,
-            weight:1
-        },{
-            name:"coldComTime",
-            value:2.0,
-            weight:1
-        },{
-            name:"coldTime",
-            value:3.0,
-            weight:1
-        },{
-            name:"times",
+            name:"test2_times",
             value:1,
             weight:1
         }]

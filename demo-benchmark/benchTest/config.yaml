@@ -17,4 +17,3 @@ cases:
 - name: "demo2"
   root: "./bench2"
   file: "bench.ts"
-  times: 20

@@ -2,7 +2,7 @@ import { parse as yamlParse } from "yaml"
 import { promises as fileSysPromises } from "fs"
 import { dirname as getDirFromPath, resolve as getAbsolutePath } from "path"
 import { Aggregator, newAggregator } from "./aggregator" 
-import { isNull } from "util"
+import { NestConnector } from "./nestConnector"
 
 export interface Metric {
     name: string
@@ -44,7 +44,7 @@ const helpMessage = "\
 usage: bench CONFIG_PATH\n\
 \n\
 Parameters:\n\
-    CONFIG_PATH: a yaml file including nessary config entries."
+    CONFIG_PATH: a yaml file including necessary config entries."
 const defaultTestcaseFilename = "bench.ts"
 const defaultTestcaseTimes = 3
 

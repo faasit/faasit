@@ -2,7 +2,7 @@ import { parse as yamlParse } from "yaml"
 import { promises as fileSysPromises } from "fs"
 import { dirname as getDirFromPath, resolve as getAbsolutePath } from "path"
 import { Aggregator, newAggregator } from "./aggregator" 
-import { NestConnector } from "./nestConnector"
+import { NestConnector, NestMetric } from "./nestConnector"
 
 export interface Metric {
     name: string
@@ -21,8 +21,8 @@ export interface Testcase {
 interface TestcaseConfig {
     name: string
     root: string
-    file: string
-    times: number
+    file?: string
+    times?: number
 }
 
 interface MetricConfig {
@@ -30,7 +30,14 @@ interface MetricConfig {
     type: string
 }
 
+interface NestConfig {
+    host: string
+    database: string
+}
+
 interface BenchmarkConfig {
+    nest?: NestConfig
+    database?: string
     metrics: MetricConfig[]
     cases: TestcaseConfig[]
 }
@@ -38,6 +45,12 @@ interface BenchmarkConfig {
 async function readConfig(path: string): Promise<BenchmarkConfig> {
     let configContent = await fileSysPromises.readFile(path, { encoding: "utf8" })
     return yamlParse(configContent) as BenchmarkConfig
+}
+
+// 
+function getSecondBasedTime(): string{
+    const date = new Date()
+    return `${date.getFullYear()}_${date.getMonth()}_${date.getDay()}_${date.getHours()}_${date.getMinutes()}_${date.getSeconds()}`
 }
 
 const helpMessage = "\
@@ -66,6 +79,39 @@ export async function main() {
     process.chdir(getDirFromPath(configPath))
     const benchRootDir = process.cwd()
     console.info("[INFO] working dir moved to '%s'", benchRootDir)
+    // 初始化Nest链接
+    let nestConn: NestConnector|undefined = undefined
+    let nestDatabase: string = ""
+    if (benchConfig.nest != undefined){
+        nestDatabase = benchConfig.nest.database
+        if (nestDatabase == undefined){
+            console.warn("[WARN] nest database not provided.")
+        }else if (benchConfig.nest.host == undefined){
+            console.warn("[WARN] nest host not provided.")
+        }else{
+            nestConn = new NestConnector(benchConfig.nest.host)
+            console.info("[INFO] nest connection inited.")
+        }
+    }
+    // 初始化数据库
+    if (nestConn != undefined){
+        const exists = await nestConn.isDatabaseExist(nestDatabase)
+        if (exists instanceof Error){
+            console.warn("[WARN] failed to check database [%s]: %o", nestDatabase, exists)
+            nestConn = undefined
+        }else if (!exists){
+            console.info("[INFO] nest database '%s' not exists, creating...", nestDatabase)
+            const createResp = await nestConn.createDatabase(nestDatabase)
+            if (createResp instanceof Error){
+                console.warn("[WARN] failed to create database [%s]: %o", nestDatabase, createResp)
+                nestConn = undefined
+            } else {
+                console.info("[INFO] nest database '%s' created.", nestDatabase)
+            }
+        }else{
+            console.info("[INFO] nest database '%s' exists.", nestDatabase)
+        }
+    }
     // 初始化聚合器
     const aggregatorMap = new Map<string, Aggregator>()
     for (let metricId = 1; metricId <= benchConfig.metrics.length; metricId++) {
@@ -110,6 +156,8 @@ export async function main() {
             caseConf.file = defaultTestcaseFilename
         }
         caseExec: try {
+            const nestNodeId = caseConf.name+":"+getSecondBasedTime()
+            console.info("[INFO] %s: using nest id '%s'", caseConf.name, nestNodeId)
             // 根据配置获取Testcase实例
             process.chdir(caseConf.root)
             const testcaseModule = await import(getAbsolutePath(caseConf.file))
@@ -147,6 +195,7 @@ export async function main() {
                 console.info("[INFO] %s(test#%d): test running", caseConf.name, testId)
                 try{
                     const testResult: Metric[] = await testcaseInstance.runTest()
+                    const timestamp = Date.now()
                     for (let metric of testResult) {
                         const aggregator = aggregatorMap.get(metric.name)
                         if (undefined == aggregator) {
@@ -157,6 +206,20 @@ export async function main() {
                             continue
                         }
                         aggregator.merge(metric)
+                    }
+                    if (nestConn != undefined){
+                        const nestMetrics: NestMetric[] = []
+                        for (let metric of testResult){
+                            const points: {[key: number]: unknown} = {}
+                            points[timestamp] = metric.value
+                            nestMetrics.push({id: nestNodeId, metric: metric.name, points:points})
+                        }
+                        const insertResult = await nestConn.insertTimeseries(nestDatabase, nestMetrics)
+                        if (insertResult instanceof Error){
+                            console.error("[ERROR] %s(test#%d): failed to insert into nest with %o", caseConf.name, testId, insertResult)
+                        }else{
+                            console.error("[DEBUG] %s(test#%d): inserted into nest", caseConf.name, testId)
+                        }
                     }
                 } catch (e){
                     console.error("[ERROR] %s(test#%d): test running failed with %o", caseConf.name, testId, e)

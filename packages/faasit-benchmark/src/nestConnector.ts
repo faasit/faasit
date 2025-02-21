@@ -1,6 +1,5 @@
-import { json } from "stream/consumers"
-import { Metric } from "."
 import fetch from "node-fetch"
+const pathDatabase = "/database"
 const pathInsertTimeseries = "/timeseries/insert"
 
 export interface NestMetric{
@@ -16,10 +15,42 @@ interface OperationResponse{
     message?: string
 }
 
+interface DatabaseExistsResponse{
+    status: string
+    name: string
+    exists: string
+}
+
 export class NestConnector{
     host: string
     constructor(host: string){
         this.host = host
+    }
+    async isDatabaseExist(database: string): Promise<boolean|Error>{
+        const url = new URL("http://"+this.host+pathDatabase)
+        url.search = new URLSearchParams({name: database}).toString()
+        const response = await fetch(url, {method: "GET"})
+        if (!response.ok){
+            return new Error("server response with code "+response.status)
+        }
+        const jsonResp = await response.json() as DatabaseExistsResponse
+        return jsonResp.status == "ok" && jsonResp.exists == "true"
+    }
+    async createDatabase(database: string): Promise<boolean|Error>{
+        const url = new URL("http://"+this.host+pathDatabase)
+        url.search = new URLSearchParams({name: database}).toString()
+        const response = await fetch(url, {method: "POST"})
+        if (!response.ok){
+            return new Error("server response with code "+response.status)
+        }
+        const jsonResp = await response.json() as OperationResponse
+        if (jsonResp.status == "ok"){
+            return true
+        }
+        if (jsonResp.status == "error"){
+            return new Error(jsonResp.error+": "+jsonResp.message)
+        }
+        return new Error("unknown status "+jsonResp.status)
     }
     /**
      * example:
@@ -36,7 +67,7 @@ export class NestConnector{
         url.search = new URLSearchParams({database: database}).toString()
         const response = await fetch(url, {method: "POST", body: JSON.stringify(metrics)})
         if (!response.ok){
-            return new Error("server response with code "+response.statusText)
+            return new Error("server response with code "+response.status)
         }
         const jsonResp = await response.json() as OperationResponse
         if (jsonResp.status == "ok"){

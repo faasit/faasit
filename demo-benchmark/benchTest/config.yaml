@@ -1,3 +1,6 @@
+nest:
+  host: 172.27.152.238:8080
+  database: benchmark
 metrics:
 - name: "times"
   type: "sum"

@@ -5,7 +5,7 @@ from os import path
 
 # @with_timestamp
 @function
-async def f(frt: FaasitRuntime):
+def f(frt: FaasitRuntime):
     _start = round(time.time()*1000)
     _in = frt.input()
     _cold = True

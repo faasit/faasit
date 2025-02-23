@@ -16,7 +16,7 @@ cases:
 - name: "demo"
   root: "./bench1"
   file: "bench.ts"
-  times: 10
+  trigger: seq(10)
 - name: "demo2"
   root: "./bench2"
   file: "bench.ts"

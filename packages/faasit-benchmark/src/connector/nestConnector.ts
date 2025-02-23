@@ -1,4 +1,6 @@
 import fetch from "node-fetch"
+import { Connector } from "./connector"
+import { Metric } from ".."
 const pathDatabase = "/database"
 const pathInsertTimeseries = "/timeseries/insert"
 
@@ -21,10 +23,20 @@ interface DatabaseExistsResponse{
     exists: string
 }
 
-export class NestConnector{
+export class NestConnector implements Connector{
     host: string
     constructor(host: string){
         this.host = host
+    }
+    async insertMetrics(database: string, caseName: string, uid: string, timestamp: number, metrics: Metric[]): Promise<boolean | Error> {
+        const nestNodeId = caseName+":"+uid
+        const nestMetrics: NestMetric[] = []
+        for (let metric of metrics){
+            const points: {[key: number]: unknown} = {}
+            points[timestamp] = metric.value
+            nestMetrics.push({id: nestNodeId, metric: metric.name, points:points})
+        }
+        return this.insertTimeseries(database, nestMetrics)
     }
     async isDatabaseExist(database: string): Promise<boolean|Error>{
         const url = new URL("http://"+this.host+pathDatabase)

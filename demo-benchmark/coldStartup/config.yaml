@@ -1,3 +1,6 @@
+nest:
+  host: 172.27.152.238:8080
+  database: benchmark
 metrics:
 - name: "times"
   type: "sum"
@@ -11,4 +14,4 @@ cases:
 - name: "cold starup time"
   root: "./bench1"
   file: "bench.ts"
-  times: 10
+  trigger: seq(10)

@@ -25,7 +25,7 @@ class ColdStartup implements Testcase{
         return true
     }
     async preTest(): Promise<boolean> {
-        console.info(" [INFO] wait %d minutes for cold startup...", sleepTime)
+        console.info("[INFO] wait %d minutes for cold startup...", sleepTime)
         await new Promise(r => setTimeout(r, sleepTime*60000))
         return true
     }
@@ -38,12 +38,12 @@ class ColdStartup implements Testcase{
             coldResult = await engine.invoke(config)
         }
         let coldComTime = getComTime(coldResult)
-        console.info(" [INFO] cold communication time: %d ms", coldComTime)
+        console.info("[INFO] cold communication time: %d ms", coldComTime)
         // 热启动
         await new Promise(r => setTimeout(r, 5000))
         let warmComTime = getComTime(await engine.invoke(config))
-        console.info(" [INFO] warm communication time: %d ms", warmComTime)
-        console.info(" [INFO] cold startup time: %d ms", coldComTime-warmComTime)
+        console.info("[INFO] warm communication time: %d ms", warmComTime)
+        console.info("[INFO] cold startup time: %d ms", coldComTime-warmComTime)
         return [{
             name:"warmComTime",
             value:warmComTime,

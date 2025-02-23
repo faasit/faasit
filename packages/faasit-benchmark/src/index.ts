@@ -1,8 +1,11 @@
 import { parse as yamlParse } from "yaml"
 import { promises as fileSysPromises } from "fs"
 import { dirname as getDirFromPath, resolve as getAbsolutePath } from "path"
-import { Aggregator, newAggregator } from "./aggregator" 
-import { NestConnector, NestMetric } from "./nestConnector"
+import { Aggregator, parseAggregator } from "./aggregator/aggregator" 
+import { NestConnector } from "./connector/nestConnector"
+import { getSecondBasedTime } from "./utils"
+import { Connector } from "./connector/connector"
+import { parseTrigger } from "./trigger/trigger"
 
 export interface Metric {
     name: string
@@ -22,7 +25,7 @@ interface TestcaseConfig {
     name: string
     root: string
     file?: string
-    times?: number
+    trigger?: string
 }
 
 interface MetricConfig {
@@ -47,19 +50,13 @@ async function readConfig(path: string): Promise<BenchmarkConfig> {
     return yamlParse(configContent) as BenchmarkConfig
 }
 
-// 
-function getSecondBasedTime(): string{
-    const date = new Date()
-    return `${date.getFullYear()}_${date.getMonth()}_${date.getDay()}_${date.getHours()}_${date.getMinutes()}_${date.getSeconds()}`
-}
-
 const helpMessage = "\
 usage: bench CONFIG_PATH\n\
 \n\
 Parameters:\n\
     CONFIG_PATH: a yaml file including necessary config entries."
 const defaultTestcaseFilename = "bench.ts"
-const defaultTestcaseTimes = 3
+const defaultTrigger = "seq(3)"
 
 export async function main() {
     if (process.argv.length <= 2) {
@@ -79,37 +76,37 @@ export async function main() {
     process.chdir(getDirFromPath(configPath))
     const benchRootDir = process.cwd()
     console.info("[INFO] working dir moved to '%s'", benchRootDir)
-    // 初始化Nest链接
-    let nestConn: NestConnector|undefined = undefined
-    let nestDatabase: string = ""
+    // 初始化数据库链接
+    let connector: Connector|undefined = undefined
+    let databaseName: string = ""
     if (benchConfig.nest != undefined){
-        nestDatabase = benchConfig.nest.database
-        if (nestDatabase == undefined){
+        databaseName = benchConfig.nest.database
+        if (databaseName == undefined){
             console.warn("[WARN] nest database not provided.")
         }else if (benchConfig.nest.host == undefined){
             console.warn("[WARN] nest host not provided.")
         }else{
-            nestConn = new NestConnector(benchConfig.nest.host)
+            connector = new NestConnector(benchConfig.nest.host)
             console.info("[INFO] nest connection inited.")
         }
     }
     // 初始化数据库
-    if (nestConn != undefined){
-        const exists = await nestConn.isDatabaseExist(nestDatabase)
+    if (connector != undefined){
+        const exists = await connector.isDatabaseExist(databaseName)
         if (exists instanceof Error){
-            console.warn("[WARN] failed to check database [%s]: %o", nestDatabase, exists)
-            nestConn = undefined
+            console.warn("[WARN] failed to check database [%s]: %o", databaseName, exists)
+            connector = undefined
         }else if (!exists){
-            console.info("[INFO] nest database '%s' not exists, creating...", nestDatabase)
-            const createResp = await nestConn.createDatabase(nestDatabase)
+            console.info("[INFO] nest database '%s' not exists, creating...", databaseName)
+            const createResp = await connector.createDatabase(databaseName)
             if (createResp instanceof Error){
-                console.warn("[WARN] failed to create database [%s]: %o", nestDatabase, createResp)
-                nestConn = undefined
+                console.warn("[WARN] failed to create database [%s]: %o", databaseName, createResp)
+                connector = undefined
             } else {
-                console.info("[INFO] nest database '%s' created.", nestDatabase)
+                console.info("[INFO] nest database '%s' created.", databaseName)
             }
         }else{
-            console.info("[INFO] nest database '%s' exists.", nestDatabase)
+            console.info("[INFO] nest database '%s' exists.", databaseName)
         }
     }
     // 初始化聚合器
@@ -125,7 +122,7 @@ export async function main() {
             console.warn("[WARN] metric#%s: name '%s' already exists, ignored.", metricId, metricConf.name)
             continue
         }
-        const aggregator = newAggregator(metricConf.type)
+        const aggregator = parseAggregator(metricConf.type)
         if (aggregator == undefined) {
             console.warn("[WARN] metric#%s: unknown metric type '%s', ignored.", metricId, metricConf.type)
             continue
@@ -147,17 +144,21 @@ export async function main() {
             console.warn("[WARN] %s: root not provided, skipped.", caseConf.name)
             continue
         }
-        if (caseConf.times == undefined || caseConf.times <= 0) {
-            console.info("[INFO] %s: using default test times '%s'", caseConf.name, defaultTestcaseTimes)
-            caseConf.times = defaultTestcaseTimes
+        if (caseConf.trigger == undefined) {
+            console.info("[INFO] %s: using default test times '%s'", caseConf.name, defaultTrigger)
+            caseConf.trigger = defaultTrigger
         }
         if (caseConf.file == undefined) {
             console.info("[INFO] %s: using default file name '%s'", caseConf.name, defaultTestcaseFilename)
             caseConf.file = defaultTestcaseFilename
         }
+        const trigger = parseTrigger(caseConf.trigger)
+        if (trigger == undefined){
+            console.warn("[WARN] %s: failed to parse trigger %s, skipped.", caseConf.name, caseConf.trigger)
+            continue
+        }
         caseExec: try {
-            const nestNodeId = caseConf.name+":"+getSecondBasedTime()
-            console.info("[INFO] %s: using nest id '%s'", caseConf.name, nestNodeId)
+            const caseUid = getSecondBasedTime()
             // 根据配置获取Testcase实例
             process.chdir(caseConf.root)
             const testcaseModule = await import(getAbsolutePath(caseConf.file))
@@ -179,17 +180,17 @@ export async function main() {
             }
             MissingMetricSet.clear()
             // 测试用例
-            for (let testId = 1; testId <= caseConf.times; testId++) {
+            await trigger.execute(async (testId) => {
                 // 执行测试初始化
                 console.info("[INFO] %s(test#%d): test preparing", caseConf.name, testId)
                 try {
                     if (false == await testcaseInstance.preTest()) {
                         console.warn("[WARN] %s(test#%d): prepare failed, test skipped.", caseConf.name, testId)
-                        continue
+                        return
                     }
                 } catch (e) {
                     console.error("[ERROR] %s(test#%d): prepare failed, test skipped with %o", caseConf.name, testId, e)
-                    continue
+                    return
                 }
                 // 运行测试
                 console.info("[INFO] %s(test#%d): test running", caseConf.name, testId)
@@ -207,14 +208,8 @@ export async function main() {
                         }
                         aggregator.merge(metric)
                     }
-                    if (nestConn != undefined){
-                        const nestMetrics: NestMetric[] = []
-                        for (let metric of testResult){
-                            const points: {[key: number]: unknown} = {}
-                            points[timestamp] = metric.value
-                            nestMetrics.push({id: nestNodeId, metric: metric.name, points:points})
-                        }
-                        const insertResult = await nestConn.insertTimeseries(nestDatabase, nestMetrics)
+                    if (connector != undefined){
+                        const insertResult = await connector.insertMetrics(databaseName, caseConf.name, caseUid, timestamp, testResult)
                         if (insertResult instanceof Error){
                             console.error("[ERROR] %s(test#%d): failed to insert into nest with %o", caseConf.name, testId, insertResult)
                         }else{
@@ -230,7 +225,7 @@ export async function main() {
                 } catch (e) {
                     console.warn("[WARN] %s(test#%d): post test failed with %o.", caseConf.name, testId, e)
                 }
-            }
+            })
             // 执行用例后处理
             try {
                 await testcaseInstance.postTestcase()

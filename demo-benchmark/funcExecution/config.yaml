@@ -1,0 +1,13 @@
+nest:
+  host: 172.27.152.238:8080
+  database: benchmark
+metrics:
+- name: "times"
+  type: "sum"
+- name: "executionTime"
+  type: "avg"
+cases:
+- name: "function execution time"
+  root: "./bench1"
+  file: "bench.ts"
+  trigger: seq(10)

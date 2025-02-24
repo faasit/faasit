@@ -34,7 +34,7 @@ export class NestConnector implements Connector{
         for (let metric of metrics){
             const points: {[key: number]: unknown} = {}
             points[timestamp] = metric.value
-            nestMetrics.push({id: nestNodeId, metric: metric.name, points:points})
+            nestMetrics.push({id: nestNodeId, metric: metric.name, points:points, conflict:metric.conflict})
         }
         return this.insertTimeseries(database, nestMetrics)
     }

@@ -13,10 +13,11 @@ metrics:
 - name: "test2_times"
   type: "sum"
 cases:
-- name: "demo"
-  root: "./bench1"
-  file: "bench.ts"
-  trigger: seq(10)
+# - name: "demo"
+#   root: "./bench1"
+#   file: "bench.ts"
+#   trigger: seq(10)
 - name: "demo2"
   root: "./bench2"
   file: "bench.ts"
+  trigger: sud(10)

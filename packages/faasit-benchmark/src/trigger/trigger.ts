@@ -1,4 +1,5 @@
 import { SequentialTrigger } from "./sequentialTrigger";
+import { SuddenTrigger } from "./suddenTrigger";
 
 export interface Trigger{
     execute(payload: (id: number) => Promise<void>): Promise<void>
@@ -16,6 +17,8 @@ export function parseTrigger(type: string): Trigger|undefined{
         switch(masterType){
             case "seq":
                 return new SequentialTrigger(Number.parseInt(params[0].trim()))
+            case "sud":
+                return new SuddenTrigger(Number.parseInt(params[0].trim()))
             default:
                 return undefined
         }

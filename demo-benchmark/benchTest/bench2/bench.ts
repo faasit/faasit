@@ -8,10 +8,12 @@ class Demo implements Testcase{
         return true
     }
     async runTest(): Promise<Metric[]> {
+        await new Promise(r => setTimeout(r, 1000))
         return [{
             name:"test2_times",
             value:1,
-            weight:1
+            weight:1,
+            conflict:"append"
         }]
     }
     async postTest(): Promise<void> {

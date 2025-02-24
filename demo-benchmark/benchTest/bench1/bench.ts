@@ -8,6 +8,7 @@ class Demo implements Testcase{
         return true
     }
     async runTest(): Promise<Metric[]> {
+        await new Promise(r => setTimeout(r, 1000))
         return [{
             name:"warmComTime",
             value:1.0,

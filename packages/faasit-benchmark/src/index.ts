@@ -11,6 +11,8 @@ export interface Metric {
     name: string
     value: number
     weight: number
+    // handle same timestamp when insert into database
+    conflict?: string
 }
 
 export interface Testcase {

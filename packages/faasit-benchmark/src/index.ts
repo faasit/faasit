@@ -10,7 +10,7 @@ import { parseTrigger } from "./trigger/trigger"
 export interface Metric {
     name: string
     value: number
-    weight: number
+    weight?: number
     // handle same timestamp when insert into database
     conflict?: string
 }

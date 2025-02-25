@@ -5,7 +5,7 @@ export class WeightedAverageAggregator implements Aggregator{
     value: number = 0;
     weight: number = 0;
     merge(metric: Metric): void {
-        if (metric.weight <= 0) return
+        if (metric.weight == undefined || metric.weight <= 0) return
         this.value += metric.value
         this.weight += metric.weight
     }

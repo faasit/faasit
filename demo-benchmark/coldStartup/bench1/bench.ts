@@ -46,20 +46,16 @@ class ColdStartup implements Testcase{
         console.info("[INFO] cold startup time: %d ms", coldComTime-warmComTime)
         return [{
             name:"warmComTime",
-            value:warmComTime,
-            weight:1
+            value:warmComTime
         },{
             name:"coldComTime",
-            value:coldComTime,
-            weight:1
+            value:coldComTime
         },{
             name:"coldTime",
-            value:coldComTime-warmComTime,
-            weight:1
+            value:coldComTime-warmComTime
         },{
             name:"times",
-            value:1,
-            weight:1
+            value:1
         }]
     }
     async postTest(): Promise<void> {

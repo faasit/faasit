@@ -11,20 +11,16 @@ class Demo implements Testcase{
         await new Promise(r => setTimeout(r, 1000))
         return [{
             name:"warmComTime",
-            value:1.0,
-            weight:1
+            value:1.0
         },{
             name:"coldComTime",
-            value:2.0,
-            weight:1
+            value:2.0
         },{
             name:"coldTime",
-            value:3.0,
-            weight:1
+            value:3.0
         },{
             name:"times",
-            value:1,
-            weight:1
+            value:1
         }]
     }
     async postTest(): Promise<void> {

@@ -12,7 +12,6 @@ class Demo implements Testcase{
         return [{
             name:"test2_times",
             value:1,
-            weight:1,
             conflict:"append"
         }]
     }

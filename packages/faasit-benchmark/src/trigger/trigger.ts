@@ -8,17 +8,32 @@ export interface Trigger{
 export function parseTrigger(type: string): Trigger|undefined{
     try{
         const leftSepIdx = type.indexOf("(");
-        const rightSepIdx = type.indexOf(")");
-        if (leftSepIdx == -1 || rightSepIdx < leftSepIdx){
-            return undefined
+        let masterType: string
+        let params: string[]
+        if (leftSepIdx == -1){
+            // 无参数
+            masterType = type.substring(0, leftSepIdx).trim()
+            params = []
+        } else{
+            // 含参数
+            const rightSepIdx = type.indexOf(")");
+            if (rightSepIdx < leftSepIdx){
+                return undefined
+            }
+            masterType = type.substring(0, leftSepIdx).trim()
+            params = type.substring(leftSepIdx+1, rightSepIdx).split(',')
+            for(let i=0; i<params.length; i++){
+                params[i] = params[i].trim()
+            }
         }
-        const masterType = type.substring(0, leftSepIdx).trim()
-        const params = type.substring(leftSepIdx+1, rightSepIdx).split(',')
         switch(masterType){
             case "seq":
-                return new SequentialTrigger(Number.parseInt(params[0].trim()))
+                const seq_times = params.length>0 ? Number.parseInt(params[0]) : 3
+                const seq_delay = params.length>1 ? Number.parseInt(params[1]) : 0
+                return new SequentialTrigger(seq_times, seq_delay)
             case "sud":
-                return new SuddenTrigger(Number.parseInt(params[0].trim()))
+                const sud_times = params.length>0 ? Number.parseInt(params[0]) : 3
+                return new SuddenTrigger(sud_times)
             default:
                 return undefined
         }

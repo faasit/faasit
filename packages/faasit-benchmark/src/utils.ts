@@ -9,7 +9,7 @@ function getZeroPrefixInt(num: number, len: number): string{
 export function getSecondBasedTime(): string{
     const date = new Date()
     return `${getZeroPrefixInt(date.getFullYear(), 2)}_\
-${getZeroPrefixInt(date.getMonth(), 2)}_\
+${getZeroPrefixInt(date.getMonth()+1, 2)}_\
 ${getZeroPrefixInt(date.getDate(), 2)}_\
 ${getZeroPrefixInt(date.getHours(), 2)}_\
 ${getZeroPrefixInt(date.getMinutes(), 2)}_\

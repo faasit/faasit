@@ -25,12 +25,6 @@ function getTime(result: InvocationResult): number {
     return result.providerEnd - result.providerBegin
 }
 
-function getUpdateTime(resultBegin: InvocationResult, resultEnd: InvocationResult): number {
-    if (resultBegin.faasitEnd == undefined) throw new Error("timestamp of update begin missing")
-    if (resultEnd.providerBegin == undefined) throw new Error("timestamp of update end missing")
-    return resultEnd.providerBegin - resultBegin.faasitEnd
-}
-
 class FuncUpdate implements Testcase{
     async preTestcase(): Promise<boolean> {
         await engine.deploy(config1)
@@ -45,13 +39,20 @@ class FuncUpdate implements Testcase{
             resultBegin = await engine.invoke(config1)
         }
         let execTime1 = getTime(resultBegin)
-        await engine.deploy(config2)
+
+        let update = engine.deploy(config2)
+        let timeBegin = Date.now()
+        await update
+
         let resultEnd = await engine.invoke(config2)
         while (resultEnd.providerBegin == undefined || resultEnd.providerEnd == undefined || getTime(resultEnd) < (execTime1 + 6000)){
             resultEnd = await engine.invoke(config2)
         }
-        let funcUpdateTime = getUpdateTime(resultBegin, resultEnd)
+
+        if (resultEnd.providerBegin == undefined) throw new Error("timestamp of update end missing")
+        let funcUpdateTime = resultEnd.providerBegin - timeBegin
         console.info(" [INFO] function update time: %d ms", funcUpdateTime)
+
         return [{
             name:"funcUpdateTime",
             value:funcUpdateTime

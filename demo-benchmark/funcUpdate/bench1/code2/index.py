@@ -1,8 +1,6 @@
 from faasit_runtime import function, create_handler#, with_timestamp
 from faasit_runtime.runtime import FaasitRuntime
 import time
-from os import path, cpu_count
-import numpy as np
 
 # @with_timestamp
 @function

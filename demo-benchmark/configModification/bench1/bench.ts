@@ -19,12 +19,6 @@ const config2 = {
     dev_perf: false
 }
 
-function getTime(resultBegin: InvocationResult, resultEnd: InvocationResult): number {
-    if (resultBegin.faasitEnd == undefined) throw new Error("timestamp of modification begin missing")
-    if (resultEnd.providerBegin == undefined) throw new Error("timestamp of modification end missing")
-    return resultEnd.providerBegin - resultBegin.faasitEnd
-}
-
 class ConfigModification implements Testcase{
     async preTestcase(): Promise<boolean> {
         await engine.deploy(config1)
@@ -38,13 +32,20 @@ class ConfigModification implements Testcase{
         while (resultBegin.cpu == undefined){
             resultBegin = await engine.invoke(config1)
         }
-        await engine.deploy(config2)
+        
+        let modify = engine.deploy(config2)
+        let timeBegin = Date.now()
+        await modify
+
         let resultEnd = await engine.invoke(config2)
         while (resultEnd.cpu == undefined || resultEnd.cpu == resultBegin.cpu){
             resultEnd = await engine.invoke(config2)
         }
-        let configModificationTime = getTime(resultBegin, resultEnd)
+
+        if (resultEnd.providerEnd == undefined) throw new Error("timestamp of modification end missing")
+        let configModificationTime = resultEnd.providerEnd - timeBegin
         console.info(" [INFO] config modification time: %d ms", configModificationTime)
+
         return [{
             name:"configModificationTime",
             value:configModificationTime

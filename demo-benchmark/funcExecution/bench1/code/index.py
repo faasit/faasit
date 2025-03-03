@@ -12,7 +12,7 @@ async def f(frt: FaasitRuntime):
 
     # 随机生成两个矩阵，计算它们的乘积，以此作为一个工作负载函数
     # 获取矩阵大小n
-    n = _in.get('n', 2000)  # 默认大小为 2000x2000
+    n = _in.get('n', 1000)  # 默认大小为 1000x1000
     
     # 生成两个随机的n*n方阵
     matrix1 = np.random.randint(10, size=(n, n))
@@ -24,8 +24,6 @@ async def f(frt: FaasitRuntime):
     _out = {
         "_begin":_start,
         "_end":round(time.time()*1000),
-        "matrix1": matrix1.tolist(),
-        "matrix2": matrix2.tolist(),
         "product": product.tolist()
     }
 

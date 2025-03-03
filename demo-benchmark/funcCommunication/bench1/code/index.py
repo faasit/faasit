@@ -2,6 +2,7 @@ from faasit_runtime import function, create_handler#, with_timestamp
 from faasit_runtime.runtime import FaasitRuntime
 import time
 from os import path
+from random import randint
 
 @function
 async def ff(frt: FaasitRuntime):
@@ -21,7 +22,7 @@ async def ff(frt: FaasitRuntime):
 async def f(frt: FaasitRuntime):
     _start = round(time.time()*1000)
     
-    v = await frt.call(ff, {"x": 1})
+    v = await frt.call(ff, {"x": randint(0, 100)})
 
     _end = v.get('_end', round(time.time()*1000))
 

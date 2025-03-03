@@ -30,12 +30,10 @@ class FuncCommunition implements Testcase{
         console.info(" [INFO] communition time: %d ms", communitionTime)
         return [{
             name:"communitionTime",
-            value:communitionTime,
-            weight:1
+            value:communitionTime
         },{
             name:"times",
-            value:1,
-            weight:1
+            value:1
         }]
     }
     async postTest(): Promise<void> {

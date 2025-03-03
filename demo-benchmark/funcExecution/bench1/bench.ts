@@ -30,12 +30,10 @@ class FuncExecution implements Testcase{
         console.info(" [INFO] execution time: %d ms", executionTime)
         return [{
             name:"executionTime",
-            value:executionTime,
-            weight:1
+            value:executionTime
         },{
             name:"times",
-            value:1,
-            weight:1
+            value:1
         }]
     }
     async postTest(): Promise<void> {

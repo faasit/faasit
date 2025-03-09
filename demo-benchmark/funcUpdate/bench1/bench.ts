@@ -35,17 +35,17 @@ class FuncUpdate implements Testcase{
     }
     async runTest(): Promise<Metric[]> {
         let resultBegin = await engine.invoke(config1)
-        while (resultBegin.providerBegin == undefined || resultBegin.providerEnd == undefined){
+        while (resultBegin.returnResult == undefined){
             resultBegin = await engine.invoke(config1)
         }
-        let execTime1 = getTime(resultBegin)
+        let result1 = resultBegin.returnResult
 
         let update = engine.deploy(config2)
         let timeBegin = Date.now()
         await update
 
         let resultEnd = await engine.invoke(config2)
-        while (resultEnd.providerBegin == undefined || resultEnd.providerEnd == undefined || getTime(resultEnd) < (execTime1 + 6000)){
+        while (resultEnd.returnResult == undefined || resultEnd.returnResult == result1){
             resultEnd = await engine.invoke(config2)
         }
 

@@ -9,7 +9,8 @@ async def f(frt: FaasitRuntime):
     
     _out = {
         "_begin":_start,
-        "_end":round(time.time()*1000)
+        "_end":round(time.time()*1000),
+        "_return":1
     }
 
     return frt.output(_out)

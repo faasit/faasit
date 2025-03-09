@@ -24,11 +24,14 @@ async def f(frt: FaasitRuntime):
     
     v = await frt.call(ff, {"x": randint(0, 100)})
 
-    _end = v.get('_end', round(time.time()*1000))
+    _end = round(time.time()*1000)
+
+    elapsed = (_end - _start) // 2
 
     _out = {
         "_begin":_start,
-        "_end":_end
+        "_end":_end,
+        "_return":elapsed
     }
     return frt.output(_out)
 

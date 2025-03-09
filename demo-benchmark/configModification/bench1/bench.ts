@@ -19,7 +19,7 @@ const config2 = {
     dev_perf: false
 }
 
-class ConfigModification implements Testcase{
+class ConfigModification implements Testcase {
     async preTestcase(): Promise<boolean> {
         await engine.deploy(config1)
         return true
@@ -29,16 +29,16 @@ class ConfigModification implements Testcase{
     }
     async runTest(): Promise<Metric[]> {
         let resultBegin = await engine.invoke(config1)
-        while (resultBegin.cpu == undefined){
+        while (resultBegin.returnResult == undefined) {
             resultBegin = await engine.invoke(config1)
         }
-        
+
         let modify = engine.deploy(config2)
         let timeBegin = Date.now()
         await modify
 
         let resultEnd = await engine.invoke(config2)
-        while (resultEnd.cpu == undefined || resultEnd.cpu == resultBegin.cpu){
+        while (resultEnd.returnResult == undefined || resultEnd.returnResult == resultBegin.returnResult) {
             resultEnd = await engine.invoke(config2)
         }
 
@@ -47,11 +47,11 @@ class ConfigModification implements Testcase{
         console.info(" [INFO] config modification time: %d ms", configModificationTime)
 
         return [{
-            name:"configModificationTime",
-            value:configModificationTime
-        },{
-            name:"times",
-            value:1
+            name: "configModificationTime",
+            value: configModificationTime
+        }, {
+            name: "times",
+            value: 1
         }]
     }
     async postTest(): Promise<void> {
@@ -61,6 +61,6 @@ class ConfigModification implements Testcase{
     }
 }
 
-export function getInstance(): Testcase{
+export function getInstance(): Testcase {
     return new ConfigModification()
 }

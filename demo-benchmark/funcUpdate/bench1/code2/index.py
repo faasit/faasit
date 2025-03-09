@@ -6,12 +6,11 @@ import time
 @function
 async def f(frt: FaasitRuntime):
     _start = round(time.time()*1000)
-
-    time.sleep(10)
     
     _out = {
         "_begin":_start,
-        "_end":round(time.time()*1000)
+        "_end":round(time.time()*1000),
+        "_return":2
     }
 
     return frt.output(_out)

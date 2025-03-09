@@ -7,7 +7,19 @@ metrics:
 - name: "executionTime"
   type: "avg"
 cases:
-- name: "function execution time"
+- name: "function execution time - 1"
   root: "./bench1"
+  file: "bench.ts"
+  trigger: seq(10)
+- name: "function execution time - 2"
+  root: "./bench2"
+  file: "bench.ts"
+  trigger: seq(10)
+- name: "function execution time - 3"
+  root: "./bench3"
+  file: "bench.ts"
+  trigger: seq(10)
+- name: "function execution time - 4"
+  root: "./bench4"
   file: "bench.ts"
   trigger: seq(10)

@@ -40,7 +40,7 @@ async def f(frt: FaasitRuntime):
     _out = {
         "_begin":_start,
         "_end":round(time.time()*1000),
-        "_cpu":n
+        "_return":n
     }
 
     return frt.output(_out)

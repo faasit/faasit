@@ -12,12 +12,18 @@ metrics:
   type: "avg"
 - name: "test2_times"
   type: "sum"
+- name: "test3_times"
+  type: "sum"
 cases:
 - name: "demo"
   root: "./bench1"
   file: "bench.ts"
-  trigger: seq(5, 1000)
+  trigger: seq(10, 1000)
 - name: "demo2"
   root: "./bench2"
   file: "bench.ts"
-  trigger: sud(5)
+  trigger: sud(10)
+- name: "demo3"
+  root: "./bench3"
+  file: "bench.ts"
+  trigger: pos

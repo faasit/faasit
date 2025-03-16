@@ -2,7 +2,7 @@ from faasit_runtime import function, create_handler#, with_timestamp
 from faasit_runtime.runtime import FaasitRuntime
 import time
 import os
-import numpy as np
+
 
 # I/O 密集型函数：模拟文件写入和读取（注意文件大小可调）
 def io_bound_task(filename, size_in_mb=1):
@@ -21,7 +21,7 @@ def io_bound_task(filename, size_in_mb=1):
 
 # @with_timestamp
 @function
-async def f(frt: FaasitRuntime):
+def f(frt: FaasitRuntime):
     _start = round(time.time()*1000)
     _in = frt.input()
 

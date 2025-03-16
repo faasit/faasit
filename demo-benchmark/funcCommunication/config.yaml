@@ -7,7 +7,15 @@ metrics:
 - name: "communicationTime"
   type: "avg"
 cases:
-- name: "function communication time"
+- name: "function communication time - 1"
   root: "./bench1"
+  file: "bench.ts"
+  trigger: seq(10)
+- name: "function communication time - 2"
+  root: "./bench2"
+  file: "bench.ts"
+  trigger: seq(10)
+- name: "function communication time - 3"
+  root: "./bench3"
   file: "bench.ts"
   trigger: seq(10)

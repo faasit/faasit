@@ -1,0 +1,23 @@
+@function hello {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.hello"
+}
+
+@application helloapp {
+    functions = [hello]
+    defaultProvider = aliyun
+    providers = [aliyun]
+    inputExamples = [
+        {
+            value = {
+                text = "Hello world this is a happy day"
+                batchSize = 3
+            }
+        }
+    ]
+}
+
+@provider aliyun {
+    kind = 'aliyun'
+}

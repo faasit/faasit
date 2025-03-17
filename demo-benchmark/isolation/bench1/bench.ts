@@ -25,7 +25,7 @@ function getinvokeTime(result: InvocationResult): number {
 
 const ParTestTimes = 300
 
-class FuncExecution implements Testcase {
+class Isolation implements Testcase {
     async preTestcase(): Promise<boolean> {
         await engine.deploy(config)
         await new Promise(r => setTimeout(r, 2000))
@@ -99,5 +99,5 @@ class FuncExecution implements Testcase {
 }
 
 export function getInstance(): Testcase {
-    return new FuncExecution()
+    return new Isolation()
 }

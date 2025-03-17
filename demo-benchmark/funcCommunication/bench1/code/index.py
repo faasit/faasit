@@ -3,28 +3,22 @@ from faasit_runtime.runtime import FaasitRuntime
 import time
 from os import path
 from random import randint
-
-@function
-async def ff(frt: FaasitRuntime):
-    
-    _in = frt.input()
-    x = _in.get('x', 0)
-    _end = round(time.time()*1000)
-    _out = {
-        "x": x,
-        "_end":_end
-    }
-    
-    return frt.output(_out)
+import json
 
 # @with_timestamp
 @function
-async def f(frt: FaasitRuntime):
-    _start = round(time.time()*1000)
-    
-    v = await frt.call(ff, {"x": randint(0, 100)})
+def f(frt: FaasitRuntime):
 
-    _end = round(time.time()*1000)
+    text = randint(0, 100)
+
+    cold = True
+
+    # 保证相应函数已启动
+    while cold:
+        _start = round(time.time()*1000)
+        v = frt.call("message_receive", {"x": text})
+        cold = v.get("_cold", False)
+        _end = round(time.time()*1000)
 
     elapsed = (_end - _start) // 2
 

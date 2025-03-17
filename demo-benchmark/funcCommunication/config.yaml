@@ -12,10 +12,10 @@ cases:
   file: "bench.ts"
   trigger: seq(10)
 - name: "function communication time - 2"
-  root: "./bench2"
+  root: "./bench1"
   file: "bench.ts"
-  trigger: seq(10)
+  trigger: sud(50)
 - name: "function communication time - 3"
-  root: "./bench3"
+  root: "./bench1"
   file: "bench.ts"
-  trigger: seq(10)
+  trigger: sud(200)

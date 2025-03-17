@@ -1,14 +1,9 @@
-@function message_receive {
-  runtime = "python"
-  codeDir = "./code/message_receive"
-}
-
 @function workload {
   runtime = "python"
   codeDir = "./code"
   resource = {
-    cpu = "1024m"
-    memory = "128Mi"
+    cpu = "0.05"
+    memory = "128M"
   }
   pubsub = {
     events = []
@@ -16,9 +11,9 @@
 }
 
 @application PythonWorkload {
-  functions = [workload, message_receive]
-  providers = [Knative, Aliyun]
-  defaultProvider = Knative
+  functions = [workload]
+  providers = [Aliyun]
+  defaultProvider = Aliyun
   inputExamples = [
     {
       value = {
@@ -27,10 +22,6 @@
       }
     }
   ]
-}
-
-@provider Knative {
-  kind = "knative"
 }
 
 @provider Aliyun {

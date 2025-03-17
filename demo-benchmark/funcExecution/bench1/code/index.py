@@ -4,6 +4,15 @@ import time
 from os import path
 import numpy as np
 
+def matrix_multiply(n: int):
+    # 生成两个随机的n*n方阵
+    matrix1 = np.random.randint(10, size=(n, n))
+    matrix2 = np.random.randint(10, size=(n, n))
+    
+    # 计算它们的乘积
+    product = np.dot(matrix1, matrix2)
+    return product.tolist()
+
 # @with_timestamp
 @function
 def f(frt: FaasitRuntime):
@@ -12,19 +21,13 @@ def f(frt: FaasitRuntime):
 
     # 随机生成两个矩阵，计算它们的乘积，以此作为一个工作负载函数
     # 获取矩阵大小n
-    n = _in.get('n', 1000)  # 默认大小为 1000x1000
+    n = _in.get('n', 600)  # 默认大小为 600x600
     
-    # 生成两个随机的n*n方阵
-    matrix1 = np.random.randint(10, size=(n, n))
-    matrix2 = np.random.randint(10, size=(n, n))
-    
-    # 计算它们的乘积
-    product = np.dot(matrix1, matrix2)
+    res = matrix_multiply(n)
 
     _out = {
         "_begin":_start,
-        "_end":round(time.time()*1000),
-        "product": product.tolist()
+        "_end":round(time.time()*1000)
     }
 
     return frt.output(_out)

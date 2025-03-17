@@ -48,7 +48,7 @@ def work(n):
 
 # @with_timestamp
 @function
-async def f(frt: FaasitRuntime):
+def f(frt: FaasitRuntime):
     _start = round(time.time()*1000)
 
     n = 100000

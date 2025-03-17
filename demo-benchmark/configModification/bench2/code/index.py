@@ -2,7 +2,6 @@ from faasit_runtime import function, create_handler#, with_timestamp
 from faasit_runtime.runtime import FaasitRuntime
 import time
 import os
-import sys
 from typing import List
 
 from alibabacloud_fc_open20210406.client import Client as FC_Open20210406Client
@@ -35,31 +34,22 @@ class Sample:
         return FC_Open20210406Client(config)
 
     @staticmethod
-    def update(
-        args: List[str],
-    ):
+    def update(n: int):
         client = Sample.create_client()
         update_function_headers = fc__open_20210406_models.UpdateFunctionHeaders()
         update_function_request = fc__open_20210406_models.UpdateFunctionRequest(
-            memory_size=256
+            memory_size=n
         )
         runtime = util_models.RuntimeOptions()
         try:
             # 复制代码运行请自行打印 API 的返回值
-            config = client.update_function_with_options('faasit', 'workload', update_function_request, update_function_headers, runtime)
-            return config
+            client.update_function_with_options('faasit', 'workload', update_function_request, update_function_headers, runtime)
+            return round(time.time()*1000)
         except Exception as error:
-            # 此处仅做打印展示，请谨慎对待异常处理，在工程项目中切勿直接忽略异常。
-            # 错误 message
-            print(error.message)
-            # 诊断地址
-            print(error.data.get("Recommend"))
-            UtilClient.assert_as_string(error.message)
+            pass
 
     @staticmethod
-    def get_function(
-        args: List[str],
-    ):
+    def get_function():
         client = Sample.create_client()
         get_function_headers = fc__open_20210406_models.GetFunctionHeaders()
         get_function_request = fc__open_20210406_models.GetFunctionRequest(
@@ -69,26 +59,29 @@ class Sample:
         try:
             # 复制代码运行请自行打印 API 的返回值
             config = client.get_function_with_options('faasit', 'workload', get_function_request, get_function_headers, runtime)
-            return config
+            return config.to_map()['body']['memorySize']
         except Exception as error:
-            # 此处仅做打印展示，请谨慎对待异常处理，在工程项目中切勿直接忽略异常。
-            # 错误 message
-            print(error.message)
-            # 诊断地址
-            print(error.data.get("Recommend"))
-            UtilClient.assert_as_string(error.message)
+            pass
 
 # @with_timestamp
 @function
 def f(frt: FaasitRuntime):
-    _start = round(time.time()*1000)
 
     t = Sample.get_function()
+
+    _start = Sample.update(t * 2)
+
+    tt = Sample.get_function()
+    while tt == t:
+        tt = Sample.get_function()
+
+    _end = round(time.time()*1000)
+
+    Sample.update(t)
     
     _out = {
         "_begin":_start,
-        "_end":round(time.time()*1000),
-        "_return":t
+        "_end":_end
     }
 
     return frt.output(_out)

@@ -3,16 +3,16 @@ import { Engine, InvocationResult } from "../../../packages/faasit-cli/src/engin
 
 const engine = new Engine()
 const config1 = {
-    config: './main_1.ft',
-    workingDir: '.',
+    config: './main.ft',
+    workingDir: './config1',
     example: 0,
     retry: 4,
     provider: 'Aliyun',
     dev_perf: false
 }
 const config2 = {
-    config: './main_2.ft',
-    workingDir: '.',
+    config: './main.ft',
+    workingDir: './config2',
     example: 0,
     retry: 4,
     provider: 'Aliyun',
@@ -27,15 +27,16 @@ function getTime(result: InvocationResult): number {
 
 class FuncUpdate implements Testcase{
     async preTestcase(): Promise<boolean> {
-        await engine.deploy(config1)
         return true
     }
     async preTest(): Promise<boolean> {
+        await engine.deploy(config1)
+        await new Promise(r => setTimeout(r, 1200))
         return true
     }
     async runTest(): Promise<Metric[]> {
         let resultBegin = await engine.invoke(config1)
-        while (resultBegin.returnResult == undefined){
+        while (resultBegin.returnResult == undefined || resultBegin.returnResult != 1){
             resultBegin = await engine.invoke(config1)
         }
         let result1 = resultBegin.returnResult

@@ -25,11 +25,11 @@ class FuncCommunition implements Testcase{
         return true
     }
     async runTest(): Promise<Metric[]> {
-        let communitionTime = getTime(await engine.invoke(config))
-        console.info(" [INFO] communition time: %d ms", communitionTime)
+        let communicationTime = getTime(await engine.invoke(config))
+        console.info(" [INFO] communicationTime time: %d ms", communicationTime)
         return [{
-            name:"communitionTime",
-            value:communitionTime
+            name:"communicationTime",
+            value:communicationTime
         },{
             name:"times",
             value:1

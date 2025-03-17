@@ -1,5 +1,5 @@
 nest:
-  host: 172.27.152.238:8080
+  host: localhost:8080
   database: benchmark
 metrics:
 - name: "times"
@@ -7,19 +7,19 @@ metrics:
 - name: "executionTime"
   type: "avg"
 cases:
-- name: "function execution time - 1"
+- name: "functionExecutionTime_1"
   root: "./bench1"
   file: "bench.ts"
-  trigger: seq(10)
-- name: "function execution time - 2"
+  trigger: seq(5)
+- name: "functionExecutionTime_2"
   root: "./bench2"
   file: "bench.ts"
-  trigger: seq(10)
-- name: "function execution time - 3"
+  trigger: seq(5)
+- name: "functionExecutionTime_3"
   root: "./bench3"
   file: "bench.ts"
-  trigger: seq(10)
-- name: "function execution time - 4"
+  trigger: seq(5)
+- name: "functionExecutionTime_4"
   root: "./bench4"
   file: "bench.ts"
-  trigger: seq(10)
+  trigger: seq(5)

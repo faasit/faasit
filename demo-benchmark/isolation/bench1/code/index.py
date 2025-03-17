@@ -51,12 +51,14 @@ def work(n):
 def f(frt: FaasitRuntime):
     _start = round(time.time()*1000)
 
-    n = 100000
+    n = 8000
     work(n)
+
+    _end = round(time.time()*1000)
     
     _out = {
         "_begin":_start,
-        "_end":round(time.time()*1000)
+        "_end":_end
     }
 
     return frt.output(_out)

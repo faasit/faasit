@@ -2,7 +2,6 @@ from faasit_runtime import function, create_handler#, with_timestamp
 from faasit_runtime.runtime import FaasitRuntime
 import time
 from os import path
-import numpy as np
 
 def fibonacci(n: int):
     if n <= 0:

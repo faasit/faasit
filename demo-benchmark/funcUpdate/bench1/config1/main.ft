@@ -1,6 +1,6 @@
 @function workload {
   runtime = "python"
-  codeDir = "./code2"
+  codeDir = "./config1/code"
   resource = {
     cpu = "1024m"
     memory = "128Mi"

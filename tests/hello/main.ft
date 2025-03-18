@@ -7,7 +7,7 @@
 @application helloapp {
     functions = [hello]
     defaultProvider = aliyun
-    providers = [aliyun]
+    providers = [aliyun, knative]
     inputExamples = [
         {
             value = {
@@ -20,4 +20,9 @@
 
 @provider aliyun {
     kind = 'aliyun'
+}
+
+@provider knative {
+    kind = 'knative'
+    registry = "192.168.28.220:5000"
 }

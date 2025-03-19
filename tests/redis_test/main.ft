@@ -1,0 +1,17 @@
+@function func {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.func"
+}
+
+@application helloapp {
+    functions = [func]
+    defaultProvider = knative
+    providers = [knative]
+}
+
+@provider knative {
+    kind = 'knative'
+    registry = "192.168.28.220:5000"
+    redis_data = "./data"
+}

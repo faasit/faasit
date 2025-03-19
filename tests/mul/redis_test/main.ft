@@ -1,0 +1,32 @@
+@function funca {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.funca"
+}
+@function funcb {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.funcb"
+}
+
+
+
+@application helloapp {
+    functions = [funca,funcb]
+    defaultProvider = knative
+    providers = [knative, aliyun]
+}
+
+@provider knative {
+    kind = 'knative'
+    registry = "192.168.28.220:5000"
+    redis_data = "./data"
+}
+
+@provider aliyun {
+    kind = "aliyun"
+    oss = {
+        bucket = "test"
+        region = "cn-handzhou"
+    }
+}

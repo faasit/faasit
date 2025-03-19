@@ -1,0 +1,34 @@
+@function funca {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.func1"
+}
+
+@function funcb {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.func2"
+}
+
+@application helloapp {
+    functions = [funca, funcb]
+    defaultProvider = aliyun
+    providers = [aliyun, knative]
+    inputExamples = [
+        {
+            value = {
+                text = "Hello world this is a happy day"
+                batchSize = 3
+            }
+        }
+    ]
+}
+
+@provider aliyun {
+    kind = 'aliyun'
+}
+
+@provider knative {
+    kind = 'knative'
+    registry = "192.168.28.220:5000"
+}

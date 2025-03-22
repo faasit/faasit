@@ -1,0 +1,51 @@
+@function split {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.split"
+    resource = {
+        cpu = 1
+        memory = 512
+    }
+}
+
+@function mapper {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.mapper"
+}
+
+@function reducer {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.reducer"
+}
+
+@workflow wordcount {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.wordcount"
+    functions = [split, mapper, reducer]
+}
+
+@application wordcountapp {
+    workflow = wordcount
+    defaultProvider = aliyun
+    providers = [aliyun, knative]
+    inputExamples = [
+        {
+            value = {
+                split_num = 20
+            }
+        }
+    ]
+}
+
+@provider aliyun {
+    kind = 'aliyun'
+}
+
+@provider knative {
+    kind = 'knative'
+    registry = "192.168.28.220:5000"
+    redis_data = './data'
+}

@@ -1,0 +1,2 @@
+faasit_runtime==1.0.0
+numpy

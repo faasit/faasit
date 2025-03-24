@@ -244,7 +244,7 @@ func.yaml
 __pycache__
 *.egg-info
 .local
-venv
+venv*
 
 # e2e-2024-03/Runtime
 text.txt

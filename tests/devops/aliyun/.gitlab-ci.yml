@@ -1,0 +1,10 @@
+stages:
+  - deploy
+
+deploy:
+  stage: deploy
+  script:
+    - echo "Running ft deploy"
+    - ft deploy -p aliyun
+  only:
+    - main

@@ -39,9 +39,11 @@ class Isolation implements Testcase {
         await new Promise(r => setTimeout(r, 2000))
         return true
     }
+
     async preTest(): Promise<boolean> {
         return true
     }
+
     async runTest(): Promise<Metric[]> {
         const SeqTestTimes = 8
 
@@ -91,6 +93,7 @@ class Isolation implements Testcase {
             value: 1
         }]
     }
+    
     async postTest(): Promise<void> {
     }
 

@@ -34,3 +34,6 @@
 	path = demo-202405
 	url = git@github.com:faasit/demo-202405.git
 	ignore = dirty
+[submodule "tests/devops"]
+	path = tests/devops
+	url = https://github.com/faasit/faasit-devops

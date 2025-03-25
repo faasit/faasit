@@ -1,0 +1,47 @@
+@function split {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.split"
+}
+
+@function merge {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.merge"
+}
+
+@function compute {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.compute"
+}
+
+@workflow svd {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.svd"
+    functions = [split, merge, compute]
+}
+
+@application svdapp {
+    workflow = svd
+    defaultProvider = kn
+    providers = [kn,ali]
+    inputExamples = [
+        {
+            value = {
+                X = [[1,2],[3,4],[5,6],[7,8],[9,10]]
+                numSplits = 2
+            }
+        }
+    ]
+}
+
+@provider kn {
+    kind = 'knative'
+    registry = "192.168.28.220:5000"
+}
+
+@provider ali {
+    kind = "aliyun"
+}

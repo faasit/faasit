@@ -65,7 +65,50 @@ ft init
 
 ## 北大集成
 
-### 环境配置
+### 线下环境配置
+
+**前提**
+
+- Python3.10以上的环境
+- Docker
+
+#### faasit-runtime运行时环境
+
+**方案1：自己构建faasit-runtime**
+
+- 搭建私有pypi服务器
+
+```bash
+docker pull pypiserver/pypiserver:v2.2.0
+mkdir -p ~/.pypi
+cp deploy_pku/htpasswd.txt ~
+docker run --rm --name pypi -d -p 12121:8080 -v ~/.pypi/:/data/packages -v ~/htpasswd.txt:/data/.htpasswd  pypiserver/pypiserver:v2.2.0 run -P .htpasswd packages
+```
+
+- 构建faasit-runtime并上传(可能需要下载wheel,twine等工具，遇到了自己`pip install`即可)
+
+```bash
+cd faasit-runtime/faasit-python-runtime
+bash build.sh
+```
+
+- 之后在pip的install路径下添加一下`localhost:12121`(自行gpt查一下)
+
+**方案2：使用已有的faasit-runtime**
+
+其实我们已经在[pypi](https://pypi.org)上传了`faasit-runtime`
+
+
+#### faasit-spilot镜像构建
+
+```bash
+cd faasit-docker/spilot/0.6
+docker build --no-cache -t faasit-spilot:0.6 
+```
+
+如果上面使用`faasit-runtime`使用的是我们上传的运行时环境，就把`pip install`那一步的后面的url删掉即可
+
+### 线上环境配置
 
 **前提**
 
@@ -262,14 +305,67 @@ systemctl restart code-server@coder
 
 假设已经写好了应用以及`main.ft`
 
-**创建python虚拟环境**
+#### `main.ft`
 
-```bash
-python3 -m venv venv
-source venv/bin/activate
-pip install click
-pip install faasit-runtime --index-url http://localhost:12121
+- `@function`表示一个函数体，随后跟着函数名称，该函数名称是Serverless应用中对于每个函数的标识符
+
+```python
+@function hello {
+   runtime = "python" # 运行时
+   codeDir = "./code" # 代码所在的目录
+   handler = "index.hello" # 响应请求的文件以及对应的函数名称，注意这里指的是Python文件中的名称
+}
 ```
+
+- `@provider`是云平台的一个概念，可以描述不同的部署方式
+
+```python
+@provider pku {
+   kind = 'pku' # 指定部署平台为pku
+   deployment = {} # 指定部署参数，根据具体情况而定
+   invoke = {} # 调用参数，对应的`python -m serverless_framework.controller`后跟着的参数
+}
+```
+
+- `@application`是一个应用的概念
+
+```python
+@application helloapp {
+   functions = [hello] # 这个应用所包含的函数
+   defaultProvider = pku # 默认部署平台
+   providers = [pku] # 支持的部署平台
+   inputExamples = [ # 应用参数
+      {
+         value = {
+            ...
+         }
+      }
+   ]
+}
+```
+
+#### Python应用开发
+
+- 开发示例
+
+```python
+from faasit_runtime import function, workflow, Workflow, FaasitRuntime # 导入统一运行时环境
+
+@function # 定义一个Serverless函数
+def hello(frt: FaasitRuntime): # 统一运行时参数
+   _in = frt.input() # 函数输入
+   result = frt.call('hello2', {'a': _in['a']}) # 函数通信，调用另一个函数，其中参数为{'a': _in['a']}
+   return frt.output(result) # 函数返回
+
+@function
+def hello2(frt: FaasitRuntime):
+   return frt.output({"message":"ok"})
+
+hello = hello.export() # 导出函数到云平台, 这里变量的名称可以自定义，但是要注意跟`main.ft`中的handler定义相对应
+hello2 = hello2.export() 
+```
+
+
 
 **构建应用镜像**
 

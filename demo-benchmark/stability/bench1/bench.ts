@@ -11,6 +11,8 @@ import { Uniform } from "./LoadConfig/LoadMode/Uniform";
 import { Poisson } from "./LoadConfig/LoadMode/Poisson";
 import { ONOFF } from "./LoadConfig/LoadMode/ONOFF";
 import { AR } from "./LoadConfig/LoadMode/AR";
+import { StepLoad } from "./LoadConfig/LoadMode/StepLoad";
+import { Gamma } from "./LoadConfig/LoadMode/Gamma";
 
 const engine = new Engine()
 const config = {
@@ -32,6 +34,10 @@ function modelRegistry(model: string): LoadMode | undefined {
             return new ONOFF()
         case 'AR':
             return new AR()
+        case 'StepLoad':
+            return new StepLoad()
+        case 'Gamma':
+            return new Gamma()
         default:
             throw new Error(`Unknown model: ${model}`)
     }

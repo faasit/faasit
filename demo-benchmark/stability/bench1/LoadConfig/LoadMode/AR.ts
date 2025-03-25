@@ -2,11 +2,10 @@ import { LoadMode } from "./LoadMode";
 
 export class AR implements LoadMode {
     /**
- * 自回归模型(AR)参数
- * @param phi          自回归系数，|phi| < 1
- * @param scale        噪声强度，控制间隔时间波动幅度
- * @param minInterval  最小间隔时间（秒）
- * @param maxInterval  最大间隔时间（秒）
+    * @param phi          自回归系数，|phi| < 1
+    * @param scale        噪声强度，控制间隔时间波动幅度
+    * @param minInterval  最小间隔时间（秒）
+    * @param maxInterval  最大间隔时间（秒）
  */
     generate(
         mode: 0 | 1,

@@ -1,11 +1,17 @@
-@function hello {
+@function hello1 {
     runtime = "python"
     codeDir = "./code"
-    handler = "index.hello"
+    handler = "index.hello1"
+}
+
+@function hello2 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.hello2"
 }
 
 @application helloapp {
-    functions = [hello]
+    functions = [hello1, hello2]
     defaultProvider = kn
     providers = [ali, kn,k8s]
     inputExamples = [

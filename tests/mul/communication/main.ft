@@ -12,8 +12,8 @@
 
 @application helloapp {
     functions = [funca, funcb]
-    defaultProvider = aliyun
-    providers = [aliyun, knative]
+    defaultProvider = ali
+    providers = [ali, kn,k8s]
     inputExamples = [
         {
             value = {
@@ -24,11 +24,16 @@
     ]
 }
 
-@provider aliyun {
+@provider ali {
     kind = 'aliyun'
 }
 
-@provider knative {
+@provider kn {
     kind = 'knative'
+    registry = "192.168.28.220:5000"
+}
+
+@provider k8s {
+    kind = 'k8s'
     registry = "192.168.28.220:5000"
 }

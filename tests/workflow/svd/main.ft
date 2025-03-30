@@ -26,7 +26,7 @@
 @application svdapp {
     workflow = svd
     defaultProvider = kn
-    providers = [kn,ali]
+    providers = [kn,ali,k8s]
     inputExamples = [
         {
             value = {
@@ -39,6 +39,11 @@
 
 @provider kn {
     kind = 'knative'
+    registry = "192.168.28.220:5000"
+}
+
+@provider k8s {
+    kind = 'k8s'
     registry = "192.168.28.220:5000"
 }
 

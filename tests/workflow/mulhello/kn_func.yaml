@@ -1,0 +1,146 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: helloapp-hello1
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - image: 192.168.28.220:5000/library/helloapp-hello1:tmp
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000
+          resources:
+            limits:
+              cpu: '0.5'
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: FUNC_NAME
+              value: hello1
+          command:
+            - python
+          args:
+            - '-m'
+            - faasit_runtime.worker
+            - '--lambda_file'
+            - /code/index.py
+            - '--function_name'
+            - hello1
+            - '--server_port'
+            - '9000'
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: helloapp-hello2
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - image: 192.168.28.220:5000/library/helloapp-hello2:tmp
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000
+          resources:
+            limits:
+              cpu: '0.5'
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: FUNC_NAME
+              value: hello2
+          command:
+            - python
+          args:
+            - '-m'
+            - faasit_runtime.worker
+            - '--lambda_file'
+            - /code/index.py
+            - '--function_name'
+            - hello2
+            - '--server_port'
+            - '9000'
+---
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: helloapp-hello
+  namespace: default
+spec:
+  template:
+    spec:
+      containers:
+        - image: 192.168.28.220:5000/library/helloapp-hello:tmp
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 9000
+          resources:
+            limits:
+              cpu: '0.5'
+              memory: 128Mi
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 9000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 1
+            successThreshold: 1
+            failureThreshold: 3
+          securityContext:
+            runAsNonRoot: false
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            seccompProfile:
+              type: RuntimeDefault
+          env:
+            - name: FUNC_NAME
+              value: hello
+          command:
+            - python
+          args:
+            - '-m'
+            - faasit_runtime.worker
+            - '--lambda_file'
+            - /code/index.py
+            - '--function_name'
+            - hello
+            - '--server_port'
+            - '9000'

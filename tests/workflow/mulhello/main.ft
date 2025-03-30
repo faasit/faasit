@@ -1,27 +1,26 @@
 @function hello1 {
     runtime = "python"
     codeDir = "./code"
-    handler = "hello.hello1"
+    handler = "index.hello1"
 }
 
 @function hello2 {
     runtime = "python"
     codeDir = "./code"
-    handler = "hello.hello2"
+    handler = "index.hello2"
+}
+
+@workflow hello {
+    functions = [hello1, hello2]
+    codeDir = "./code"
+    handler = "index.hello"
+    runtime = "python"
 }
 
 @application helloapp {
-    functions = [hello1, hello2]
+    workflow = hello
     defaultProvider = kn
     providers = [ali, kn, k8s]
-    inputExamples = [
-        {
-            value = {
-                text = "Hello world this is a happy day"
-                batchSize = 3
-            }
-        }
-    ]
 }
 
 @provider ali {

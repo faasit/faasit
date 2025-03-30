@@ -23,28 +23,35 @@
 @function wordcount {
     runtime = "python"
     codeDir = "./code"
-    handler = "index.baseline"
+    handler = "index.wordcount"
 }
 
 @application wordcountapp {
-    workflow = wordcount
-    defaultProvider = aliyun
-    providers = [aliyun, knative]
+    functions = [wordcount, split, mapper, reducer]
+    defaultProvider = k8s
+    providers = [k8s, kn, ali]
     inputExamples = [
         {
             value = {
-                split_num = 20
+                text = "Hello World this is is a happy world"
+                split_num = 3
             }
         }
     ]
 }
 
-@provider aliyun {
-    kind = 'aliyun'
+@provider k8s {
+    kind = 'k8s'
+    registry = "192.168.28.220:5000"
+    redis_data = './data'
 }
 
-@provider knative {
+@provider kn {
     kind = 'knative'
     registry = "192.168.28.220:5000"
     redis_data = './data'
+}
+
+@provider ali {
+    kind = "aliyun"
 }

@@ -6,12 +6,26 @@
 
 @application helloapp {
     functions = [func]
-    defaultProvider = knative
-    providers = [knative]
+    defaultProvider = kn
+    providers = [kn,k8s]
 }
 
-@provider knative {
+@provider kn {
     kind = 'knative'
     registry = "192.168.28.220:5000"
     redis_data = "./data"
+}
+
+@provider k8s {
+    kind = 'k8s'
+    registry = "192.168.28.220:5000"
+    redis_data = "./data"
+}
+
+@provider ali {
+    kind = "aliyun"
+    oss = {
+        bucket = "test"
+        region = "cn-handzhou"
+    }
 }

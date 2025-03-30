@@ -1,119 +1,74 @@
 from faasit_runtime import function, FaasitRuntime, workflow
 import re
 import time
-from faasit_runtime.utils.logging import log
 
 @function
 def split(rt: FaasitRuntime):
-    start_time = time.time()
     _input = rt.input()
-    split_num = _input.get('split_num', 3)
-    data_file = _input.get('data_file', 'data.txt')
-    store = rt.storage
-    data = store.get(data_file)
+    text = _input['text']
+    split_num = _input['split_num']
 
-    words = re.split(r'[\s,\.]', data)
-    log.info(f"{len(words)} words in total")
-    log.info(f"{type(words)}")
-
-    words_keys = []
-
+    words = re.split(r'[\s,\.]', text)
+    results = []
     for i in range(split_num):
-        store.put(f'words_{i}', words[i*len(words)//split_num:(i+1)*len(words)//split_num])
-        words_keys.append(f'words_{i}')
+        result = words[i*len(words)//split_num:(i+1)*len(words)//split_num]
+        results.append(result)
 
-    end_time = time.time()
 
     return rt.output({
-        'words_keys': words_keys,
-        'time': end_time-start_time
+        'results': results
     })
 
 
 @function
 def mapper(rt: FaasitRuntime):
-    start_time = time.time()
-    _input = rt.input()
-    taskno = _input.get('taskno')
-    store = rt.storage
-    words_key = f'words_{taskno}'
-    words = store.get(words_key)
-
+    _in = rt.input()
+    text = _in['text']
     word_counts = {}
-    for word in words:
+    for word in text:
         if word in word_counts:
             word_counts[word] += 1
         else:
             word_counts[word] = 1
-    
-    store.put(f'word_counts_{taskno}', word_counts)
-    end_time = time.time()
     return rt.output({
-        'output': f"word_counts_{taskno}",
-        'time': end_time - start_time
+        'results': word_counts
     })
 
 @function
 def reducer(rt: FaasitRuntime):
-    start_time = time.time()
-    _input = rt.input()
-    store = rt.storage
-    word_counts = {}
-    _file = None # final output file
-    for k,v in _input.items():
-        if not k.startswith('reducer'):
-            continue
-        _file = v
-        word_count = store.get(v)
-        for word in word_count:
-            if word in word_counts:
-                word_counts[word] += word_count[word]
+    _in = rt.input()
+    mappers = _in['mapper']
+    finalresults = {}
+    for mapper in mappers:
+        for word, count in mapper.items():
+            if word in finalresults:
+                finalresults[word] += count
             else:
-                word_counts[word] = word_count[word]
-
-    end_time = time.time()
+                finalresults[word] = count
     return rt.output({
-        "time": end_time-start_time,
-        'output': _file
+        'results': finalresults
     })
 
 @function
-def baseline(rt: FaasitRuntime):
+def wordcount(rt: FaasitRuntime):
     _input = rt.input()
-    split_num = _input['split_num']
-    data_file = _input.get('data_file', 'data.txt')
+    split_num = _input.get("split_num", 3)
+    text = _input['text']
 
-    finalresults = {}
-    split_resp = rt.call('split', {'split_num': split_num, 'data_file': data_file})
-
-    finalresults['split'] = split_resp['time']
-
-    map_times = []
-    mapper_outputs = []
-    for i in range(split_num):
-        result = rt.call('mapper', {'taskno': i, 'split': split_resp})
-        mapper_outputs.append(result['output'])
-        map_times.append(result['time'])
-
-    finalresults['map'] = map_times
-
-    reduce_times = []
-    def solve(start, end):
-        if start == end:
-            return mapper_outputs[start]
-        mid = (start + end) // 2
-        result1 = solve(start, mid)
-        result2 = solve(mid+1, end)
-        result = rt.call('reducer', {'reducer_1': result1, 'reducer_2': result2})
-        reduce_times.append(result['time'])
-        return result['output']
+    text_list:list[str] = rt.call('split', {'split_num': split_num, 'text': text})['results']
+    mapper_results = []
+    for text in text_list:
+        mapper_results.append(rt.call('mapper', {'text': text})['results'])
+    
+    results = rt.call("reducer", {"mapper": mapper_results})
         
-    solve(0, split_num-1)
-    finalresults['reduce'] = reduce_times
 
-    return rt.output(finalresults)
+    
+
+    return rt.output(results)
 
 split = split.export()
 mapper = mapper.export()
 reducer = reducer.export()
-baseline = baseline.export()
+wordcount = wordcount.export()
+# print(wordcount({"text": "Hello World this is is a happy day"}))

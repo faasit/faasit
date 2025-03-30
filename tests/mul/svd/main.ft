@@ -25,7 +25,7 @@
 @application svdapp {
     functions = [split, merge, compute, svd]
     defaultProvider = kn
-    providers = [kn,ali]
+    providers = [kn,ali,k8s]
     inputExamples = [
         {
             value = {
@@ -43,4 +43,9 @@
 
 @provider ali {
     kind = "aliyun"
+}
+
+@provider k8s {
+    kind = "k8s"
+    registry = "192.168.28.220:5000"
 }

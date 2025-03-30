@@ -29,8 +29,8 @@
 
 @application wordcountapp {
     workflow = wordcount
-    defaultProvider = aliyun
-    providers = [aliyun, knative]
+    defaultProvider = kn
+    providers = [kn, k8s]
     inputExamples = [
         {
             value = {
@@ -40,12 +40,15 @@
     ]
 }
 
-@provider aliyun {
-    kind = 'aliyun'
+
+@provider kn {
+    kind = 'knative'
+    registry = "192.168.28.220:5000"
+    redis_data = './data'
 }
 
-@provider knative {
-    kind = 'knative'
+@provider k8s {
+    kind = 'k8s'
     registry = "192.168.28.220:5000"
     redis_data = './data'
 }

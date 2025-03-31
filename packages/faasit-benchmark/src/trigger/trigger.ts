@@ -6,6 +6,7 @@ import { xPoissonTrigger } from "./xPoissonTrigger";
 import { xARTrigger } from "./xARTrigger";
 import { xStepLoadTrigger } from "./xStepLoadTrigger";
 import { xGammaTrigger } from "./xGammaTrigger";
+import { xMixedTrigger } from "./xMixedTrigger";
 
 export interface Trigger {
     execute(payload: (id: number) => Promise<void>): Promise<void>
@@ -138,6 +139,50 @@ export function parseTrigger(type: string): Trigger | undefined {
                     t = params.length > 8 ? Number(params[8]) : 1;
                     const xGamma_burstCount = Number.isNaN(t) ? 1 : t;
                     return new xGammaTrigger(xGamma_initDelayTime, xGamma_mode, xGamma_baseModeParam, xGamma_limitModeParam, xGamma_shape, xGamma_scale, xGamma_minInterval, xGamma_maxInterval, xGamma_burstCount);
+                }
+            case "xMix":
+                {
+                    if (params.length < 5) {
+                        throw new Error("xMix trigger requires at least 5 parameters");
+                    }
+                    let t: number;
+                    t = Number(params[0]);
+                    const xMix_initDelayTime = Number.isNaN(t) ? 0 : t;
+                    t = Number(params[1]);
+                    const xMix_mode = t === 1 ? 1 : 0;
+                    t = Number(params[2]);
+                    const xMix_baseModeParam = Number.isNaN(t) ? 1 : t;
+                    t = Number(params[3]);
+                    const xMix_limitModeParam = Number.isNaN(t) ? Number.MAX_SAFE_INTEGER : t;
+                    t = Number(params[4]);
+                    const xMix_modeCount = Number.isNaN(t) ? 1 : t;
+                    const xMix_modeTypes: number[] = [];
+                    const xMix_modeWeights: number[] = [];
+                    const xMix_modeParams: number[][] = [];
+                    let paramsid = 5;
+                    for (let i = 0; i < xMix_modeCount; i++) {
+                        t = params.length > paramsid ? Number(params[paramsid]) : 0;
+                        xMix_modeTypes.push(Number.isNaN(t) ? 0 : t);
+                        paramsid++;
+                    }
+                    for (let i = 0; i < xMix_modeCount; i++) {
+                        t = params.length > paramsid ? Number(params[paramsid]) : 1;
+                        xMix_modeWeights.push(Number.isNaN(t) ? 1 : t);
+                        paramsid++;
+                    }
+                    for (let i = 0; i < xMix_modeCount; i++) {
+                        const modeParams: number[] = [];
+                        t = params.length > paramsid ? Number(params[paramsid]) : 0;
+                        const modeParamCount = Number.isNaN(t) ? 0 : t;
+                        paramsid++;
+                        for (let j = 0; j < modeParamCount; j++) {
+                            t = params.length > paramsid ? Number(params[paramsid]) : 0;
+                            modeParams.push(Number.isNaN(t) ? 0 : t);
+                            paramsid++;
+                        }
+                        xMix_modeParams.push(modeParams);
+                    }
+                    return new xMixedTrigger(xMix_initDelayTime, xMix_mode, xMix_baseModeParam, xMix_limitModeParam, xMix_modeTypes, xMix_modeWeights, xMix_modeParams);
                 }
             default:
                 return undefined

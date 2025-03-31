@@ -15,7 +15,11 @@ metrics:
 - name: "peakMemoryUsage"
   type: "max"
 cases:
+# - name: "stability"
+#   root: "./bench1"
+#   file: "bench.ts"
+#   trigger: seq(1)
 - name: "stability"
-  root: "./bench1"
+  root: "./bench2"
   file: "bench.ts"
-  trigger: seq(1)
+  trigger: xMix(0, 0, 40, _, 4, 0, 0, 1, 4, 1, 1, 2, 4, 2, 1, 2, 2, 5, 10, 1, 4, 2, 2.5, 2)

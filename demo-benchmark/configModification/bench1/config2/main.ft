@@ -1,0 +1,33 @@
+@function workload {
+  runtime = "python"
+  codeDir = "./code"
+  resource = {
+    cpu = "4"
+    memory = "4096M"
+  }
+  pubsub = {
+    events = []
+  }
+}
+
+@application PythonWorkload {
+  functions = [workload]
+  providers = [Knative, Aliyun]
+  defaultProvider = Knative
+  inputExamples = [
+    {
+      value = {
+        text = "Hello world this is a happy day"
+        batchSize = 3
+      }
+    }
+  ]
+}
+
+@provider Knative {
+  kind = "knative"
+}
+
+@provider Aliyun {
+  kind = "aliyun"
+}

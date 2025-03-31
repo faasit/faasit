@@ -34,6 +34,10 @@ export class xARTrigger implements Trigger {
 
     async execute(payload: (id: number) => Promise<void>): Promise<void> {
         this.validateParams();
+
+        if (this.initDelayTime > 0) {
+            console.log(`Initial delay time: ${this.initDelayTime} seconds.`);
+        }
         await new Promise(resolve => setTimeout(resolve, this.initDelayTime * 1000));
 
         this.currentValue = this.scale;

@@ -26,10 +26,11 @@ export class xUniformTrigger implements Trigger {
     }
     async execute(payload: (id: number) => Promise<void>): Promise<void> {
         this.validateParams()
-        await new Promise(r => setTimeout(r, this.initDelayTime * 1000))
+        
         if (this.initDelayTime > 0) {
             console.log(`Initial delay time: ${this.initDelayTime} seconds.`);
         }
+        await new Promise(r => setTimeout(r, this.initDelayTime * 1000))
 
         let currentTime = 0;
         let generatedCount = 0;

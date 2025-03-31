@@ -1,0 +1,34 @@
+@function message_receive {
+  runtime = "python"
+  codeDir = "./code/message_receive"
+}
+
+@function workload {
+  runtime = "python"
+  codeDir = "./code"
+  resource = {
+    cpu = "0.05"
+    memory = "128M"
+  }
+  pubsub = {
+    events = []
+  }
+}
+
+@application PythonWorkload {
+  functions = [workload, message_receive]
+  providers = [Aliyun]
+  defaultProvider = Aliyun
+  inputExamples = [
+    {
+      value = {
+        text = "Hello world this is a happy day"
+        batchSize = 3
+      }
+    }
+  ]
+}
+
+@provider Aliyun {
+  kind = "aliyun"
+}

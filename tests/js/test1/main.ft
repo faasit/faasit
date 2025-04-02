@@ -1,0 +1,22 @@
+@function hello {
+    runtime = "nodejs"
+    codeDir = "./code"
+}
+
+@application helloapp {
+    functions = [hello]
+    defaultProvider = kn
+    providers = [kn]
+    inputExamples = [
+        {
+            value = {
+                hello = "world"
+            }
+        }
+    ]
+}
+
+@provider kn {
+    kind = "knative"
+    registry = "192.168.28.220:5000"
+}

@@ -278,12 +278,6 @@ importers:
         specifier: ^4.6.4
         version: 4.9.5
 
-  tests/js/test1/code:
-    dependencies:
-      '@faasit/runtime':
-        specifier: ^1.2.0
-        version: 1.2.0
-
 packages:
 
   '@alicloud/credentials@2.2.6':
@@ -1230,9 +1224,6 @@ packages:
     engines: {node: '>=12'}
     cpu: [x64]
     os: [win32]
-
-  '@faasit/runtime@1.2.0':
-    resolution: {integrity: sha512-0ZaZ3WuOjLPJw2X/INuENzokKQp5hQpk7+2bh9OKfEQ9sUsy1rHUsUEi1HCmVpb+QGrjmdl4Xoj01CGY/Y14tg==}
 
   '@isaacs/cliui@8.0.2':
     resolution: {integrity: sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==}
@@ -4535,17 +4526,6 @@ snapshots:
 
   '@esbuild/win32-x64@0.20.1':
     optional: true
-
-  '@faasit/runtime@1.2.0':
-    dependencies:
-      '@alicloud/fc-open20210406': 2.0.9
-      '@alicloud/openapi-client': 0.4.6
-      '@alicloud/tea-util': 1.4.7
-      axios: 1.6.0
-      zod: 3.21.4
-    transitivePeerDependencies:
-      - debug
-      - supports-color
 
   '@isaacs/cliui@8.0.2':
     dependencies:

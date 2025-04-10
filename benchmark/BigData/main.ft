@@ -1,0 +1,57 @@
+@function split {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.split"
+    resource = {
+        cpu = 1
+        memory = 512
+    }
+}
+
+@function mapper {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.mapper"
+}
+
+@function reducer {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.reducer"
+}
+
+@function wordcount {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.wordcount"
+}
+
+@application wordcountapp {
+    functions = [wordcount, split, mapper, reducer]
+    defaultProvider = k8s
+    providers = [k8s, kn, ali]
+    inputExamples = [
+        {
+            value = {
+                text = "Hello World this is is a happy world"
+                split_num = 3
+            }
+        }
+    ]
+}
+
+@provider k8s {
+    kind = 'k8s'
+    registry = "192.168.28.220:5000"
+    redis_data = './data'
+}
+
+@provider kn {
+    kind = 'knative'
+    registry = "192.168.80.22:5000"
+    redis_data = './data'
+}
+
+@provider ali {
+    kind = "aliyun"
+}

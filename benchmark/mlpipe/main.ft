@@ -1,0 +1,67 @@
+@function download_0 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.download"
+    resource = {
+        cpu = 2
+    }
+}
+
+@function preprocess_1 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.preprocess"
+    resource = {
+        cpu = 2
+    }
+}
+
+@function train_2 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.train"
+    resource = {
+        cpu = 4
+    }
+}
+
+@function test_3 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.test"
+    resource = {
+        cpu = 2
+    }
+}
+
+
+@workflow mlpipeworkflow {
+    functions = [download_0, preprocess_1, train_2, test_3]
+
+    // workflow spec runtime
+    runtime = "python"
+    codeDir = "./code"
+    handler = "index.mlpipe"
+}
+
+@application mlpipe {
+    workflow = mlpipeworkflow
+    defaultProvider = pku
+    providers= [pku]
+
+    // used by `ft run`
+    
+}
+
+@provider pku {
+    kind = "pku"
+    invoke = {
+        containter_optimized = "true"
+        redis_preload_folder = "./data"
+    }
+}
+
+@provider kn {
+    kind = 'knaitve'
+    registry = '192.168.80.22:5000'
+}

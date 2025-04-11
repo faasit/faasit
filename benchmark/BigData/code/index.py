@@ -53,7 +53,9 @@ def reducer(rt: FaasitRuntime):
 def wordcount(rt: FaasitRuntime):
     _input = rt.input()
     split_num = _input.get("split_num", 3)
-    text = _input['text']
+    file = _input['file']
+    store = rt.storage
+    text = store.get(file)
 
     text_list:list[str] = rt.call('split', {'split_num': split_num, 'text': text})['results']
     mapper_results = []

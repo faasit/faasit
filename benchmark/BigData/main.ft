@@ -12,18 +12,30 @@
     runtime = "python"
     codeDir = "./code"
     handler = "index.mapper"
+    resource = {
+        cpu = 1
+        memory = 256
+    }
 }
 
 @function reducer {
     runtime = "python"
     codeDir = "./code"
     handler = "index.reducer"
+    resource = {
+        cpu = 1
+        memory = 256
+    }
 }
 
 @function wordcount {
     runtime = "python"
     codeDir = "./code"
     handler = "index.wordcount"
+    resource = {
+        cpu = 1
+        memory = 256
+    }
 }
 
 @application wordcountapp {
@@ -33,7 +45,7 @@
     inputExamples = [
         {
             value = {
-                text = "Hello World this is is a happy world"
+                file = "data.txt"
                 split_num = 3
             }
         }
@@ -48,7 +60,7 @@
 
 @provider kn {
     kind = 'knative'
-    registry = "192.168.80.22:5000"
+    registry = "192.168.28.220:5000"
     redis_data = './data'
 }
 

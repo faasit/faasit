@@ -3,7 +3,6 @@
     codeDir = "./code"
     handler = "index.split"
     resource = {
-        cpu = 1
         memory = 512
     }
 }
@@ -13,7 +12,6 @@
     codeDir = "./code"
     handler = "index.mapper"
     resource = {
-        cpu = 1
         memory = 256
     }
 }
@@ -23,7 +21,6 @@
     codeDir = "./code"
     handler = "index.reducer"
     resource = {
-        cpu = 1
         memory = 256
     }
 }
@@ -33,7 +30,6 @@
     codeDir = "./code"
     handler = "index.wordcount"
     resource = {
-        cpu = 1
         memory = 256
     }
 }
@@ -66,4 +62,7 @@
 
 @provider ali {
     kind = "aliyun"
+    invoke = {
+        timeout = "50000"
+    }
 }

@@ -45,6 +45,8 @@ def reducer(rt: FaasitRuntime):
                 finalresults[word] += count
             else:
                 finalresults[word] = count
+    # 选取最大的10个
+    finalresults = dict(sorted(finalresults.items(), key=lambda item: item[1], reverse=True)[:10])
     return rt.output({
         'results': finalresults
     })
@@ -55,7 +57,7 @@ def wordcount(rt: FaasitRuntime):
     split_num = _input.get("split_num", 3)
     file = _input['file']
     store = rt.storage
-    text = store.get(file)
+    text = store.get(file).decode('utf-8')
 
     text_list:list[str] = rt.call('split', {'split_num': split_num, 'text': text})['results']
     mapper_results = []

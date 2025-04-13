@@ -23,13 +23,13 @@
 }
 
 @application svdapp {
-    functions = [split, merge, compute, svd]
+    functions = [svd,split, merge, compute]
     defaultProvider = kn
     providers = [kn,ali,k8s]
     inputExamples = [
         {
             value = {
-                X = [[1,2],[3,4],[5,6],[7,8],[9,10]]
+                file = 'data.npy'
                 numSplits = 2
             }
         }
@@ -39,10 +39,14 @@
 @provider kn {
     kind = 'knative'
     registry = "192.168.28.220:5000"
+    redis_data = './data'
 }
 
 @provider ali {
     kind = "aliyun"
+    invoke = {
+        timeout = "50000"
+    }
 }
 
 @provider k8s {

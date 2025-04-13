@@ -1,5 +1,6 @@
 from faasit_runtime import function, FaasitRuntime
 import numpy as np
+import io
 
 def block_matrix_concat(U_matrices):
     U1 = U_matrices[0]  
@@ -19,26 +20,19 @@ def block_matrix_concat(U_matrices):
 def merge(frt: FaasitRuntime):
     input_data = frt.input()
     Xi_svds = input_data["Xi_svds"]
-    Xi_svds = np.array(Xi_svds)
-    U_tilde = block_matrix_concat([v["U"] for v in Xi_svds])
+    s_merged = np.concatenate([np.array(svd["S"]) for svd in Xi_svds])
+    U_merged = np.vstack([np.array(svd["U"]) for svd in Xi_svds])
+    Vt_merged = np.array(Xi_svds[0]["Vt"])
 
-    Y = []
-    for Xi_svd in Xi_svds:
-        d = np.diag(Xi_svd["S"])  # 对角矩阵 S
-        yi = np.dot(d, np.array(Xi_svd["Vt"]).T)  # yi = S * V^T
-        Y.append(yi)
-
-    Y = np.concatenate(Y, axis=0)
-
-    U_Y, S_Y, V_Y = np.linalg.svd(Y, full_matrices=False)
-    U = np.dot(U_tilde, U_Y)
-    S = S_Y
-    V = V_Y
+    # idx = np.argsort(s_merged)[::-1]
+    # U_final = U_merged[:, idx]
+    # S_final = s_merged[idx]
+    # V_final = Vt_merged[idx, :]
 
     return frt.output({
-        "U": U.tolist(), 
-        "S": S.tolist(), 
-        "V": V.tolist()
+        "U": U_merged.tolist(), 
+        "S": s_merged.tolist(), 
+        "V": Vt_merged.tolist()
     })
 
 @function
@@ -78,7 +72,10 @@ def compute(frt: FaasitRuntime):
 @function
 def svd(frt: FaasitRuntime):
     input_data = frt.input()
-    X = input_data["X"]
+    file = input_data["file"]
+    store = frt.storage
+    X = store.get(file)
+    X = np.load(io.BytesIO(X)).tolist()
     num_splits = input_data.get("numSplits", 3)
     split_res = frt.call("split", {"X": X, "numSplits": num_splits})
     sub_Xs = split_res["subXs"]

@@ -63,6 +63,213 @@ ft codegen
 ft init
 ```
 
+## knative 集成
+
+### 环境配置
+
+#### 前提
+
+- Docker
+
+#### k8s 环境搭建
+
+- 网络配置
+
+```bash
+sudo apt-get install -y selinux-utils
+sudo setenforce 0
+sudo ufw disable
+sudo swapoff -a
+sudo modprobe br_netfilter
+
+
+echo "net.bridge.bridge-nf-call-ip6tables = 1" | sudo tee -a /etc/sysctl.conf
+echo "net.bridge.bridge-nf-call-iptables = 1" | sudo tee -a /etc/sysctl.conf
+echo "net.ipv4.ip_forward = 1" | sudo tee -a /etc/sysctl.conf
+```
+
+
+
+- 使用阿里云的镜像构建k8s
+
+
+```bash
+sudo apt-get update && sudo apt-get install -y apt-transport-https
+curl https://mirrors.aliyun.com/kubernetes/apt/doc/apt-key.gpg | sudo apt-key add -
+```
+
+- 将阿里云的镜像地址写到`sources.list`中
+
+```bash
+sudo vim /etc/apt/sources.list.d/kubernetes.list
+
+# 写入下列内容
+deb https://mirrors.aliyun.com/kubernetes/apt/ kubernetes-xenial main
+```
+
+- 安装特定版本的k8s
+
+```bash
+sudo apt-get update
+sudo apt-get install -y kubelet==1.27.0-00 kubeadm==1.27.0-00 kubectl==1.27.0-00
+```
+
+
+- 安装`cri-dockered`插件
+
+```bash
+wget https://github.com/Mirantis/cri-dockerd/releases/download/v0.3.4/cri-dockerd-0.3.4.amd64.tgz
+tar xvf cri-dockerd-0.3.4.amd64.tgz
+sudo mv cri-dockerd/cri-dockerd /usr/local/bin/
+
+wget https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/packaging/systemd/cri-docker.service
+wget https://raw.githubusercontent.com/Mirantis/cri-dockerd/master/packaging/systemd/cri-docker.socket
+sudo mv cri-docker.* /etc/systemd/system/
+sudo systemctl daemon-reload
+
+sudo systemctl enable cri-docker.service
+sudo systemctl enable --now cri-docker.socket
+```
+
+
+- `kubeadm-config.yaml`配置
+
+```yaml
+apiVersion: kubeadm.k8s.io/v1beta3
+bootstrapTokens:
+- groups:
+  - system:bootstrappers:kubeadm:default-node-token
+  token: abcdef.0123456789abcdef
+  ttl: 24h0m0s
+  usages:
+  - signing
+  - authentication
+kind: InitConfiguration
+localAPIEndpoint:
+  advertiseAddress: 192.168.28.220 # 自行修改
+  bindPort: 6443
+nodeRegistration:
+  criSocket: /var/run/cri-dockerd.sock
+  imagePullPolicy: IfNotPresent
+  name: cloud
+  taints: null
+---
+apiServer:
+  timeoutForControlPlane: 4m0s
+apiVersion: kubeadm.k8s.io/v1beta3
+certificatesDir: /etc/kubernetes/pki
+clusterName: kubernetes
+controllerManager: {}
+dns: {}
+etcd:
+  local:
+    dataDir: /var/lib/etcd
+imageRepository: registry.aliyuncs.com/google_containers
+kind: ClusterConfiguration
+kubernetesVersion: 1.27.0
+networking:
+  dnsDomain: cluster.local
+  serviceSubnet: 10.96.0.0/12
+  podSubnet: 10.244.0.0/16
+scheduler: {}
+```
+
+- 启动k8s集群
+
+```bash
+sudo kubeadm init --config kubeadm-config.yaml
+
+sudo mkdir -p .kube/config
+sudo cp -i /etc/kubernetes/admin.conf .kube/config
+sudo chown $(id -u):$(id -g) .kube/config
+```
+
+#### knative 环境搭建
+
+```bash
+kubectl taint node epyc node-role.kubernetes.io/control-plane-
+
+kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.12.4/serving-crds.yaml
+
+kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.12.4/serving-core.yaml
+
+kubectl apply -f https://github.com/knative/net-kourier/releases/download/knative-v1.12.3/kourier.yaml
+
+kubectl patch configmap/config-network \
+--namespace knative-serving \
+--type merge \
+--patch '{"data":{"ingress-class":"kourier.ingress.networking.knative.dev"}}'
+
+
+kubectl apply -f https://github.com/knative/serving/releases/download/knative-v1.12.4/serving-default-domain.yaml
+
+
+# 10.0.0.233 is an arbitary choice.EXTERNAL_IP="10.0.0.233"
+# To get rid of the strange rules that default urls *.svc.cluster.local cannot be accessed from outside network. 
+# sslip can avoid us from trouble of manipulating DNS record.
+export EXTERNAL_IP=10.0.0.233
+kubectl patch configmap/config-domain \--namespace knative-serving \--type merge \--patch "{\"data\":{\"$EXTERNAL_IP.sslip.io\":\"\"}}"
+
+kubectl patch svc kourier -n kourier-system -p "{\"spec\": {\"type\": \"LoadBalancer\", \"externalIPs\": [\"$EXTERNAL_IP\"]}}"
+```
+
+- 验证外部IP
+
+```bash
+kubectl --namespace kourier-system get service kourier
+```
+
+#### 私有pypi服务器搭建
+
+```bash
+docker pull pypiserver/pypiserver:v2.2.0
+mkdir -p ~/.pypi
+cp deploy_pku/htpasswd.txt ~
+docker run --restart always --name pypi -d -p 12121:8080 -v ~/.pypi/:/data/packages -v ~/htpasswd.txt:/data/.htpasswd  pypiserver/pypiserver:v2.2.0 run -P .htpasswd packages
+```
+
+#### 私有镜像仓库搭建
+
+
+```bash
+docker pull registry:2
+docker run --restart always -d -p 5000:5000 --name registry -v /root/dockerimage:/var/lib/registry registry:2
+```
+
+
+#### 镜像faasit-runtime 构建
+
+- 上传`faasit-runtime`
+```bash
+cd faasit-runtime/faasit-python-runtime
+bash build.sh
+```
+
+- 构建镜像
+```bash
+cd faasit/faasit-docker/kn
+
+# 可自行修改build.sh中的版本信息
+bash build.sh
+```
+
+
+
+
+## 阿里云集成
+
+- 通过阿里云账户得到如下信息并写到环境变量中
+
+```bash
+export FAASIT_SECRET_ALIYUN_ACCOUNT_ID=176xxxxxxxxx
+export ALIBABA_CLOUD_OSS_BUCKET_NAME=faasit
+export ALIBABA_CLOUD_OSS_REGION=oss-cn-hangzhou
+export FAASIT_SECRET_ALIYUN_ACCESS_KEY_ID=LTAxxxxxxxxxxxxxxxx
+export FAASIT_SECRET_ALIYUN_ACCESS_KEY_SECRET=o3vxxxxxxxxxxxxxxxxx
+export FAASIT_SECRET_ALIYUN_REGION=cn-hangzhou
+```
+
+
 ## 北大集成
 
 ### 线下环境配置

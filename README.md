@@ -1,10 +1,5 @@
 # FaasIt
 
-## Intro
-
-- 在线 IDE 地址：https://try-faasit.brody715.com
-- 在线 IDE 代码（基于 Github1s）：https://github.com/brody715/faasit-cloud-editor
-
 ## Quick Start
 
 **模块下载 & 同步**

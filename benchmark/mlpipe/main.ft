@@ -1,67 +1,59 @@
-@function download_0 {
-    runtime = "python"
-    codeDir = "./code"
-    handler = "index.download"
-    resource = {
-        cpu = 2
-    }
-}
-
-@function preprocess_1 {
+@function preprocess {
     runtime = "python"
     codeDir = "./code"
     handler = "index.preprocess"
     resource = {
-        cpu = 2
+        memory = 512
     }
 }
 
-@function train_2 {
+@function train {
     runtime = "python"
     codeDir = "./code"
     handler = "index.train"
     resource = {
-        cpu = 4
+        memory = 512
     }
 }
 
-@function test_3 {
+@function test {
     runtime = "python"
     codeDir = "./code"
     handler = "index.test"
     resource = {
-        cpu = 2
+        memory = 512
     }
 }
-
-
-@workflow mlpipeworkflow {
-    functions = [download_0, preprocess_1, train_2, test_3]
-
-    // workflow spec runtime
+@function mlpipe {
     runtime = "python"
     codeDir = "./code"
     handler = "index.mlpipe"
+    resource = {
+        memory = 512
+    }
 }
 
 @application mlpipe {
-    workflow = mlpipeworkflow
-    defaultProvider = pku
-    providers= [pku]
+    functions = [mlpipe, preprocess, train, test]
+    defaultProvider = kn
+    providers= [kn,ali]
 
     // used by `ft run`
     
 }
 
-@provider pku {
-    kind = "pku"
+@provider ali {
+    kind = "aliyun"
+    deploy = {
+        requirements = ["numpy", "scikit_learn"]
+    }
     invoke = {
-        containter_optimized = "true"
-        redis_preload_folder = "./data"
+        timeout = "50000"
     }
 }
 
 @provider kn {
-    kind = 'knaitve'
-    registry = '192.168.80.22:5000'
+    kind = 'knative'
+    registry = '192.168.28.220:5000'
+    redis_data = "./data"
 }

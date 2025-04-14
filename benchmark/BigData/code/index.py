@@ -57,7 +57,7 @@ def wordcount(rt: FaasitRuntime):
     split_num = _input.get("split_num", 3)
     file = _input['file']
     store = rt.storage
-    text = store.get(file).decode('utf-8')
+    text = store.get(file).decode()
 
     text_list:list[str] = rt.call('split', {'split_num': split_num, 'text': text})['results']
     mapper_results = []

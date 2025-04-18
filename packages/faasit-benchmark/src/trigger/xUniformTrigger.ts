@@ -2,9 +2,9 @@
  * @author Karen (x)
  */
 
-import { Trigger } from "./trigger";
+import { xTrigger } from "./xTrigger"
 
-export class xUniformTrigger implements Trigger {
+export class xUniformTrigger implements xTrigger {
     initDelayTime: number
     mode: 0 | 1
     baseModeParam: number

@@ -2,10 +2,10 @@
  * @author Karen (x)
  */
 
-import { Trigger } from "./trigger";
+import { xTrigger } from "./xTrigger"
 import { getGammaRandom } from "./xGammaRandomGenerator";
 
-export class xGammaTrigger implements Trigger {
+export class xGammaTrigger implements xTrigger {
     initDelayTime: number
     mode: 0 | 1
     baseModeParam: number
@@ -38,6 +38,11 @@ export class xGammaTrigger implements Trigger {
         this.burstCount = burstCount
     }
 
+    private getNextInterval(): number {
+        const interval = getGammaRandom(this.shape, this.scale, this.minInterval, this.maxInterval);
+        return interval;
+    }
+
     async execute(payload: (id: number) => Promise<void>): Promise<void> {
         this.validateParams()
         
@@ -52,7 +57,7 @@ export class xGammaTrigger implements Trigger {
         const joins: Promise<void>[] = []
 
         while (true) {
-            const interval = getGammaRandom(this.shape, this.scale, this.minInterval, this.maxInterval);
+            const interval = this.getNextInterval();
 
             currentTime += interval;
 

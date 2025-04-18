@@ -2,10 +2,10 @@
  * @author Karen (x)
  */
 
-import { Trigger } from "./trigger";
+import { xTrigger } from "./xTrigger"
 import { getGammaRandom } from "./xGammaRandomGenerator";
 
-export class xMixedTrigger implements Trigger {
+export class xMixedTrigger implements xTrigger {
     initDelayTime: number
     mode: 0 | 1
     baseModeParam: number
@@ -58,6 +58,7 @@ export class xMixedTrigger implements Trigger {
 
     private getNextInterval(currentTime: number): number {
         const selectMode = this.selectRandomDistribution();
+        console.log(" [INFO] selectMode: " + selectMode)
         const modeType = this.modeTypes[selectMode];
         const modeParam = this.modeParams[selectMode];
         switch (modeType) {
@@ -128,6 +129,8 @@ export class xMixedTrigger implements Trigger {
             }
 
             await new Promise(r => setTimeout(r, interval * 1000));
+
+            console.log(" [INFO] interval: " + interval + " seconds. currentTime: " + currentTime + " seconds.");
 
             joins.push(payload(id));
             id++;

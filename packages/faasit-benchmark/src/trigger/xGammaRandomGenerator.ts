@@ -3,12 +3,35 @@
  */
 
 // Marsaglia polar method
-function gaussianRandom(): number {
-    let u = 0;
-    let v = 0;
-    while (u === 0) u = Math.random(); //Converting [0,1) to (0,1)
-    while (v === 0) v = Math.random();
-    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+let spare: number | null = null;
+export function gaussianRandom(): number {
+    if (spare !== null) {
+        const val = spare;
+        spare = null;
+        return val;
+    }
+
+    let u: number, v: number, s: number;
+    // Generate two uniform random numbers in the range (-1, 1)
+    // and check if they are within the unit circle
+    // If not, repeat the process
+    // until we find a pair that is within the unit circle
+    // This is the Marsaglia polar method
+    // which is a method to generate normally distributed random numbers
+    // using uniform random numbers
+    // The method is based on the fact that if we have two independent
+    // uniform random numbers in the range (-1, 1)
+    // we can generate a normally distributed random number
+    // by using the Box-Muller transform
+    do {
+        u = Math.random() * 2 - 1;
+        v = Math.random() * 2 - 1;
+        s = u * u + v * v;
+    } while (s >= 1 || s === 0);
+
+    const mul = Math.sqrt(-2 * Math.log(s) / s);
+    spare = v * mul;
+    return u * mul;
 }
 
 // Marsaglia Tsang method

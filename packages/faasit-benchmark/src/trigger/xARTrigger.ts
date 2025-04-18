@@ -2,9 +2,10 @@
  * @author Karen (x)
  */
 
-import { Trigger } from "./trigger";
+import { xTrigger } from "./xTrigger"
+import { gaussianRandom } from "./xGammaRandomGenerator"
 
-export class xARTrigger implements Trigger {
+export class xARTrigger implements xTrigger {
     initDelayTime: number
     mode: 0 | 1
     baseModeParam: number
@@ -18,7 +19,8 @@ export class xARTrigger implements Trigger {
         baseModeParam: number,
         limitModeParam: number,
         phi: number,
-        scale: number
+        scale: number,
+        initValue: number = 0.001
     ) {
         this.initDelayTime = initDelayTime
         this.mode = mode
@@ -26,10 +28,16 @@ export class xARTrigger implements Trigger {
         this.limitModeParam = limitModeParam
         this.phi = phi
         this.scale = scale
+        this.currentValue = Math.max(initValue, 0.001);
     }
 
     private getNextInterval(): number {
-        return Math.max(this.phi * this.currentValue + this.scale * (Math.random() - 0.5) * 2, 0);
+        const noise = Math.max(-3 * this.scale,
+            Math.min(3 * this.scale,
+                this.scale * gaussianRandom()));
+        const newInterval = this.phi * this.currentValue + noise;
+        this.currentValue = Math.max(Math.abs(newInterval), 0.001);
+        return this.currentValue;
     }
 
     async execute(payload: (id: number) => Promise<void>): Promise<void> {
@@ -39,8 +47,6 @@ export class xARTrigger implements Trigger {
             console.log(`Initial delay time: ${this.initDelayTime} seconds.`);
         }
         await new Promise(resolve => setTimeout(resolve, this.initDelayTime * 1000));
-
-        this.currentValue = this.scale;
 
         let currentTime = 0;
         let generatedCount = 0;

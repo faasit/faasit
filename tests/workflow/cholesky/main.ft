@@ -38,12 +38,12 @@
 
 @provider kn {
     kind = 'knative'
-    registry = "192.168.28.220:5000"
+    registry = "192.168.0.100:5000"
 }
 
 @provider k8s {
     kind = 'knative'
-    registry = "192.168.28.220:5000"
+    registry = "192.168.0.100:5000"
 }
 
 @provider ali {

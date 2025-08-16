@@ -36,4 +36,4 @@
 	ignore = dirty
 [submodule "tests/devops"]
 	path = tests/devops
-	url = https://github.com/faasit/faasit-devops
+	url = git@github.com:faasit/faasit-devops

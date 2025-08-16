@@ -7,7 +7,7 @@ spec:
   template:
     spec:
       containers:
-        - image: 192.168.28.220:5000/library/helloapp-hello1:tmp
+        - image: 192.168.0.100:5000/library/helloapp-hello1:tmp
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9000
@@ -35,6 +35,8 @@ spec:
           env:
             - name: FUNC_NAME
               value: hello1
+            - name: FAASIT_FUNC_NAME
+              value: hello1
           command:
             - python
           args:
@@ -56,7 +58,7 @@ spec:
   template:
     spec:
       containers:
-        - image: 192.168.28.220:5000/library/helloapp-hello2:tmp
+        - image: 192.168.0.100:5000/library/helloapp-hello2:tmp
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9000
@@ -84,6 +86,8 @@ spec:
           env:
             - name: FUNC_NAME
               value: hello2
+            - name: FAASIT_FUNC_NAME
+              value: hello2
           command:
             - python
           args:
@@ -105,7 +109,7 @@ spec:
   template:
     spec:
       containers:
-        - image: 192.168.28.220:5000/library/helloapp-hello:tmp
+        - image: 192.168.0.100:5000/library/helloapp-hello:tmp
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 9000
@@ -132,6 +136,8 @@ spec:
               type: RuntimeDefault
           env:
             - name: FUNC_NAME
+              value: hello
+            - name: FAASIT_FUNC_NAME
               value: hello
           command:
             - python

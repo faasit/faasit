@@ -1,0 +1,78 @@
+@function stage0 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "init.initUserAndPost"
+}
+@function stage1 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "request.request"
+}
+
+@function stage2 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "userlogin.userLogin"
+}
+
+@function stage3 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "getprofile.profileFollowers"
+}
+
+@function stage4 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "post.post"
+}
+
+@function stage5 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "timeline.timeline"
+}
+
+@function stage6 {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "collect.collectResult"
+}
+
+@workflow retwisworkflow {
+    runtime = "python"
+    codeDir = "./code"
+    handler = "workflow.retwisworkflow"
+    functions = [
+        stage0,
+        stage1,
+        stage2,
+        stage3,
+        stage4,
+        stage5,
+        stage6
+    ]
+}
+
+@application retwis {
+    workflow = retwisworkflow
+    defaultProvider = k8s
+    providers= [kn,k8s,ali]
+
+}
+@provider kn {
+    kind = "knative"
+    registry = "192.168.5.5:5000"
+}
+
+@provider k8s {
+    kind = "k8s"
+    registry = "192.168.5.5:5000"
+}
+
+@provider ali {
+    kind = "aliyun"
+    invoke = {
+        timeout = "50000"
+    }
+}

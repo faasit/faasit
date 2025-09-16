@@ -6,7 +6,7 @@
 
 @application main {
     functions = [reverse]
-    providers = [kn]
+    providers = [kn,k8s,ali]
     defaultProvider = kn
     inputExamples = [
         {
@@ -19,6 +19,20 @@
 
 @provider kn {
     kind = "knative"
-    registry = "192.168.0.100:5000"
+    registry = "192.168.28.220:5000"
     redis_data = "./data"
+}
+
+@provider k8s {
+    kind = "k8s"
+    registry = "192.168.28.220:5000"
+    redis_data = "./data"
+}
+
+@provider ali {
+    kind = "aliyun"
+    oss = {
+        bucket = "test"
+        region = "cn-handzhou"
+    }
 }

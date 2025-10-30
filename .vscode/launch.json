@@ -2,6 +2,30 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Python 调试程序: 模块",
+      "type": "debugpy",
+      "request": "launch",
+      "module": "serverless_framework.distributed_controller",
+      "args": [
+        "--repeat",
+        "1",
+        "--launch",
+        "tradition",
+        "--transmode",
+        "auto",
+        "--redis_yaml",
+        "distributed-redis.yaml",
+        "--redis_secret_yaml",
+        "distributed-redis-secret.yaml",
+        "--ditto_placement",
+        "--redis_num",
+        "1",
+        "--multi_config_path",
+        "workflow_gpu"
+      ],
+      "cwd": "${fileDirname}"
+    },
+    {
       "name": "Python 调试程序: 当前文件",
       "type": "debugpy",
       "request": "launch",
